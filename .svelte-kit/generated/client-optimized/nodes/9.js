@@ -1,1 +1,0 @@
-export { default as component } from "../../../../src/routes/projects/[id]/workflow/+page.svelte";
