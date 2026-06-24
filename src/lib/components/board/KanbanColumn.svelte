@@ -1,86 +1,143 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { Plus, Edit2, Eye } from 'lucide-svelte';
+	import { Plus, Pencil } from 'lucide-svelte';
 	import TicketCard from './TicketCard.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
-	
+
 	interface Props {
 		status: BoardStatus;
 		tickets: Ticket[];
 		projectId: number;
+		colorIndex: number;
 		onNewTicket: () => void;
+		onTicketDrop: (ticketId: number) => void;
 	}
-	
+
 	export let status: BoardStatus;
 	export let tickets: Ticket[];
 	export let projectId: number;
+	export let colorIndex: number = 0;
 	export let onNewTicket: () => void;
-	
-	// Tickets sortieren nach updated_at (neueste zuerst)
-	let sortedTickets: Ticket[] = [];
-	$: sortedTickets = [...tickets].sort((a, b) => 
-		new Date(b.updated_at || b.created_at).getTime() - 
+	export let onTicketDrop: (ticketId: number) => void;
+	export let onTicketClick: (ticketId: number) => void = () => {};
+	export let onOpenStatuses: () => void = () => {};
+
+	const accentColors = [
+		{ border: '#00d4ff', glow: 'rgba(0,212,255,0.2)', bg: 'rgba(0,212,255,0.08)' },
+		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.2)', bg: 'rgba(139,92,246,0.08)' },
+		{ border: '#00ff87', glow: 'rgba(0,255,135,0.2)', bg: 'rgba(0,255,135,0.08)' },
+		{ border: '#ffd000', glow: 'rgba(255,208,0,0.2)', bg: 'rgba(255,208,0,0.08)' },
+		{ border: '#ff2255', glow: 'rgba(255,34,85,0.2)', bg: 'rgba(255,34,85,0.08)' },
+	];
+	$: accent = accentColors[colorIndex % accentColors.length];
+
+	let isDragOver = false;
+
+	$: sortedTickets = [...tickets].sort((a, b) =>
+		new Date(b.updated_at || b.created_at).getTime() -
 		new Date(a.updated_at || a.created_at).getTime()
 	);
+
+	function handleDragOver(e: DragEvent) {
+		e.preventDefault();
+		isDragOver = true;
+	}
+
+	function handleDragLeave(e: DragEvent) {
+		// Only clear if leaving the column entirely (not entering a child)
+		if (!e.currentTarget || !(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+			isDragOver = false;
+		}
+	}
+
+	function handleDrop(e: DragEvent) {
+		e.preventDefault();
+		isDragOver = false;
+		const ticketId = parseInt(e.dataTransfer?.getData('ticketId') || '');
+		if (!isNaN(ticketId)) onTicketDrop(ticketId);
+	}
 </script>
 
-<div class="w-64 flex-shrink-0">
+<div class="flex flex-col rounded-xl overflow-hidden transition-all duration-200"
+	style="border: 1px solid {isDragOver ? accent.border : 'var(--border)'}; background: var(--card-bg); box-shadow: {isDragOver ? `0 0 20px ${accent.glow}` : '0 2px 12px rgba(0,0,0,0.2)'};"
+>
 	<!-- Column Header -->
-	<div class="bg-[var(--secondary)] text-white px-3 py-2 rounded-t-lg flex items-center justify-between">
-		<div class="flex items-center gap-2 overflow-hidden">
-			<span class="font-medium truncate">{status.display_name}</span>
-			<span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">{tickets.length}</span>
+	<div
+		class="px-4 py-3 flex items-center justify-between gap-2"
+		style="background: {accent.bg}; border-bottom: 1px solid {accent.border}40;"
+	>
+		<div class="flex items-center gap-2 min-w-0">
+			<div class="w-2 h-2 rounded-full shrink-0" style="background: {accent.border}; box-shadow: 0 0 6px {accent.border};"></div>
+			<span class="font-semibold truncate text-sm" style="color: var(--text);">{status.display_name}</span>
+			<span
+				class="shrink-0 text-xs px-1.5 py-0.5 rounded-full font-medium"
+				style="background: {accent.border}20; color: {accent.border}; border: 1px solid {accent.border}40;"
+			>{tickets.length}</span>
 		</div>
-		<div class="flex gap-1">
-			<button 
-				onclick={() => goto(`/projects/${projectId}/statuses`)}
-				class="p-1 rounded hover:bg-white/20 transition-colors"
+		<div class="flex items-center gap-1 shrink-0">
+			<button
+				onclick={onOpenStatuses}
+				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
+				style="color: var(--text-muted);"
+				onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.color = accent.border; }}
+				onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
 				title="Status bearbeiten"
 			>
-				<Edit2 class="w-3 h-3" />
+				<Pencil class="w-3 h-3" />
 			</button>
-			<button 
+			<button
 				onclick={onNewTicket}
-				class="p-1 rounded hover:bg-white/20 transition-colors"
+				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
+				style="color: var(--text-muted);"
+				onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.color = accent.border; }}
+				onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
 				title="Neues Ticket"
 			>
-				<Plus class="w-3 h-3" />
+				<Plus class="w-3.5 h-3.5" />
 			</button>
 		</div>
 	</div>
-	
-	<!-- Column Body -->
-	<div class="bg-[var(--card-bg)] border border-t-0 border-[var(--border)] rounded-b-lg p-2 space-y-2 min-h-[200px]">
+
+	<!-- Drop Zone Body -->
+	<div
+		class="flex-1 p-2 space-y-2 min-h-[160px] transition-all duration-200"
+		style="background: {isDragOver ? accent.bg : 'transparent'};"
+		ondragover={handleDragOver}
+		ondragleave={handleDragLeave}
+		ondrop={handleDrop}
+	>
 		{#if sortedTickets.length === 0}
-			<!-- Empty Column -->
-			<div class="p-4 text-center text-[var(--text-muted)] text-sm">
-				<p>Keine Tickets</p>
-				<button 
-					onclick={onNewTicket}
-					class="text-[var(--primary)] hover:underline mt-1"
-				>
-					+ Neues Ticket
-				</button>
+			<div
+				class="flex flex-col items-center justify-center py-8 rounded-lg border-2 border-dashed text-xs transition-all duration-200"
+				style="border-color: {isDragOver ? accent.border : 'var(--border)'}; color: var(--text-muted);"
+			>
+				{#if isDragOver}
+					<div class="w-8 h-8 rounded-full flex items-center justify-center mb-2" style="background: {accent.bg}; color: {accent.border};">
+						<Plus class="w-4 h-4" />
+					</div>
+					<span style="color: {accent.border};">Hier ablegen</span>
+				{:else}
+					Keine Tickets
+					<button onclick={onNewTicket} class="mt-1 transition-colors" style="color: var(--primary);" onmouseenter={(e) => e.currentTarget.style.opacity = '0.7'} onmouseleave={(e) => e.currentTarget.style.opacity = '1'}>
+						+ Neu
+					</button>
+				{/if}
 			</div>
 		{:else}
-			<!-- Tickets -->
-			{#each sortedTickets as ticket}
-				<TicketCard
-					ticket={ticket}
-					projectId={projectId}
-					status={status}
-				/>
+			{#each sortedTickets as ticket (ticket.id)}
+				<TicketCard {ticket} {projectId} {status} {onTicketClick} />
 			{/each}
 		{/if}
-		
-		<!-- Add Ticket Button (footer) -->
-		<button 
-			onclick={onNewTicket}
-			class="w-full flex items-center justify-center gap-2 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--border)] rounded-md transition-colors"
-		>
-			<Plus class="w-4 h-4" />
-			Neues Ticket
-		</button>
 	</div>
+
+	<!-- Footer -->
+	<button
+		onclick={onNewTicket}
+		class="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs transition-all duration-200"
+		style="color: var(--text-muted); border-top: 1px solid var(--border);"
+		onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.color = accent.border; }}
+		onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+	>
+		<Plus class="w-3.5 h-3.5" />
+		Neues Ticket
+	</button>
 </div>

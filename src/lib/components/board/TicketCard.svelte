@@ -1,72 +1,48 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { User, CheckSquare, MessageSquare } from 'lucide-svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
-	
-	interface Props {
-		ticket: Ticket;
-		projectId: number;
-		status: BoardStatus;
-	}
-	
+
 	export let ticket: Ticket;
 	export let projectId: number;
 	export let status: BoardStatus;
-	
-	// Avatars: Initialien aus Assignee extrahieren
-	let assigneeInitials = '?';
-	$: assigneeInitials = ticket.assignee ? 
-		ticket.assignee.split(' ')
-			.map(part => part.charAt(0).toUpperCase())
-			.slice(0, 2)
-			.join('')
-		: '?';
-	
-	// Avatars Hintergrundfarbe basierend auf ID
-	const avatarColors = [
-		'bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500',
-		'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
-	];
-	let avatarColor = avatarColors[0];
-	$: avatarColor = avatarColors[ticket.id % avatarColors.length];
+	export let onTicketClick: (ticketId: number) => void = () => {};
+
+	let isDragging = false;
+
+	$: assigneeInitials = ticket.assignee
+		? ticket.assignee.split(' ').map(p => p.charAt(0).toUpperCase()).slice(0, 2).join('')
+		: null;
+
+	const avatarHues = [195, 270, 150, 45, 345, 310, 220, 175];
+	$: hue = avatarHues[ticket.id % avatarHues.length];
+
+	function handleDragStart(e: DragEvent) {
+		isDragging = true;
+		e.dataTransfer?.setData('ticketId', String(ticket.id));
+		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+	}
+
+	function handleDragEnd() { isDragging = false; }
 </script>
 
-<div 
-	class="bg-white p-3 rounded-lg border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-	onclick={() => goto(`/tickets/${ticket.id}`)}
+<div
+	draggable="true"
+	ondragstart={handleDragStart}
+	ondragend={handleDragEnd}
+	onclick={() => onTicketClick(ticket.id)}
+	class="p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
+	style="background: {isDragging ? 'var(--card-bg-hover)' : '#0a0a18'}; border-color: {isDragging ? 'var(--primary)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1}; box-shadow: {isDragging ? '0 0 16px var(--primary-glow)' : 'none'}; transform: {isDragging ? 'rotate(1.5deg) scale(1.02)' : 'none'};"
+	onmouseenter={(e) => { if (!isDragging) e.currentTarget.style.borderColor = 'var(--border-bright)'; }}
+	onmouseleave={(e) => { if (!isDragging) e.currentTarget.style.borderColor = 'var(--border)'; }}
 >
-	<!-- Card Header -->
-	<div class="flex items-start justify-between gap-2 mb-2">
-		<div class="flex-1 min-w-0">
-			<h3 class="font-medium text-[var(--text)] truncate text-sm">{ticket.title}</h3>
-			<p class="text-xs text-[var(--text-muted)] mt-0.5">
-				#{ticket.id}
-			</p>
-		</div>
-	</div>
-	
-	<!-- Card Footer -->
+	<p class="text-sm font-medium leading-snug mb-2" style="color: var(--text);">{ticket.title}</p>
 	<div class="flex items-center justify-between gap-2">
-		<!-- Assignee -->
-		<div class="flex items-center gap-1">
-			{#if ticket.assignee}
-				<div 
-					class="w-6 h-6 rounded-full {avatarColor} flex items-center justify-center text-white text-xs font-medium"
-					title="{ticket.assignee}"
-				>
-					{assigneeInitials}
-				</div>
-			{/if}
-		</div>
-		
-		<!-- Status Badge -->
-		<div class="flex-1 min-w-0">
-			<span 
-				class="badge badge-primary truncate"
-				title="{status.display_name}"
-			>
-				{status.name}
-			</span>
-		</div>
+		<span class="text-xs font-mono" style="color: var(--text-muted);">#{ticket.id}</span>
+		{#if assigneeInitials}
+			<div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+				style="background: hsl({hue},70%,25%); color: hsl({hue},80%,70%); border: 1px solid hsl({hue},70%,40%);"
+				title={ticket.assignee || ''}>
+				{assigneeInitials}
+			</div>
+		{/if}
 	</div>
 </div>
