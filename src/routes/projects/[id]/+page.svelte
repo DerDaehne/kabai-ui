@@ -1,10 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { ArrowLeft, Settings, List, Network } from 'lucide-svelte';
 	import { page } from '$app/stores';
+	import { fly, fade } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
+	import { Settings, Layers, Network } from 'lucide-svelte';
 	import KanbanBoard from '$components/board/KanbanBoard.svelte';
+	import Modal from '$components/ui/Modal.svelte';
+	import TicketModal from '$components/tickets/TicketModal.svelte';
+	import StatusesModal from '$components/statuses/StatusesModal.svelte';
+	import WorkflowModal from '$components/workflow/WorkflowModal.svelte';
 	import type { Project, BoardStatus, Ticket } from '$lib/types';
+
+	$: id = $page.params.id;
 
 	let project: Project | null = null;
 	let statuses: BoardStatus[] = [];
@@ -12,146 +20,141 @@
 	let isLoading = true;
 	let error = '';
 
-	$: id = $page.params.id;
-	
-	// Daten abrufen
+	// Modal state
+	let openTicketId: number | null = null;
+	let showStatuses = false;
+	let showWorkflow = false;
+
 	async function fetchBoardData() {
 		try {
 			isLoading = true;
-			
-			// Projekt abrufen
-			const projectResponse = await fetch(`/api/projects/${id}`);
-			const projectResult = await projectResponse.json();
-			
-			if (!projectResult.ok) {
-				error = projectResult.error || 'Projekt nicht gefunden';
-				return;
-			}
-			
-			project = projectResult.data;
-			
-			// Statuses abrufen
-			const statusesResponse = await fetch(`/api/projects/${id}/statuses`);
-			const statusesResult = await statusesResponse.json();
-			
-			if (statusesResult.ok) {
-				statuses = statusesResult.data.sort((a: BoardStatus, b: BoardStatus) => a.position - b.position);
-			} else {
-				console.error('Fehler beim Laden der Statuses:', statusesResult.error);
-			}
-			
-			// Tickets abrufen
-			const ticketsResponse = await fetch(`/api/projects/${id}/tickets`);
-			const ticketsResult = await ticketsResponse.json();
-			
-			if (ticketsResult.ok) {
-				tickets = ticketsResult.data;
-			} else {
-				console.error('Fehler beim Laden der Tickets:', ticketsResult.error);
-			}
-		} catch (err) {
-			error = 'Netzwerkfehler. Bitte versuchen Sie es erneut.';
-			console.error('Fetch board data error:', err);
+			const [pr, sr, tr] = await Promise.all([
+				fetch(`/api/projects/${id}`).then(r => r.json()),
+				fetch(`/api/projects/${id}/statuses`).then(r => r.json()),
+				fetch(`/api/projects/${id}/tickets`).then(r => r.json())
+			]);
+			if (!pr.ok) { error = pr.error || 'Projekt nicht gefunden'; return; }
+			project = pr.data;
+			if (sr.ok) statuses = sr.data.sort((a: BoardStatus, b: BoardStatus) => a.position - b.position);
+			if (tr.ok) tickets = tr.data;
+		} catch {
+			error = 'Netzwerkfehler';
 		} finally {
 			isLoading = false;
 		}
 	}
-	
-	onMount(() => {
-		fetchBoardData();
-	});
+
+	function onTicketClick(ticketId: number) {
+		openTicketId = ticketId;
+	}
+
+	function onTicketDeleted() {
+		// Remove deleted ticket from board
+		if (openTicketId) tickets = tickets.filter(t => t.id !== openTicketId);
+	}
+
+	// After closing statuses modal, refresh statuses (user may have added/changed)
+	async function onStatusesClose() {
+		showStatuses = false;
+		const res = await fetch(`/api/projects/${id}/statuses`).then(r => r.json());
+		if (res.ok) {
+			statuses = res.data.sort((a: BoardStatus, b: BoardStatus) => a.position - b.position);
+			// Refresh tickets too in case status changes affect display
+			const tr = await fetch(`/api/projects/${id}/tickets`).then(r => r.json());
+			if (tr.ok) tickets = tr.data;
+		}
+	}
+
+	onMount(fetchBoardData);
 </script>
 
-<div class="space-y-6">
+<div class="w-full space-y-5">
 	<!-- Header -->
-	<div class="flex items-center justify-between">
-		<div class="flex items-center gap-4">
-			<button 
-				onclick={() => goto('/projects')}
-				class="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-			>
-				<ArrowLeft class="w-4 h-4" />
-				Zurück
-			</button>
-			
+	<div class="flex items-center justify-between gap-4" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
+		<div class="min-w-0">
 			{#if project}
-				<div>
-					<h1 class="text-2xl font-bold text-[var(--text)]">{project.name}</h1>
-					<p class="text-[var(--text-muted)]">{project.description || 'Kanban-Board'}</p>
-				</div>
+				<h1 class="text-2xl font-bold tracking-tight truncate" style="color: var(--text);">{project.name}</h1>
+				{#if project.description}
+					<p class="text-sm truncate mt-0.5" style="color: var(--text-muted);">{project.description}</p>
+				{/if}
 			{/if}
 		</div>
-		
-		<!-- Actions -->
-		<div class="flex items-center gap-2">
-			<button 
-				onclick={() => goto(`/projects/${id}/statuses`)} 
-				class="btn btn-ghost flex items-center gap-2"
-				title="Statuses verwalten"
-			>
-				<List class="w-4 h-4" />
-				<span class="hidden md:inline">Statuses</span>
+
+		<div class="flex items-center gap-2 shrink-0">
+			<button onclick={() => showStatuses = true}
+				class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
+				style="color: var(--text-muted); background: var(--border);"
+				onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(0,212,255,0.1)'; e.currentTarget.style.color = 'var(--primary)'; }}
+				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+				<Layers class="w-4 h-4" />
+				<span class="hidden sm:inline">Statuses</span>
 			</button>
-			<button 
-				onclick={() => goto(`/projects/${id}/workflow`)} 
-				class="btn btn-ghost flex items-center gap-2"
-				title="Workflow bearbeiten"
-			>
+			<button onclick={() => showWorkflow = true}
+				class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
+				style="color: var(--text-muted); background: var(--border);"
+				onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(139,92,246,0.12)'; e.currentTarget.style.color = 'var(--accent)'; }}
+				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
 				<Network class="w-4 h-4" />
-				<span class="hidden md:inline">Workflow</span>
+				<span class="hidden sm:inline">Workflow</span>
 			</button>
-			<button 
-				onclick={() => goto(`/projects/${id}/settings`)} 
-				class="btn btn-ghost flex items-center gap-2"
-				title="Projekt-Einstellungen"
-			>
+			<button onclick={() => goto(`/projects/${id}/settings`)}
+				class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
+				style="color: var(--text-muted); background: var(--border);"
+				onmouseenter={(e) => { e.currentTarget.style.background = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--text)'; }}
+				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
 				<Settings class="w-4 h-4" />
-				<span class="hidden md:inline">Einstellungen</span>
+				<span class="hidden sm:inline">Einstellungen</span>
 			</button>
 		</div>
 	</div>
-	
-	<!-- Error -->
+
 	{#if error}
-		<div class="p-4 bg-[var(--danger)/10] border border-[var(--danger)] rounded-lg">
-			<p class="text-[var(--danger)]">{error}</p>
-		</div>
+		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>{error}</div>
 	{/if}
-	
-	<!-- Loading -->
+
 	{#if isLoading}
-		<div class="flex items-center justify-center py-12">
-			<svg class="animate-spin h-10 w-10 text-[var(--primary)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-			</svg>
-		</div>
-	{:else if project && statuses.length > 0}
-		<!-- Kanban Board -->
-		<KanbanBoard 
-			projectId={project.id} 
-			statuses={statuses} 
-			tickets={tickets}
-		/>
-	{:else if project}
-		<!-- Empty Board -->
-		<div class="text-center py-12">
-			<div class="w-16 h-16 bg-[var(--border)] rounded-full flex items-center justify-center mx-auto mb-4">
-				<svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-						d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-				</svg>
+		<div class="flex flex-col items-center justify-center py-24 gap-4" in:fade={{ duration: 200 }}>
+			<div class="relative w-10 h-10">
+				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
+					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
 			</div>
-			<h3 class="text-lg font-medium text-[var(--text)] mb-2">Keine Board-Statuses gefunden</h3>
-			<p class="text-[var(--text-muted)] mb-4">
-				Erstellen Sie Statuses, um Ihr Kanban-Board zu konfigurieren.
-			</p>
-			<button 
-				onclick={() => goto(`/projects/${id}/statuses`)} 
-				class="btn btn-primary"
-			>
-				Statuses erstellen
-			</button>
+			<p class="text-sm" style="color: var(--text-muted);">Lade Board…</p>
+		</div>
+
+	{:else if project && statuses.length > 0}
+		<div in:fly={{ y: 16, duration: 400, easing: quintOut }}>
+			<KanbanBoard projectId={project.id} {statuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} />
+		</div>
+
+	{:else if project}
+		<div class="flex flex-col items-center justify-center py-24 rounded-2xl border" style="border-color: var(--border); background: var(--card-bg);" in:fade={{ duration: 300 }}>
+			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2);">
+				<Layers class="w-8 h-8" style="color: var(--text-muted);" />
+			</div>
+			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Keine Board-Statuses</h3>
+			<p class="mb-6 text-sm" style="color: var(--text-muted);">Erstellen Sie Statuses, um das Kanban-Board zu konfigurieren.</p>
+			<button onclick={() => showStatuses = true} class="btn btn-primary">Statuses erstellen</button>
 		</div>
 	{/if}
 </div>
+
+<!-- Ticket Detail Modal -->
+<Modal open={openTicketId !== null} onClose={() => openTicketId = null} size="lg">
+	{#if openTicketId !== null}
+		<TicketModal ticketId={openTicketId} onClose={() => openTicketId = null} onDeleted={onTicketDeleted} />
+	{/if}
+</Modal>
+
+<!-- Statuses Modal -->
+<Modal open={showStatuses} onClose={onStatusesClose} size="lg">
+	{#if showStatuses && project}
+		<StatusesModal projectId={project.id} onClose={onStatusesClose} />
+	{/if}
+</Modal>
+
+<!-- Workflow Modal -->
+<Modal open={showWorkflow} onClose={() => showWorkflow = false} size="xl">
+	{#if showWorkflow && project}
+		<WorkflowModal projectId={project.id} onClose={() => showWorkflow = false} />
+	{/if}
+</Modal>
