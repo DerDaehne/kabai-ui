@@ -54,19 +54,14 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 		
 		const sql = getDb(locals.session.username, locals.session.password);
 		
-		let query = sql`
+		const statusIdNum = queryParams.status_id ? parseInt(queryParams.status_id) : NaN;
+		const statusFilter = !isNaN(statusIdNum) ? sql`AND status_id = ${statusIdNum}` : sql``;
+		const tickets = await sql`
 			SELECT * FROM tickets
 			WHERE project_id = ${projectId}
+			${statusFilter}
+			ORDER BY updated_at DESC
 		`;
-		
-		if (queryParams.status_id) {
-			const statusId = parseInt(queryParams.status_id);
-			if (!isNaN(statusId)) {
-				query = query.append(sql`AND status_id = ${statusId}`);
-			}
-		}
-		
-		const tickets = await query.append(sql`ORDER BY updated_at DESC`);
 		
 		return json({
 			ok: true,
