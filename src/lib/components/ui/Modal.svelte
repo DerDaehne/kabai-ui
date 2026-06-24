@@ -1,68 +1,61 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	
-	interface Props {
-		isOpen: boolean;
-		onClose: () => void;
-		title?: string;
-		children?: any;
+	import { fade, fly } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
+	import { X } from 'lucide-svelte';
+
+	export let open = false;
+	export let onClose: () => void = () => {};
+	export let size: 'sm' | 'md' | 'lg' | 'xl' | 'full' = 'lg';
+
+	const widths: Record<string, string> = {
+		sm: 'max-w-md',
+		md: 'max-w-xl',
+		lg: 'max-w-2xl',
+		xl: 'max-w-4xl',
+		full: 'max-w-[95vw] w-full'
+	};
+
+	function handleKey(e: KeyboardEvent) {
+		if (e.key === 'Escape' && open) onClose();
 	}
-	
-	export let isOpen: boolean;
-	export let onClose: () => void;
-	export let title: string = '';
-	
-	// Escape Key Handler
-	function handleKeyDown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			onClose();
-		}
+
+	$: if (typeof document !== 'undefined') {
+		document.body.style.overflow = open ? 'hidden' : '';
 	}
-	
-	// Click outside handler
-	function handleBackdropClick(e: MouseEvent) {
-		if (e.target === e.currentTarget) {
-			onClose();
-		}
-	}
-	
-	// Body scroll lock
-	$: if (isOpen) {
-		document.body.style.overflow = 'hidden';
-	} else {
-		document.body.style.overflow = '';
-	}
-	
-	// Cleanup
+
 	onDestroy(() => {
-		document.body.style.overflow = '';
+		if (typeof document !== 'undefined') document.body.style.overflow = '';
 	});
 </script>
 
-<svelte:window onkeydown={handleKeyDown} />
+<svelte:window on:keydown={handleKey} />
 
-{#if isOpen}
-	<div 
-		class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in"
-		onclick={handleBackdropClick}
+{#if open}
+	<div
+		class="fixed inset-0 z-50 overflow-y-auto"
+		style="background: rgba(2,2,12,0.88); backdrop-filter: blur(6px);"
+		transition:fade={{ duration: 180 }}
+		onclick={onClose}
 	>
-		<div class="bg-[var(--card-bg)] rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-in zoom-in-95">
-			<!-- Header -->
-			<div class="flex items-center justify-between p-6 border-b border-[var(--border)]">
-				<h2 class="text-lg font-semibold text-[var(--text)]">{title}</h2>
-				<button 
+		<div class="flex min-h-full items-start justify-center p-4 pt-10 pb-16">
+			<div
+				class="relative w-full {widths[size]} rounded-2xl"
+				style="background: var(--card-bg); border: 1px solid var(--border-bright); box-shadow: 0 0 80px rgba(0,212,255,0.07), 0 30px 60px rgba(0,0,0,0.6);"
+				onclick={(e) => e.stopPropagation()}
+				in:fly={{ y: 28, duration: 280, easing: quintOut }}
+			>
+				<!-- Close -->
+				<button
 					onclick={onClose}
-					class="p-1 rounded-md hover:bg-[var(--border)] transition-colors"
-					aria-label="Schließen"
+					class="absolute top-4 right-4 z-10 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+					style="color: var(--text-muted); background: var(--border);"
+					onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(255,34,85,0.15)'; e.currentTarget.style.color = 'var(--danger)'; }}
+					onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
 				>
-					<svg class="w-5 h-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-					</svg>
+					<X class="w-4 h-4" />
 				</button>
-			</div>
-			
-			<!-- Content -->
-			<div class="p-6">
+
 				<slot />
 			</div>
 		</div>
