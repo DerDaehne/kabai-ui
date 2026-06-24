@@ -19,7 +19,7 @@
 <div class="min-h-screen bg-[var(--bg)]">
 	<Navbar session={data.session} />
 	
-	<main class="pt-16 pb-8 px-4 max-w-7xl mx-auto">
+	<main class="pt-16 pb-8 px-4 md:px-6 lg:px-8 w-full">
 		<slot />
 	</main>
 	

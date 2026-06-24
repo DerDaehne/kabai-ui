@@ -19,17 +19,17 @@
 	}
 </script>
 
-<nav class="fixed top-0 left-0 right-0 z-40 bg-[var(--card-bg)] border-b border-[var(--border)] shadow-sm">
+<nav class="fixed top-0 left-0 right-0 z-40" style="background: var(--card-bg); border-bottom: 1px solid var(--border); box-shadow: 0 1px 20px rgba(0,212,255,0.08);">
 	<div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
 		<!-- Logo -->
 		<button 
 			onclick={() => navigate('/')} 
 			class="flex items-center gap-2 bg-transparent border-none cursor-pointer"
 		>
-			<div class="w-8 h-8 bg-[var(--primary)] rounded-lg flex items-center justify-center">
-				<KanbanSquare class="w-5 h-5 text-white" />
+			<div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--primary); box-shadow: 0 0 12px var(--primary-glow);">
+				<KanbanSquare class="w-5 h-5" style="color: #000;" />
 			</div>
-			<span class="font-bold text-xl text-[var(--text)]">kbai-ui</span>
+			<span class="font-bold text-xl" style="color: var(--primary); text-shadow: 0 0 10px var(--primary-glow);">kbai-ui</span>
 		</button>
 		
 		<!-- Navigation Links -->
