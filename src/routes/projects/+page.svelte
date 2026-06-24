@@ -1,174 +1,150 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { Plus, Settings, Trash2, Edit2, Eye } from 'lucide-svelte';
+	import { fly, fade } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
+	import { Plus, Settings, Trash2, ExternalLink, Layers } from 'lucide-svelte';
 	import type { Project } from '$lib/types';
-	
+
 	let projects: Project[] = [];
 	let isLoading = true;
 	let error = '';
-	
-	// Projekte abrufen
+
 	async function fetchProjects() {
 		try {
 			isLoading = true;
-			error = '';
-			
-			const response = await fetch('/api/projects');
-			const result = await response.json();
-			
-			if (result.ok) {
-				projects = result.data;
-			} else {
-				error = result.error || 'Fehler beim Laden der Projekte';
-			}
-		} catch (err) {
-			error = 'Netzwerkfehler. Bitte versuchen Sie es erneut.';
-			console.error('Fetch projects error:', err);
+			const res = await fetch('/api/projects');
+			const result = await res.json();
+			if (result.ok) projects = result.data;
+			else error = result.error || 'Fehler beim Laden';
+		} catch {
+			error = 'Netzwerkfehler';
 		} finally {
 			isLoading = false;
 		}
 	}
-	
-	// Projekt löschen
-	async function handleDelete(projectId: number) {
-		if (!confirm('Sind Sie sicher, dass Sie dieses Projekt löschen möchten? Alle zugehörigen Daten werden ebenfalls gelöscht.')) {
-			return;
-		}
-		
+
+	async function handleDelete(projectId: number, name: string) {
+		if (!confirm(`Projekt "${name}" wirklich löschen? Alle Daten gehen verloren.`)) return;
 		try {
-			const response = await fetch(`/api/projects/${projectId}`, {
-				method: 'DELETE'
-			});
-			
-			const result = await response.json();
-			
-			if (result.ok) {
-				// Projekt aus der Liste entfernen
-				projects = projects.filter(p => p.id !== projectId);
-			} else {
-				alert(result.error || 'Fehler beim Löschen des Projekts');
-			}
-		} catch (err) {
-			alert('Netzwerkfehler. Bitte versuchen Sie es erneut.');
-			console.error('Delete project error:', err);
+			const res = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
+			const result = await res.json();
+			if (result.ok) projects = projects.filter(p => p.id !== projectId);
+			else alert(result.error || 'Fehler beim Löschen');
+		} catch {
+			alert('Netzwerkfehler');
 		}
 	}
-	
-	// bei Mount Projekte laden
-	onMount(() => {
-		fetchProjects();
-	});
+
+	onMount(fetchProjects);
 </script>
 
-<div class="space-y-6">
+<div class="w-full space-y-8">
 	<!-- Header -->
-	<div class="flex items-center justify-between">
+	<div class="flex items-end justify-between gap-4" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
 		<div>
-			<h1 class="text-2xl font-bold text-[var(--text)]">Projekte</h1>
-			<p class="text-[var(--text-muted)] mt-1">Verwalte deine Kanban-Boards</p>
+			<div class="flex items-center gap-3 mb-1">
+				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
+					<Layers class="w-5 h-5" style="color: var(--primary);" />
+				</div>
+				<h1 class="text-3xl font-bold tracking-tight" style="color: var(--text);">Projekte</h1>
+			</div>
+			<p class="ml-12 text-sm" style="color: var(--text-muted);">
+				{projects.length} Projekt{projects.length !== 1 ? 'e' : ''} · Kanban-Boards
+			</p>
 		</div>
-		
-		<button 
-			onclick={() => goto('/projects/new')} 
-			class="btn btn-primary flex items-center gap-2"
-		>
+		<button onclick={() => goto('/projects/new')} class="btn btn-primary flex items-center gap-2 shrink-0">
 			<Plus class="w-4 h-4" />
 			Neues Projekt
 		</button>
 	</div>
-	
-	<!-- Error -->
+
 	{#if error}
-		<div class="p-4 bg-[var(--danger)/10] border border-[var(--danger)] rounded-lg">
-			<p class="text-[var(--danger)]">{error}</p>
+		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+			{error}
 		</div>
 	{/if}
-	
-	<!-- Loading -->
+
 	{#if isLoading}
-		<div class="flex items-center justify-center py-8">
-			<svg class="animate-spin h-8 w-8 text-[var(--primary)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-			</svg>
-		</div>
-	{:else if projects.length === 0}
-		<!-- Empty State -->
-		<div class="text-center py-12">
-			<div class="w-16 h-16 bg-[var(--border)] rounded-full flex items-center justify-center mx-auto mb-4">
-				<svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-						d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-				</svg>
+		<div class="flex flex-col items-center justify-center py-24 gap-4">
+			<div class="relative w-10 h-10">
+				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
+					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
 			</div>
-			<h3 class="text-lg font-medium text-[var(--text)] mb-2">Keine Projekte gefunden</h3>
-			<p class="text-[var(--text-muted)] mb-4">Erstellen Sie Ihr erstes Projekt, um loszulegen.</p>
-			<button 
-				onclick={() => goto('/projects/new')} 
-				class="btn btn-primary"
-			>
-				<Plus class="w-4 h-4 mr-2" />
-				Neues Projekt erstellen
+		</div>
+
+	{:else if projects.length === 0}
+		<div class="flex flex-col items-center justify-center py-24 rounded-2xl border" style="border-color: var(--border); background: var(--card-bg);" in:fade={{ duration: 300 }}>
+			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2);">
+				<Layers class="w-8 h-8" style="color: var(--text-muted);" />
+			</div>
+			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Noch keine Projekte</h3>
+			<p class="mb-6 text-sm" style="color: var(--text-muted);">Erstellen Sie Ihr erstes Projekt, um loszulegen.</p>
+			<button onclick={() => goto('/projects/new')} class="btn btn-primary">
+				Erstes Projekt erstellen
 			</button>
 		</div>
+
 	{:else}
-		<!-- Projects Table -->
-		<div class="overflow-x-auto bg-[var(--card-bg)] rounded-lg border border-[var(--border)]">
-			<table class="w-full">
-				<thead>
-					<tr class="border-b border-[var(--border)]">
-						<th class="px-6 py-4 text-left text-sm font-medium text-[var(--text-muted)]">Name</th>
-						<th class="px-6 py-4 text-left text-sm font-medium text-[var(--text-muted)]">Slug</th>
-						<th class="px-6 py-4 text-left text-sm font-medium text-[var(--text-muted)]">Beschreibung</th>
-						<th class="px-6 py-4 text-left text-sm font-medium text-[var(--text-muted)]">Erstellt</th>
-						<th class="px-6 py-4 text-right text-sm font-medium text-[var(--text-muted)]">Aktionen</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each projects as project}
-						<tr class="border-b border-[var(--border)] last:border-0 hover:bg-[var(--border)] transition-colors">
-							<td class="px-6 py-4">
-								<div class="font-medium text-[var(--text)]">{project.name}</div>
-							</td>
-							<td class="px-6 py-4">
-								<code class="text-sm text-[var(--primary)]">{project.slug}</code>
-							</td>
-							<td class="px-6 py-4">
-								<p class="text-sm text-[var(--text-muted)] truncate-2 max-w-xs">{project.description || '—'}</p>
-							</td>
-							<td class="px-6 py-4">
-								<span class="text-sm text-[var(--text-muted)]">{new Date(project.created_at).toLocaleDateString('de-DE')}</span>
-							</td>
-							<td class="px-6 py-4">
-								<div class="flex items-center justify-end gap-2">
-									<button 
-										onclick={() => goto(`/projects/${project.id}`)}
-										class="p-2 rounded-md hover:bg-[var(--border)] transition-colors text-[var(--text-muted)] hover:text-[var(--text)]"
-										title="Board anzeigen"
-									>
-										<Eye class="w-4 h-4" />
-									</button>
-									<button 
-										onclick={() => goto(`/projects/${project.id}/settings`)}
-										class="p-2 rounded-md hover:bg-[var(--border)] transition-colors text-[var(--text-muted)] hover:text-[var(--text)]"
-										title="Einstellungen"
-									>
-										<Settings class="w-4 h-4" />
-									</button>
-									<button 
-										onclick={() => handleDelete(project.id)}
-										class="p-2 rounded-md hover:bg-[var(--danger)/10] transition-colors text-[var(--danger)]"
-										title="Projekt löschen"
-									>
-										<Trash2 class="w-4 h-4" />
-									</button>
-								</div>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+			{#each projects as project, i (project.id)}
+				{@const hue = [195, 270, 150, 45, 345][i % 5]}
+				<div
+					in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }}
+					class="group rounded-xl p-5 border cursor-pointer transition-all duration-200"
+					style="background: var(--card-bg); border-color: var(--border);"
+					onclick={() => goto(`/projects/${project.id}`)}
+					onmouseenter={(e) => { e.currentTarget.style.borderColor = `hsl(${hue}, 70%, 55%)`; e.currentTarget.style.boxShadow = `0 0 20px hsla(${hue}, 70%, 55%, 0.15)`; }}
+					onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+				>
+					<!-- Color accent dot -->
+					<div class="flex items-start justify-between mb-3">
+						<div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold"
+							style="background: hsla({hue}, 70%, 55%, 0.15); color: hsl({hue}, 70%, 65%); border: 1px solid hsla({hue}, 70%, 55%, 0.3);">
+							{project.name.charAt(0).toUpperCase()}
+						</div>
+						<!-- Actions (shown on hover) -->
+						<div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200" onclick={(e) => e.stopPropagation()}>
+							<button
+								onclick={() => goto(`/projects/${project.id}/settings`)}
+								class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
+								style="color: var(--text-muted);"
+								onmouseenter={(e) => { e.currentTarget.style.background = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--text)'; }}
+								onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+								title="Einstellungen"
+							>
+								<Settings class="w-3.5 h-3.5" />
+							</button>
+							<button
+								onclick={() => handleDelete(project.id, project.name)}
+								class="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
+								style="color: var(--danger);"
+								onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(255,34,85,0.12)'; }}
+								onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+								title="Löschen"
+							>
+								<Trash2 class="w-3.5 h-3.5" />
+							</button>
+						</div>
+					</div>
+
+					<h3 class="font-semibold truncate mb-1" style="color: var(--text);">{project.name}</h3>
+					<code class="text-xs" style="color: var(--text-muted);">{project.slug}</code>
+					{#if project.description}
+						<p class="text-xs mt-2 truncate-2" style="color: var(--text-muted);">{project.description}</p>
+					{/if}
+
+					<div class="mt-4 pt-3 flex items-center justify-between" style="border-top: 1px solid var(--border);">
+						<span class="text-xs" style="color: var(--text-muted);">
+							{new Date(project.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+						</span>
+						<div class="flex items-center gap-1 text-xs" style="color: hsl({hue}, 70%, 65%);">
+							<ExternalLink class="w-3 h-3" />
+							Board
+						</div>
+					</div>
+				</div>
+			{/each}
 		</div>
 	{/if}
 </div>

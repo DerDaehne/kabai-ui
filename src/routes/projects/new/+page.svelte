@@ -1,161 +1,104 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { fly } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 	import { z } from 'zod';
-	
-	// Form State
+	import { ArrowLeft, Plus } from 'lucide-svelte';
+
 	let name = '';
 	let slug = '';
 	let description = '';
 	let error = '';
 	let isLoading = false;
-	
-	// Validierung
-	const createProjectSchema = z.object({
-		name: z.string().min(1, 'Name ist erforderlich'),
-		slug: z.string()
-			.min(1, 'Slug ist erforderlich')
-			.regex(/^[a-z0-9-]+$/, 'Slug darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten'),
-		description: z.string().optional()
-	});
-	
-	// Slug automatisch aus Name generieren
-	$: if (name && !slug) {
+	let slugManual = false;
+
+	$: if (name && !slugManual) {
 		slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 	}
-	
+
+	const schema = z.object({
+		name: z.string().min(1, 'Name ist erforderlich'),
+		slug: z.string().min(1, 'Slug ist erforderlich').regex(/^[a-z0-9-]+$/, 'Nur Kleinbuchstaben, Zahlen und Bindestriche'),
+		description: z.string().optional()
+	});
+
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
+		const v = schema.safeParse({ name, slug, description });
+		if (!v.success) { error = v.error.errors[0].message; return; }
+		error = ''; isLoading = true;
 		try {
-			// Validierung
-			const validation = createProjectSchema.safeParse({
-				name,
-				slug,
-				description
-			});
-			
-			if (!validation.success) {
-				error = validation.error.errors[0].message;
-				return;
-			}
-			
-			error = '';
-			isLoading = true;
-			
-			const response = await fetch('/api/projects', {
+			const res = await fetch('/api/projects', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name, slug, description })
 			});
-			
-			const result = await response.json();
-			
-			if (!result.ok) {
-				error = result.error || 'Fehler beim Erstellen des Projekts';
-				isLoading = false;
-				return;
-			}
-			
-			// Erfolgreich - zu Projekten weiterleiten
-			goto('/projects?success=Projekt+erfolgreich+erstellt');
-		} catch (err) {
-			error = 'Netzwerkfehler. Bitte versuchen Sie es erneut.';
-			console.error('Create project error:', err);
-		} finally {
-			isLoading = false;
-		}
-	}
-	
-	function handleCancel() {
-		goto('/projects');
+			const result = await res.json();
+			if (!result.ok) { error = result.error || 'Fehler beim Erstellen'; return; }
+			goto('/projects?success=Projekt+erstellt');
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isLoading = false; }
 	}
 </script>
 
-<div class="max-w-2xl">
-	<!-- Header -->
-	<div class="mb-6">
-		<h1 class="text-2xl font-bold text-[var(--text)]">Neues Projekt</h1>
-		<p class="text-[var(--text-muted)] mt-1">Erstellen Sie ein neues Kanban-Board</p>
-	</div>
-	
-	<!-- Form -->
-	<div class="card p-6">
-		<form onsubmit={handleSubmit} class="space-y-4">
-			<!-- Name -->
-			<div>
-				<label class="label" for="name">Name *</label>
-				<input
-					id="name"
-					type="text"
-					bind:value={name}
-					class="input"
-					placeholder="z.B. Website-Relaunch, Produktentwicklung"
-					required
-				/>
+<div class="w-full max-w-2xl">
+	<button
+		onclick={() => goto('/projects')}
+		class="inline-flex items-center gap-2 mb-6 text-sm transition-all duration-200 group"
+		style="color: var(--text-muted);"
+		in:fly={{ y: -12, duration: 300, easing: quintOut }}
+	>
+		<ArrowLeft class="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
+		Zurück zu Projekten
+	</button>
+
+	<div in:fly={{ y: 20, duration: 400, easing: quintOut }}>
+		<div class="flex items-center gap-3 mb-8">
+			<div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+				style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
+				<Plus class="w-5 h-5" style="color: var(--primary);" />
 			</div>
-			
-			<!-- Slug -->
 			<div>
-				<label class="label" for="slug">Slug *</label>
-				<div class="flex gap-2">
-					<input
-						id="slug"
-						type="text"
-						bind:value={slug}
-						class="input flex-1"
-						placeholder="z.B. website-relaunch, produktentwicklung"
-						required
-					/>
+				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Neues Projekt</h1>
+				<p class="text-sm" style="color: var(--text-muted);">Kanban-Board erstellen</p>
+			</div>
+		</div>
+
+		<div class="rounded-2xl p-6" style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+			<form onsubmit={handleSubmit} class="space-y-5">
+				<div>
+					<label class="block text-sm font-medium mb-2" style="color: var(--text);">Name *</label>
+					<input type="text" bind:value={name} class="input" placeholder="z.B. Website-Relaunch" autofocus required />
 				</div>
-				<p class="text-xs text-[var(--text-muted)] mt-1">
-					Nur Kleinbuchstaben, Zahlen und Bindestriche. Wird automatisch aus dem Namen generiert.
-				</p>
-			</div>
-			
-			<!-- Description -->
-			<div>
-				<label class="label" for="description">Beschreibung</label>
-				<textarea
-					id="description"
-					bind:value={description}
-					class="input min-h-[100px] resize-vertical"
-					placeholder="Beschreiben Sie das Projekt..."
-				></textarea>
-			</div>
-			
-			<!-- Error -->
-			{#if error}
-				<div class="p-3 bg-[var(--danger)/10] border border-[var(--danger)] rounded-md">
-					<p class="text-sm text-[var(--danger)]">{error}</p>
+				<div>
+					<label class="block text-sm font-medium mb-2" style="color: var(--text);">Slug *</label>
+					<input type="text" bind:value={slug} oninput={() => slugManual = true} class="input font-mono" placeholder="website-relaunch" required />
+					<p class="mt-1 text-xs" style="color: var(--text-muted);">Nur Kleinbuchstaben, Zahlen und Bindestriche — wird automatisch generiert.</p>
 				</div>
-			{/if}
-			
-			<!-- Actions -->
-			<div class="flex gap-3 pt-4">
-				<button
-					type="button"
-					onclick={handleCancel}
-					class="btn btn-ghost"
-				>
-					Abbrechen
-				</button>
-				<button
-					type="submit"
-					class="btn btn-primary flex-1"
-					disabled={isLoading}
-				>
-					{#if isLoading}
-						<span class="flex items-center justify-center gap-2">
-							<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-							</svg>
-							Projekt erstellen...
-						</span>
-					{:else}
-						Projekt erstellen
-					{/if}
-				</button>
-			</div>
-		</form>
+				<div>
+					<label class="block text-sm font-medium mb-2" style="color: var(--text);">
+						Beschreibung <span class="text-xs" style="color: var(--text-muted);">(optional)</span>
+					</label>
+					<textarea bind:value={description} class="input resize-none" rows="3" placeholder="Kurze Beschreibung…"></textarea>
+				</div>
+
+				{#if error}
+					<div class="p-3 rounded-lg text-sm" style="background: rgba(255,34,85,0.08); border: 1px solid rgba(255,34,85,0.3); color: var(--danger);">{error}</div>
+				{/if}
+
+				<div class="flex gap-3 pt-2">
+					<button type="button" onclick={() => goto('/projects')} class="btn btn-ghost">Abbrechen</button>
+					<button type="submit" disabled={isLoading || !name || !slug}
+						class="btn btn-primary flex items-center gap-2 flex-1 justify-center">
+						{#if isLoading}
+							<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+							Erstellen…
+						{:else}
+							<Plus class="w-4 h-4" /> Projekt erstellen
+						{/if}
+					</button>
+				</div>
+			</form>
+		</div>
 	</div>
 </div>

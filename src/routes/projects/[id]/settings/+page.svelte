@@ -2,232 +2,158 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { fly } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 	import { z } from 'zod';
-	import { Trash2, ArrowLeft } from 'lucide-svelte';
+	import { ArrowLeft, Settings, Trash2, Check } from 'lucide-svelte';
 	import type { Project } from '$lib/types';
+
+	$: id = $page.params.id;
 
 	let project: Project | null = null;
 	let name = '';
 	let description = '';
 	let isLoading = true;
-	let error = '';
+	let isSaving = false;
 	let isDeleting = false;
+	let error = '';
+	let saved = false;
 
-	$: id = $page.params.id;
-	
-	// Projekt abrufen
 	async function fetchProject() {
 		try {
 			isLoading = true;
-			const response = await fetch(`/api/projects/${id}`);
-			const result = await response.json();
-			
-			if (result.ok) {
-				project = result.data;
-				name = project.name;
-				description = project.description || '';
-			} else {
-				error = result.error || 'Projekt nicht gefunden';
-			}
-		} catch (err) {
-			error = 'Netzwerkfehler';
-			console.error('Fetch project error:', err);
-		} finally {
-			isLoading = false;
-		}
+			const res = await fetch(`/api/projects/${id}`);
+			const result = await res.json();
+			if (result.ok) { project = result.data; name = project!.name; description = project!.description || ''; }
+			else error = result.error || 'Projekt nicht gefunden';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isLoading = false; }
 	}
-	
-	// Validierung
-	const updateProjectSchema = z.object({
+
+	const schema = z.object({
 		name: z.string().min(1, 'Name ist erforderlich'),
 		description: z.string().nullable().optional()
 	});
-	
-	// Projekt aktualisieren
+
 	async function handleSubmit() {
+		const v = schema.safeParse({ name, description });
+		if (!v.success) { error = v.error.errors[0].message; return; }
+		isSaving = true; error = '';
 		try {
-			const validation = updateProjectSchema.safeParse({ name, description });
-			if (!validation.success) {
-				error = validation.error.errors[0].message;
-				return;
-			}
-			
-			error = '';
-			const response = await fetch(`/api/projects/${id}`, {
+			const res = await fetch(`/api/projects/${id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name, description })
 			});
-			
-			const result = await response.json();
-			
-			if (result.ok) {
-				project = result.data;
-				goto(`/projects?success=Projekt+erfolgreich+aktualisiert`);
-			} else {
-				error = result.error || 'Fehler beim Aktualisieren';
-			}
-		} catch (err) {
-			error = 'Netzwerkfehler';
-			console.error('Update project error:', err);
-		}
+			const result = await res.json();
+			if (result.ok) { project = result.data; saved = true; setTimeout(() => saved = false, 2000); }
+			else error = result.error || 'Fehler beim Speichern';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isSaving = false; }
 	}
-	
-	// Projekt löschen
+
 	async function handleDelete() {
-		if (!confirm('Sind Sie sicher, dass Sie dieses Projekt löschen möchten? Alle zugehörigen Daten (Statuses, Tickets, etc.) werden ebenfalls gelöscht.')) {
-			return;
-		}
-		
+		if (!confirm(`Projekt "${project?.name}" wirklich löschen? Alle Daten gehen unwiderruflich verloren.`)) return;
+		isDeleting = true;
 		try {
-			isDeleting = true;
-			const response = await fetch(`/api/projects/${id}`, {
-				method: 'DELETE'
-			});
-			
-			const result = await response.json();
-			
-			if (result.ok) {
-				goto('/projects?success=Projekt+erfolgreich+gelöscht');
-			} else {
-				error = result.error || 'Fehler beim Löschen';
-			}
-		} catch (err) {
-			error = 'Netzwerkfehler';
-			console.error('Delete project error:', err);
-		} finally {
-			isDeleting = false;
-		}
+			const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+			const result = await res.json();
+			if (result.ok) goto('/projects?success=Projekt+gelöscht');
+			else error = result.error || 'Fehler beim Löschen';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isDeleting = false; }
 	}
-	
-	onMount(() => {
-		fetchProject();
-	});
+
+	onMount(fetchProject);
 </script>
 
-<div class="max-w-2xl">
-	<!-- Header -->
-	<div class="mb-6">
-		<button 
-			onclick={() => goto('/projects')}
-			class="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors mb-4"
-		>
-			<ArrowLeft class="w-4 h-4" />
-			Zurück zu Projekten
-		</button>
-		
-		<h1 class="text-2xl font-bold text-[var(--text)]">Projekt-Einstellungen</h1>
-		{#if project}
-			<p class="text-[var(--text-muted)] mt-1">Einstellungen für: <code class="text-[var(--primary)]">{project.slug}</code></p>
-		{/if}
-	</div>
-	
-	<!-- Loading -->
+<div class="w-full max-w-2xl">
+	<button
+		onclick={() => goto(`/projects/${id}`)}
+		class="inline-flex items-center gap-2 mb-6 text-sm transition-all duration-200 group"
+		style="color: var(--text-muted);"
+		in:fly={{ y: -12, duration: 300, easing: quintOut }}
+	>
+		<ArrowLeft class="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
+		Zurück zum Board
+	</button>
+
 	{#if isLoading}
-		<div class="flex items-center justify-center py-8">
-			<svg class="animate-spin h-8 w-8 text-[var(--primary)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-			</svg>
+		<div class="flex justify-center py-24">
+			<div class="relative w-10 h-10">
+				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
+					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
+			</div>
 		</div>
 	{:else if project}
-		<!-- Form -->
-		<div class="card p-6 space-y-6">
-			<!-- Basic Info -->
-			<div>
-				<h2 class="text-lg font-semibold text-[var(--text)] mb-4">Grundinformationen</h2>
-				
-				<div class="space-y-4">
-					<!-- Name -->
-					<div>
-						<label class="label" for="name">Name *</label>
-						<input
-							id="name"
-							type="text"
-							bind:value={name}
-							class="input"
-						/>
-					</div>
-					
-					<!-- Description -->
-					<div>
-						<label class="label" for="description">Beschreibung</label>
-						<textarea
-							id="description"
-							bind:value={description}
-							class="input min-h-[100px] resize-vertical"
-						></textarea>
-					</div>
-					
-					<!-- Slug (Readonly) -->
-					<div>
-						<label class="label" for="slug">Slug</label>
-						<input
-							id="slug"
-							type="text"
-							value={project.slug}
-							class="input bg-[var(--border)] cursor-not-allowed"
-							disabled
-						/>
-						<p class="text-xs text-[var(--text-muted)] mt-1">
-							Der Slug kann nach dem Erstellen nicht mehr geändert werden.
-						</p>
-					</div>
+		<div in:fly={{ y: 20, duration: 400, easing: quintOut }}>
+			<!-- Header -->
+			<div class="flex items-center gap-3 mb-8">
+				<div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+					style="background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.3);">
+					<Settings class="w-5 h-5" style="color: var(--accent);" />
 				</div>
-				
-				<!-- Error -->
-				{#if error}
-					<div class="p-3 bg-[var(--danger)/10] border border-[var(--danger)] rounded-md">
-						<p class="text-sm text-[var(--danger)]">{error}</p>
-					</div>
-				{/if}
-				
-				<!-- Actions -->
-				<div class="flex gap-3 pt-4">
-					<button 
-						type="button"
-						onclick={() => goto('/projects')}
-						class="btn btn-ghost"
-					>
-						Abbrechen
-					</button>
-					<button 
-						type="button"
-						onclick={handleSubmit}
-						class="btn btn-primary"
-					>
-						Änderungen speichern
-					</button>
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Projekt-Einstellungen</h1>
+					<code class="text-sm" style="color: var(--text-muted);">{project.slug}</code>
 				</div>
 			</div>
-			
-			<!-- Danger Zone -->
-			<div class="border-t border-[var(--border)] pt-6">
-				<h2 class="text-lg font-semibold text-[var(--danger)] mb-4">Gefahrenbereich</h2>
-				
-				<div class="p-4 bg-[var(--danger)/10] rounded-lg">
-					<h3 class="font-medium text-[var(--text)] mb-2">Projekt löschen</h3>
-					<p class="text-sm text-[var(--text-muted)] mb-4">
-						Dieses Projekt löschen. Alle zugehörigen Daten (Board-Statuses, Tickets, Kommentare, Tasks) werden unwiderruflich gelöscht.
-					</p>
-					<button 
-						type="button"
-						onclick={handleDelete}
-						disabled={isDeleting}
-						class="btn btn-danger flex items-center gap-2"
-					>
-						{#if isDeleting}
-							<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-							</svg>
-							Löschen...
+
+			<!-- Form -->
+			<div class="rounded-2xl p-6 mb-6" style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+				<h2 class="text-base font-semibold mb-5" style="color: var(--text);">Grundinformationen</h2>
+				<div class="space-y-4">
+					<div>
+						<label class="block text-sm font-medium mb-2" style="color: var(--text);">Name *</label>
+						<input type="text" bind:value={name} class="input" />
+					</div>
+					<div>
+						<label class="block text-sm font-medium mb-2" style="color: var(--text);">Beschreibung</label>
+						<textarea bind:value={description} class="input resize-none" rows="3"></textarea>
+					</div>
+					<div>
+						<label class="block text-sm font-medium mb-2" style="color: var(--text-muted);">
+							Slug <span class="text-xs opacity-60">(nicht änderbar)</span>
+						</label>
+						<input type="text" value={project.slug} disabled class="input opacity-40 cursor-not-allowed" />
+					</div>
+				</div>
+
+				{#if error}
+					<div class="mt-4 p-3 rounded-lg text-sm" style="background: rgba(255,34,85,0.08); border: 1px solid rgba(255,34,85,0.3); color: var(--danger);">{error}</div>
+				{/if}
+
+				<div class="flex gap-3 mt-6">
+					<button onclick={() => goto(`/projects/${id}`)} class="btn btn-ghost">Abbrechen</button>
+					<button onclick={handleSubmit} disabled={isSaving}
+						class="btn btn-primary flex items-center gap-2 flex-1 justify-center">
+						{#if isSaving}
+							<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+							Speichern…
+						{:else if saved}
+							<Check class="w-4 h-4" /> Gespeichert
 						{:else}
-							<Trash2 class="w-4 h-4" />
-							Projekt löschen
+							Änderungen speichern
 						{/if}
 					</button>
 				</div>
+			</div>
+
+			<!-- Danger Zone -->
+			<div class="rounded-2xl p-6" style="background: var(--card-bg); border: 1px solid rgba(255,34,85,0.25);">
+				<h2 class="text-base font-semibold mb-1" style="color: var(--danger);">Gefahrenbereich</h2>
+				<p class="text-sm mb-5" style="color: var(--text-muted);">
+					Alle Statuses, Tickets, Tasks und Kommentare werden unwiderruflich gelöscht.
+				</p>
+				<button onclick={handleDelete} disabled={isDeleting}
+					class="btn btn-danger flex items-center gap-2">
+					{#if isDeleting}
+						<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+						Löschen…
+					{:else}
+						<Trash2 class="w-4 h-4" /> Projekt löschen
+					{/if}
+				</button>
 			</div>
 		</div>
 	{/if}
