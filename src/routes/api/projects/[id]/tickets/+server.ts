@@ -26,6 +26,7 @@ function mapTicket(row: any): Ticket {
 		description: row.description,
 		status_id: row.status_id,
 		assignee: row.assignee,
+		model: row.model ?? null,
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};

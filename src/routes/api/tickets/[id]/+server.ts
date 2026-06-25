@@ -8,6 +8,7 @@ const updateTicketSchema = z.object({
 	title: z.string().min(1, 'Titel ist erforderlich').optional(),
 	description: z.string().nullable().optional(),
 	assignee: z.string().nullable().optional(),
+	model: z.string().nullable().optional(),
 	status_id: z.number().int().min(1, 'Status-ID ist erforderlich').optional()
 });
 
@@ -20,6 +21,7 @@ function mapTicket(row: any): Ticket {
 		description: row.description,
 		status_id: row.status_id,
 		assignee: row.assignee,
+		model: row.model ?? null,
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};
@@ -166,6 +168,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		if (validation.data.title !== undefined) updates.title = validation.data.title;
 		if (validation.data.description !== undefined) updates.description = validation.data.description;
 		if (validation.data.assignee !== undefined) updates.assignee = validation.data.assignee;
+		if (validation.data.model !== undefined) updates.model = validation.data.model;
 		if (validation.data.status_id !== undefined) updates.status_id = validation.data.status_id;
 
 		if (Object.keys(updates).length === 0) {

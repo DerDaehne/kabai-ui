@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Bot } from 'lucide-svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
 
 	export let ticket: Ticket;
@@ -36,7 +37,17 @@
 >
 	<p class="text-sm font-medium leading-snug mb-2" style="color: var(--text);">{ticket.title}</p>
 	<div class="flex items-center justify-between gap-2">
-		<span class="text-xs font-mono" style="color: var(--text-muted);">#{ticket.id}</span>
+		<div class="flex items-center gap-1.5 min-w-0">
+			<span class="text-xs font-mono shrink-0" style="color: var(--text-muted);">#{ticket.id}</span>
+			{#if ticket.model}
+				<span class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs truncate max-w-[100px]"
+					style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.25);"
+					title={ticket.model}>
+					<Bot class="w-2.5 h-2.5 shrink-0" />
+					{ticket.model.split('-').slice(0, 2).join('-')}
+				</span>
+			{/if}
+		</div>
 		{#if assigneeInitials}
 			<div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
 				style="background: hsl({hue},70%,25%); color: hsl({hue},80%,70%); border: 1px solid hsl({hue},70%,40%);"

@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot } from 'lucide-svelte';
+	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu } from 'lucide-svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
 
 	export let ticketId: number;
@@ -20,6 +20,7 @@
 	let editTitle = '';
 	let editDescription = '';
 	let editAssignee = '';
+	let editModel = '';
 	let editStatusId: number | null = null;
 
 	async function fetchTicket() {
@@ -53,6 +54,7 @@
 		editTitle = ticket.title;
 		editDescription = ticket.description || '';
 		editAssignee = ticket.assignee || '';
+		editModel = ticket.model || '';
 		editStatusId = ticket.status_id;
 		if (statuses.length === 0) fetchStatuses();
 		isEditing = true;
@@ -71,6 +73,7 @@
 					title: editTitle.trim(),
 					description: editDescription.trim() || null,
 					assignee: editAssignee.trim() || null,
+					model: editModel.trim() || null,
 					status_id: editStatusId ?? ticket.status_id
 				})
 			});
@@ -184,6 +187,12 @@
 						</div>
 					</div>
 					<div>
+						<label class="block text-xs font-medium mb-1.5 flex items-center gap-1.5" style="color: var(--text-muted);">
+							<Cpu class="w-3 h-3" /> KI-Modell <span class="opacity-50">(optional)</span>
+						</label>
+						<input type="text" bind:value={editModel} class="input font-mono" placeholder="z.B. claude-sonnet-4-6" />
+					</div>
+					<div>
 						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Beschreibung</label>
 						<textarea bind:value={editDescription} class="input resize-none" rows="3" placeholder="Details…"></textarea>
 					</div>
@@ -209,6 +218,12 @@
 					<User class="w-3.5 h-3.5 shrink-0" style="color: var(--text-muted);" />
 					{ticket.assignee || 'Nicht zugewiesen'}
 				</div>
+				{#if ticket.model}
+					<div class="flex items-center gap-1.5">
+						<Cpu class="w-3.5 h-3.5 shrink-0" style="color: var(--accent);" />
+						<span class="font-mono text-xs px-2 py-0.5 rounded" style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.25);">{ticket.model}</span>
+					</div>
+				{/if}
 				<div class="flex items-center gap-1.5" style="color: var(--text-muted);">
 					<Clock class="w-3.5 h-3.5 shrink-0" />
 					{new Date(ticket.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}

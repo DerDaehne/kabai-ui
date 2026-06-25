@@ -31,6 +31,7 @@ export interface Ticket {
 	description: string | null;
 	status_id: number;
 	assignee: string | null;
+	model: string | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -112,6 +113,7 @@ export interface UpdateTicketForm {
 	title?: string;
 	description?: string;
 	assignee?: string;
+	model?: string | null;
 	status_id?: number;
 }
 
