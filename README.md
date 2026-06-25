@@ -1,6 +1,6 @@
 # kbai-ui
 
-Browser-basierter Kanban-Client für [kb.ai](https://github.com/danszek/kb.ai). Verbindet sich direkt mit einer PostgreSQL-Datenbank — kein separates Backend, kein API-Gateway.
+Browser-basierter Kanban-Client für [kb.ai](https://codeberg.com/danszek/kb.ai). Verbindet sich direkt mit einer PostgreSQL-Datenbank — kein separates Backend, kein API-Gateway.
 
 ## Features
 
