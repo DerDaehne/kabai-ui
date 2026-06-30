@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { fly, fade } from 'svelte/transition';
@@ -24,6 +24,49 @@
 	let openTicketId: number | null = null;
 	let showStatuses = false;
 	let showWorkflow = false;
+
+	// Echtzeit-Updates via SSE
+	let movedTicketIds = new Set<number>();
+	let eventSource: EventSource | null = null;
+
+	function handleSSEMessage(event: MessageEvent) {
+		try {
+			const payload = JSON.parse(event.data) as {
+				op: 'INSERT' | 'UPDATE' | 'DELETE';
+				ticket_id: number;
+				status_id: number;
+				project_id: number;
+			};
+
+			if (payload.op === 'DELETE') {
+				tickets = tickets.filter(t => t.id !== payload.ticket_id);
+				return;
+			}
+
+			// INSERT oder UPDATE: Ticket vom Server laden
+			fetch(`/api/tickets/${payload.ticket_id}`)
+				.then(r => r.json())
+				.then(res => {
+					if (!res.ok) return;
+					const updated = res.data.ticket;
+					const existing = tickets.find(t => t.id === updated.id);
+
+					if (!existing) {
+						tickets = [...tickets, updated];
+					} else {
+						const statusChanged = existing.status_id !== updated.status_id;
+						tickets = tickets.map(t => t.id === updated.id ? updated : t);
+						if (statusChanged) {
+							movedTicketIds = new Set([...movedTicketIds, updated.id]);
+							setTimeout(() => {
+								movedTicketIds = new Set([...movedTicketIds].filter(id => id !== updated.id));
+							}, 2000);
+						}
+					}
+				})
+				.catch(() => {});
+		} catch { /* JSON parse error or closed */ }
+	}
 
 	async function fetchBoardData() {
 		try {
@@ -65,7 +108,15 @@
 		}
 	}
 
-	onMount(fetchBoardData);
+	onMount(async () => {
+		await fetchBoardData();
+		eventSource = new EventSource(`/api/projects/${id}/events`);
+		eventSource.onmessage = handleSSEMessage;
+	});
+
+	onDestroy(() => {
+		eventSource?.close();
+	});
 </script>
 
 <div class="w-full space-y-5">
@@ -123,7 +174,7 @@
 
 	{:else if project && statuses.length > 0}
 		<div in:fly={{ y: 16, duration: 400, easing: quintOut }}>
-			<KanbanBoard projectId={project.id} {statuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} />
+			<KanbanBoard projectId={project.id} {statuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} {movedTicketIds} />
 		</div>
 
 	{:else if project}

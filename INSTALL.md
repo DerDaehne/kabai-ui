@@ -134,8 +134,9 @@ Beim ersten Start führt PostgreSQL automatisch alle Skripte in `init-db/` aus.
 Für spätere Migrationen SQL-Datei manuell einspielen:
 
 ```bash
+# V3: Echtzeit-Benachrichtigungen (pg_notify-Trigger für Live-Board-Updates)
 docker compose exec -T postgres psql -U kb_user -d kb_ai \
-  < init-db/V2__Add_Model_To_Tickets.sql
+  < V3__Add_Ticket_Notify_Trigger.sql
 ```
 
 ---

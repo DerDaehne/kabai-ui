@@ -6,6 +6,7 @@
 	export let projectId: number;
 	export let status: BoardStatus;
 	export let onTicketClick: (ticketId: number) => void = () => {};
+	export let highlight = false;
 
 	let isDragging = false;
 
@@ -31,9 +32,9 @@
 	ondragend={handleDragEnd}
 	onclick={() => onTicketClick(ticket.id)}
 	class="p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
-	style="background: {isDragging ? 'var(--card-bg-hover)' : '#0a0a18'}; border-color: {isDragging ? 'var(--primary)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1}; box-shadow: {isDragging ? '0 0 16px var(--primary-glow)' : 'none'}; transform: {isDragging ? 'rotate(1.5deg) scale(1.02)' : 'none'};"
+	style="background: {isDragging ? 'var(--card-bg-hover)' : '#0a0a18'}; border-color: {isDragging ? 'var(--primary)' : highlight ? 'var(--primary)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1}; box-shadow: {isDragging ? '0 0 16px var(--primary-glow)' : highlight ? '0 0 12px rgba(0,212,255,0.35)' : 'none'}; transform: {isDragging ? 'rotate(1.5deg) scale(1.02)' : 'none'};"
 	onmouseenter={(e) => { if (!isDragging) e.currentTarget.style.borderColor = 'var(--border-bright)'; }}
-	onmouseleave={(e) => { if (!isDragging) e.currentTarget.style.borderColor = 'var(--border)'; }}
+	onmouseleave={(e) => { if (!isDragging) e.currentTarget.style.borderColor = highlight ? 'var(--primary)' : 'var(--border)'; }}
 >
 	<p class="text-sm font-medium leading-snug mb-2" style="color: var(--text);">{ticket.title}</p>
 	<div class="flex items-center justify-between gap-2">

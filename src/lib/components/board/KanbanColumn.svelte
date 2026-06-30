@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fly } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
 	import { Plus, Pencil } from 'lucide-svelte';
 	import TicketCard from './TicketCard.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
@@ -20,6 +22,7 @@
 	export let onTicketDrop: (ticketId: number) => void;
 	export let onTicketClick: (ticketId: number) => void = () => {};
 	export let onOpenStatuses: () => void = () => {};
+	export let movedTicketIds: Set<number> = new Set();
 
 	const accentColors = [
 		{ border: '#00d4ff', glow: 'rgba(0,212,255,0.2)', bg: 'rgba(0,212,255,0.08)' },
@@ -124,7 +127,9 @@
 			</div>
 		{:else}
 			{#each sortedTickets as ticket (ticket.id)}
-				<TicketCard {ticket} {projectId} {status} {onTicketClick} />
+				<div animate:flip={{ duration: 250 }} in:fly={{ y: -12, duration: 200 }} out:fly={{ y: 8, duration: 150, opacity: 0 }}>
+					<TicketCard {ticket} {projectId} {status} {onTicketClick} highlight={movedTicketIds.has(ticket.id)} />
+				</div>
 			{/each}
 		{/if}
 	</div>

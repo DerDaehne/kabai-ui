@@ -119,3 +119,27 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER enforce_kanban_workflow_integrity
     BEFORE UPDATE ON tickets
     FOR EACH ROW EXECUTE FUNCTION enforce_kanban_workflow_integrity();
+
+-- ── Echtzeit-Benachrichtigungen (SSE via pg_notify) ───────────────────────────
+CREATE OR REPLACE FUNCTION notify_ticket_change()
+RETURNS TRIGGER AS $$
+DECLARE
+    rec RECORD;
+BEGIN
+    IF TG_OP = 'DELETE' THEN rec := OLD; ELSE rec := NEW; END IF;
+    PERFORM pg_notify(
+        'tickets_' || rec.project_id::text,
+        json_build_object(
+            'op',         TG_OP,
+            'ticket_id',  rec.id,
+            'status_id',  rec.status_id,
+            'project_id', rec.project_id
+        )::text
+    );
+    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tickets_notify
+    AFTER INSERT OR UPDATE OR DELETE ON tickets
+    FOR EACH ROW EXECUTE FUNCTION notify_ticket_change();
