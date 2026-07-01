@@ -34,6 +34,7 @@
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@tailwindcss/vite": "^4.0.0",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.11.0",
     "@types/uuid": "^10.0.0",
@@ -60,7 +61,7 @@
   "dependencies": {
     "@xyflow/svelte": "^0.1.0",
     "crypto-js": "^4.2.0",
-    "isomorphic-dompurify": "^2.36.0",
+    "dompurify": "^3.4.11",
     "lucide-svelte": "^0.468.0",
     "marked": "^18.0.5",
     "postgres": "^3.4.0",
