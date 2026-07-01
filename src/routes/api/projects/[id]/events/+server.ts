@@ -26,7 +26,6 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 				subscription = await sql.listen(channel, (payload) => enqueue(`data: ${payload}\n\n`));
 			} catch {
 				ctrl.close();
-				await sql.end({ timeout: 5 }).catch(() => {});
 				return;
 			}
 
@@ -35,8 +34,11 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
 		async cancel() {
 			clearInterval(pingInterval);
+			// sql ist der geteilte Connection-Pool des Nutzers (siehe db.ts) —
+			// nur die eigene LISTEN-Subscription abmelden, den Pool selbst NICHT
+			// schließen, sonst reißt das alle anderen offenen Tabs/Requests
+			// desselben Nutzers mit.
 			await subscription?.unlisten().catch(() => {});
-			await sql.end({ timeout: 5 }).catch(() => {});
 		}
 	});
 
