@@ -14,6 +14,8 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	const encoder = new TextEncoder();
 	let pingInterval: ReturnType<typeof setInterval>;
 
+	let subscription: { unlisten: () => Promise<void> } | null = null;
+
 	const stream = new ReadableStream<Uint8Array>({
 		async start(ctrl) {
 			const enqueue = (chunk: string) => {
@@ -21,7 +23,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			};
 
 			try {
-				await sql.listen(channel, (payload) => enqueue(`data: ${payload}\n\n`));
+				subscription = await sql.listen(channel, (payload) => enqueue(`data: ${payload}\n\n`));
 			} catch {
 				ctrl.close();
 				await sql.end({ timeout: 5 }).catch(() => {});
@@ -33,7 +35,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
 		async cancel() {
 			clearInterval(pingInterval);
-			await sql.unlisten(channel).catch(() => {});
+			await subscription?.unlisten().catch(() => {});
 			await sql.end({ timeout: 5 }).catch(() => {});
 		}
 	});

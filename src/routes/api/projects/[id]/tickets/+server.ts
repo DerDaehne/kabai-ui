@@ -8,7 +8,8 @@ const createTicketSchema = z.object({
 	title: z.string().min(1, 'Titel ist erforderlich'),
 	description: z.string().nullable().optional(),
 	status_id: z.number().int().min(1, 'Status-ID ist erforderlich'),
-	assignee: z.string().nullable().optional()
+	assignee: z.string().nullable().optional(),
+	type: z.enum(['ticket', 'epic']).optional()
 });
 
 const querySchema = z.object({
@@ -27,6 +28,7 @@ function mapTicket(row: any): Ticket {
 		status_id: row.status_id,
 		assignee: row.assignee,
 		model: row.model ?? null,
+		type: row.type ?? 'ticket',
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};
@@ -99,28 +101,28 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 			);
 		}
 		
-		const { title, description, status_id, assignee } = validation.data;
+		const { title, description, status_id, assignee, type } = validation.data;
 		const sql = getDb(locals.session.username, locals.session.password);
-		
+
 		// Prüfen ob Projekt existiert
 		const [existingProject] = await sql`SELECT id FROM projects WHERE id = ${projectId}`;
 		if (!existingProject) {
 			return json({ ok: false, error: 'Projekt nicht gefunden' }, { status: 404 });
 		}
-		
+
 		// Prüfen ob Status existiert und zum Projekt gehört
 		const [existingStatus] = await sql`
 			SELECT id FROM board_statuses
 			WHERE id = ${status_id} AND project_id = ${projectId}
 		`;
-		
+
 		if (!existingStatus) {
 			return json({ ok: false, error: 'Status nicht gefunden oder gehört nicht zu diesem Projekt' }, { status: 400 });
 		}
-		
+
 		const [ticket] = await sql`
-			INSERT INTO tickets (project_id, title, description, status_id, assignee)
-			VALUES (${projectId}, ${title}, ${description}, ${status_id}, ${assignee})
+			INSERT INTO tickets (project_id, title, description, status_id, assignee, type)
+			VALUES (${projectId}, ${title}, ${description}, ${status_id}, ${assignee}, ${type ?? 'ticket'})
 			RETURNING *
 		`;
 		

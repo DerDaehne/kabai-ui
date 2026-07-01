@@ -19,6 +19,7 @@ function mapBoardStatus(row: any): BoardStatus {
 		display_name: row.display_name,
 		position: row.position,
 		agent_role_instruction: row.agent_role_instruction,
+		special_type: row.special_type ?? null,
 		created_at: row.created_at
 	};
 }

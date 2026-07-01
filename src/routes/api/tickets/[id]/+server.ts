@@ -9,7 +9,8 @@ const updateTicketSchema = z.object({
 	description: z.string().nullable().optional(),
 	assignee: z.string().nullable().optional(),
 	model: z.string().nullable().optional(),
-	status_id: z.number().int().min(1, 'Status-ID ist erforderlich').optional()
+	status_id: z.number().int().min(1, 'Status-ID ist erforderlich').optional(),
+	type: z.enum(['ticket', 'epic']).optional()
 });
 
 // Helper: Ticket aus DB-Row mappen
@@ -22,6 +23,7 @@ function mapTicket(row: any): Ticket {
 		status_id: row.status_id,
 		assignee: row.assignee,
 		model: row.model ?? null,
+		type: row.type ?? 'ticket',
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};
@@ -67,7 +69,18 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			WHERE ticket_id = ${ticketId}
 			ORDER BY created_at ASC
 		`;
-		
+
+		// Relationen abrufen (beide Richtungen, mit Titel des jeweils anderen Tickets)
+		const relations = await sql`
+			SELECT r.id, r.from_ticket_id, r.to_ticket_id, r.relation_type, r.created_at,
+				t.id AS other_ticket_id, t.title AS other_ticket_title,
+				CASE WHEN r.from_ticket_id = ${ticketId} THEN 'outgoing' ELSE 'incoming' END AS direction
+			FROM ticket_relations r
+			JOIN tickets t ON t.id = (CASE WHEN r.from_ticket_id = ${ticketId} THEN r.to_ticket_id ELSE r.from_ticket_id END)
+			WHERE r.from_ticket_id = ${ticketId} OR r.to_ticket_id = ${ticketId}
+			ORDER BY r.created_at ASC
+		`;
+
 		return json({
 			ok: true,
 			data: {
@@ -86,6 +99,16 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 					author: row.author,
 					comment_text: row.comment_text,
 					created_at: row.created_at
+				})),
+				relations: relations.map((row: any) => ({
+					id: row.id,
+					from_ticket_id: row.from_ticket_id,
+					to_ticket_id: row.to_ticket_id,
+					relation_type: row.relation_type,
+					created_at: row.created_at,
+					other_ticket_id: row.other_ticket_id,
+					other_ticket_title: row.other_ticket_title,
+					direction: row.direction
 				}))
 			}
 		});
@@ -170,6 +193,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		if (validation.data.assignee !== undefined) updates.assignee = validation.data.assignee;
 		if (validation.data.model !== undefined) updates.model = validation.data.model;
 		if (validation.data.status_id !== undefined) updates.status_id = validation.data.status_id;
+		if (validation.data.type !== undefined) updates.type = validation.data.type;
 
 		if (Object.keys(updates).length === 0) {
 			return json({ ok: true, data: mapTicket(existing) });
