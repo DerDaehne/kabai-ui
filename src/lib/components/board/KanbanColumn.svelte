@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-	import { Plus, Pencil } from 'lucide-svelte';
+	import { Plus, Pencil, Layers } from 'lucide-svelte';
 	import TicketCard from './TicketCard.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
 
@@ -35,10 +35,17 @@
 
 	let isDragOver = false;
 
+	const PAGE_SIZE = 25;
+	let visibleCount = PAGE_SIZE;
+
 	$: sortedTickets = [...tickets].sort((a, b) =>
 		new Date(b.updated_at || b.created_at).getTime() -
 		new Date(a.updated_at || a.created_at).getTime()
 	);
+	$: displayedTickets = sortedTickets.slice(0, visibleCount);
+	$: hiddenCount = sortedTickets.length - displayedTickets.length;
+
+	function loadMore() { visibleCount += PAGE_SIZE; }
 
 	function handleDragOver(e: DragEvent) {
 		e.preventDefault();
@@ -126,11 +133,24 @@
 				{/if}
 			</div>
 		{:else}
-			{#each sortedTickets as ticket (ticket.id)}
+			{#each displayedTickets as ticket (ticket.id)}
 				<div animate:flip={{ duration: 250 }} in:fly={{ y: -12, duration: 200 }} out:fly={{ y: 8, duration: 150, opacity: 0 }}>
 					<TicketCard {ticket} {projectId} {status} {onTicketClick} highlight={movedTicketIds.has(ticket.id)} />
 				</div>
 			{/each}
+			{#if hiddenCount > 0}
+				<button
+					onclick={loadMore}
+					in:fly={{ y: -8, duration: 200 }}
+					class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 border-dashed text-xs font-medium transition-all duration-200"
+					style="border-color: {accent.border}40; color: {accent.border};"
+					onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.borderColor = accent.border; }}
+					onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = `${accent.border}40`; }}
+				>
+					<Layers class="w-3.5 h-3.5" />
+					+{Math.min(hiddenCount, PAGE_SIZE)} weitere laden ({hiddenCount} verbleiben)
+				</button>
+			{/if}
 		{/if}
 	</div>
 
