@@ -8,6 +8,27 @@ export interface Project {
 	created_at: string;
 }
 
+export interface ProjectStats extends Project {
+	ticket_count: number;
+	done_count: number;
+	inbox_count: number;
+}
+
+export interface RecentTicket {
+	id: number;
+	title: string;
+	project_id: number;
+	project_name: string;
+	status_name: string | null;
+	updated_at: string;
+}
+
+export interface DashboardData {
+	totals: { projects: number; tickets: number; done: number; inbox: number };
+	projects: ProjectStats[];
+	recentTickets: RecentTicket[];
+}
+
 export type SpecialStatusType = 'human_intervention' | 'human_answered' | null;
 
 export interface BoardStatus {
