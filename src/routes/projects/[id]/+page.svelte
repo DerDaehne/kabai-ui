@@ -4,12 +4,13 @@
 	import { page } from '$app/stores';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
-	import { Settings, Layers, Network } from 'lucide-svelte';
+	import { Settings, Layers, Network, Inbox } from 'lucide-svelte';
 	import KanbanBoard from '$components/board/KanbanBoard.svelte';
 	import Modal from '$components/ui/Modal.svelte';
 	import TicketModal from '$components/tickets/TicketModal.svelte';
 	import StatusesModal from '$components/statuses/StatusesModal.svelte';
 	import WorkflowModal from '$components/workflow/WorkflowModal.svelte';
+	import InboxModal from '$components/inbox/InboxModal.svelte';
 	import type { Project, BoardStatus, Ticket } from '$lib/types';
 
 	$: id = $page.params.id;
@@ -24,10 +25,23 @@
 	let openTicketId: number | null = null;
 	let showStatuses = false;
 	let showWorkflow = false;
+	let showInbox = false;
+
+	// Kanban-Board zeigt keine Human-Intervention-Spalten (die laufen über die Inbox)
+	$: kanbanStatuses = statuses.filter(s => !s.special_type);
+	$: inboxTickets = tickets.filter(t => {
+		const s = statuses.find(s => s.id === t.status_id);
+		return s?.special_type === 'human_intervention';
+	});
 
 	// Echtzeit-Updates via SSE
 	let movedTicketIds = new Set<number>();
 	let eventSource: EventSource | null = null;
+
+	// Verhindert, dass eine ältere Fetch-Response eine neuere überschreibt, wenn
+	// mehrere SSE-Events kurz hintereinander für dasselbe Ticket eintreffen
+	// (z.B. mehrere Kommentare/Tasks eines KI-Agenten in schneller Folge).
+	const ticketFetchSeq = new Map<number, number>();
 
 	function handleSSEMessage(event: MessageEvent) {
 		try {
@@ -44,24 +58,31 @@
 			}
 
 			// INSERT oder UPDATE: Ticket vom Server laden
+			const seq = (ticketFetchSeq.get(payload.ticket_id) ?? 0) + 1;
+			ticketFetchSeq.set(payload.ticket_id, seq);
+
 			fetch(`/api/tickets/${payload.ticket_id}`)
 				.then(r => r.json())
 				.then(res => {
 					if (!res.ok) return;
+					// Zwischenzeitlich ist ein neueres Event für dasselbe Ticket eingetroffen —
+					// diese (evtl. ältere) Response verwerfen.
+					if (ticketFetchSeq.get(payload.ticket_id) !== seq) return;
+
 					const updated = res.data.ticket;
 					const existing = tickets.find(t => t.id === updated.id);
 
 					if (!existing) {
 						tickets = [...tickets, updated];
 					} else {
-						const statusChanged = existing.status_id !== updated.status_id;
+						// Jede Änderung markieren (Status-Wechsel, aber auch Description/Assignee/
+						// Kommentare/Tasks durch KI-Agenten ohne Spaltenwechsel), damit der Nutzer
+						// sieht, dass sich am Ticket etwas getan hat.
 						tickets = tickets.map(t => t.id === updated.id ? updated : t);
-						if (statusChanged) {
-							movedTicketIds = new Set([...movedTicketIds, updated.id]);
-							setTimeout(() => {
-								movedTicketIds = new Set([...movedTicketIds].filter(id => id !== updated.id));
-							}, 2000);
-						}
+						movedTicketIds = new Set([...movedTicketIds, updated.id]);
+						setTimeout(() => {
+							movedTicketIds = new Set([...movedTicketIds].filter(id => id !== updated.id));
+						}, 2000);
 					}
 				})
 				.catch(() => {});
@@ -132,6 +153,20 @@
 		</div>
 
 		<div class="flex items-center gap-2 shrink-0">
+			<button onclick={() => showInbox = true}
+				class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
+				style="color: var(--text-muted); background: var(--border);"
+				onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(0,212,255,0.1)'; e.currentTarget.style.color = 'var(--primary)'; }}
+				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+				<Inbox class="w-4 h-4" />
+				<span class="hidden sm:inline">Inbox</span>
+				{#if inboxTickets.length > 0}
+					<span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[10px] font-bold"
+						style="background: var(--primary); color: #000; box-shadow: 0 0 8px var(--primary-glow);">
+						{inboxTickets.length}
+					</span>
+				{/if}
+			</button>
 			<button onclick={() => showStatuses = true}
 				class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
 				style="color: var(--text-muted); background: var(--border);"
@@ -172,9 +207,9 @@
 			<p class="text-sm" style="color: var(--text-muted);">Lade Board…</p>
 		</div>
 
-	{:else if project && statuses.length > 0}
+	{:else if project && kanbanStatuses.length > 0}
 		<div in:fly={{ y: 16, duration: 400, easing: quintOut }}>
-			<KanbanBoard projectId={project.id} {statuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} {movedTicketIds} />
+			<KanbanBoard projectId={project.id} statuses={kanbanStatuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} {movedTicketIds} />
 		</div>
 
 	{:else if project}
@@ -188,6 +223,13 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Inbox Modal -->
+<Modal open={showInbox} onClose={() => showInbox = false} size="md">
+	{#if showInbox}
+		<InboxModal tickets={inboxTickets} onTicketClick={(id) => { showInbox = false; onTicketClick(id); }} onClose={() => showInbox = false} />
+	{/if}
+</Modal>
 
 <!-- Ticket Detail Modal -->
 <Modal open={openTicketId !== null} onClose={() => openTicketId = null} size="lg">

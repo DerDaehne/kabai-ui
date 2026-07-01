@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide, fade } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { ArrowLeft, CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu } from 'lucide-svelte';
@@ -16,6 +17,10 @@
 	let isEditing = false;
 	let isSaving = false;
 	let isDeleting = false;
+
+	// Comments
+	let newCommentText = '';
+	let isAddingComment = false;
 
 	// Edit state
 	let editTitle = '';
@@ -119,6 +124,28 @@
 			isDeleting = false;
 		}
 	}
+
+	async function addComment() {
+		if (!newCommentText.trim()) return;
+		isAddingComment = true;
+		const author = $page.data.session?.username || 'Unbekannt';
+		try {
+			const res = await fetch(`/api/tickets/${id}/comments`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ author, comment_text: newCommentText.trim() })
+			});
+			const result = await res.json();
+			if (result.ok) { newCommentText = ''; await fetchTicket(); }
+			else error = result.error || 'Fehler beim Kommentieren';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isAddingComment = false; }
+	}
+
+	// Manuelles Umschalten IN Human-Intervention/-Answered ist nicht vorgesehen —
+	// das läuft ausschließlich über die Inbox im Board. Der aktuelle Status bleibt
+	// in der Liste, damit das Dropdown ihn korrekt anzeigt.
+	$: editableStatuses = statuses.filter(s => !s.special_type || s.id === ticket?.status_id);
 
 	async function toggleTask(task: TicketTask) {
 		try {
@@ -233,7 +260,7 @@
 							<div>
 								<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Status</label>
 								<select bind:value={editStatusId} class="input">
-									{#each statuses as s}
+									{#each editableStatuses as s}
 										<option value={s.id}>{s.display_name}</option>
 									{/each}
 								</select>
@@ -321,7 +348,7 @@
 				<!-- Description -->
 				{#if ticket.description}
 					<div class="px-6 py-5">
-						<p class="text-sm leading-relaxed whitespace-pre-wrap" style="color: var(--text);">{ticket.description}</p>
+						<div class="markdown-body text-sm leading-relaxed" style="color: var(--text);">{@html renderMarkdown(ticket.description)}</div>
 					</div>
 				{/if}
 			</div>
@@ -410,6 +437,18 @@
 					{#if ticket.comments.length === 0}
 						<p class="text-sm text-center py-6" style="color: var(--text-muted);">Keine Kommentare.</p>
 					{/if}
+				</div>
+
+				<div class="px-6 py-4 space-y-2" style="border-top: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+					<textarea bind:value={newCommentText} class="input resize-none text-sm" rows="2" placeholder="Kommentar hinzufügen…"></textarea>
+					<div class="flex justify-end">
+						<button onclick={addComment} disabled={!newCommentText.trim() || isAddingComment}
+							class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+							style="background: var(--accent); color: #fff; opacity: {!newCommentText.trim() || isAddingComment ? 0.5 : 1};">
+							{#if isAddingComment}<div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{:else}<MessageSquare class="w-3.5 h-3.5" />{/if}
+							Kommentieren
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

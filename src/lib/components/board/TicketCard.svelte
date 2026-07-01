@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Bot } from 'lucide-svelte';
+	import { Bot, Flag } from 'lucide-svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
 
 	export let ticket: Ticket;
@@ -32,10 +32,15 @@
 	ondragend={handleDragEnd}
 	onclick={() => onTicketClick(ticket.id)}
 	class="p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
-	style="background: {isDragging ? 'var(--card-bg-hover)' : '#0a0a18'}; border-color: {isDragging ? 'var(--primary)' : highlight ? 'var(--primary)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1}; box-shadow: {isDragging ? '0 0 16px var(--primary-glow)' : highlight ? '0 0 12px rgba(0,212,255,0.35)' : 'none'}; transform: {isDragging ? 'rotate(1.5deg) scale(1.02)' : 'none'};"
+	style="background: {isDragging ? 'var(--card-bg-hover)' : '#0a0a18'}; border-color: {isDragging ? 'var(--primary)' : highlight ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(255,208,0,0.35)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1}; box-shadow: {isDragging ? '0 0 16px var(--primary-glow)' : highlight ? '0 0 12px rgba(0,212,255,0.35)' : 'none'}; transform: {isDragging ? 'rotate(1.5deg) scale(1.02)' : 'none'};"
 	onmouseenter={(e) => { if (!isDragging) e.currentTarget.style.borderColor = 'var(--border-bright)'; }}
-	onmouseleave={(e) => { if (!isDragging) e.currentTarget.style.borderColor = highlight ? 'var(--primary)' : 'var(--border)'; }}
+	onmouseleave={(e) => { if (!isDragging) e.currentTarget.style.borderColor = highlight ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(255,208,0,0.35)' : 'var(--border)'; }}
 >
+	{#if ticket.type === 'epic'}
+		<div class="flex items-center gap-1 mb-1.5 text-xs font-semibold" style="color: #ffd000;">
+			<Flag class="w-3 h-3" /> Epic
+		</div>
+	{/if}
 	<p class="text-sm font-medium leading-snug mb-2" style="color: var(--text);">{ticket.title}</p>
 	<div class="flex items-center justify-between gap-2">
 		<div class="flex items-center gap-1.5 min-w-0">

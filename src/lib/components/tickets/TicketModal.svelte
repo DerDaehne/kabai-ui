@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu } from 'lucide-svelte';
-	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
+	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus } from 'lucide-svelte';
+	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
 
 	export let ticketId: number;
 	export let onClose: () => void = () => {};
@@ -16,12 +18,40 @@
 	let isEditing = false;
 	let isSaving = false;
 	let isDeleting = false;
+	let isReturning = false;
 
 	let editTitle = '';
 	let editDescription = '';
 	let editAssignee = '';
 	let editModel = '';
 	let editStatusId: number | null = null;
+	let editType: 'ticket' | 'epic' = 'ticket';
+
+	// Relations
+	let showAddRelation = false;
+	let projectTickets: Ticket[] = [];
+	let relationTargetId: number | null = null;
+	let relationType: RelationType = 'relates_to';
+	let isAddingRelation = false;
+	let deletingRelationId: number | null = null;
+
+	// Comments
+	let newCommentText = '';
+	let isAddingComment = false;
+
+	// Label aus Sicht des aktuell offenen Tickets: "outgoing" = dieses Ticket ist from_ticket
+	const relationLabels: Record<RelationType, string> = {
+		parent_of: 'ist Parent von',
+		blocks: 'blockiert',
+		duplicate_of: 'ist Duplikat von',
+		relates_to: 'bezieht sich auf'
+	};
+	const incomingRelationLabels: Record<RelationType, string> = {
+		parent_of: 'ist Kind von',
+		blocks: 'wird blockiert von',
+		duplicate_of: 'ist Original von',
+		relates_to: 'bezieht sich auf'
+	};
 
 	async function fetchTicket() {
 		try {
@@ -29,7 +59,8 @@
 			const res = await fetch(`/api/tickets/${ticketId}`);
 			const result = await res.json();
 			if (result.ok) {
-				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments };
+				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations };
+				if (ticket.status?.special_type === 'human_intervention') await fetchStatuses();
 			} else {
 				error = result.error || 'Ticket nicht gefunden';
 			}
@@ -56,6 +87,7 @@
 		editAssignee = ticket.assignee || '';
 		editModel = ticket.model || '';
 		editStatusId = ticket.status_id;
+		editType = ticket.type;
 		if (statuses.length === 0) fetchStatuses();
 		isEditing = true;
 	}
@@ -74,7 +106,8 @@
 					description: editDescription.trim() || null,
 					assignee: editAssignee.trim() || null,
 					model: editModel.trim() || null,
-					status_id: editStatusId ?? ticket.status_id
+					status_id: editStatusId ?? ticket.status_id,
+					type: editType
 				})
 			});
 			const result = await res.json();
@@ -82,6 +115,22 @@
 			else error = result.error || 'Fehler beim Speichern';
 		} catch { error = 'Netzwerkfehler'; }
 		finally { isSaving = false; }
+	}
+
+	async function returnToAI() {
+		if (!ticket || !humanAnsweredStatus) return;
+		isReturning = true; error = '';
+		try {
+			const res = await fetch(`/api/tickets/${ticketId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status_id: humanAnsweredStatus.id })
+			});
+			const result = await res.json();
+			if (result.ok) await fetchTicket();
+			else error = result.error || 'Fehler beim Zurückgeben';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isReturning = false; }
 	}
 
 	async function handleDelete() {
@@ -94,6 +143,62 @@
 			else error = result.error || 'Fehler beim Löschen';
 		} catch { error = 'Netzwerkfehler'; }
 		finally { isDeleting = false; }
+	}
+
+	async function openAddRelation() {
+		showAddRelation = true;
+		relationTargetId = null;
+		relationType = 'relates_to';
+		if (ticket && projectTickets.length === 0) {
+			try {
+				const res = await fetch(`/api/projects/${ticket.project_id}/tickets`);
+				const result = await res.json();
+				if (result.ok) projectTickets = result.data.filter((t: Ticket) => t.id !== ticket!.id);
+			} catch {}
+		}
+	}
+
+	async function addRelation() {
+		if (!ticket || !relationTargetId) return;
+		isAddingRelation = true; error = '';
+		try {
+			const res = await fetch(`/api/tickets/${ticketId}/relations`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ to_ticket_id: relationTargetId, relation_type: relationType })
+			});
+			const result = await res.json();
+			if (result.ok) { await fetchTicket(); showAddRelation = false; }
+			else error = result.error || 'Fehler beim Verknüpfen';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isAddingRelation = false; }
+	}
+
+	async function removeRelation(relationId: number) {
+		deletingRelationId = relationId;
+		try {
+			const res = await fetch(`/api/tickets/${ticketId}/relations/${relationId}`, { method: 'DELETE' });
+			const result = await res.json();
+			if (result.ok) await fetchTicket();
+		} catch {}
+		finally { deletingRelationId = null; }
+	}
+
+	async function addComment() {
+		if (!newCommentText.trim()) return;
+		isAddingComment = true;
+		const author = $page.data.session?.username || 'Unbekannt';
+		try {
+			const res = await fetch(`/api/tickets/${ticketId}/comments`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ author, comment_text: newCommentText.trim() })
+			});
+			const result = await res.json();
+			if (result.ok) { newCommentText = ''; await fetchTicket(); }
+			else error = result.error || 'Fehler beim Kommentieren';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isAddingComment = false; }
 	}
 
 	async function toggleTask(task: TicketTask) {
@@ -110,6 +215,13 @@
 			}
 		} catch {}
 	}
+
+	$: humanAnsweredStatus = statuses.find(s => s.special_type === 'human_answered') ?? null;
+	// Manuelles Umschalten IN Human-Intervention/-Answered ist nicht vorgesehen —
+	// das läuft ausschließlich über die Inbox bzw. den "An die KI zurückgeben"-Button.
+	// Der aktuelle Status bleibt in der Liste, damit das Dropdown ihn korrekt anzeigt.
+	$: editableStatuses = statuses.filter(s => !s.special_type || s.id === ticket?.status_id);
+	$: isAwaitingHuman = ticket?.status?.special_type === 'human_intervention';
 
 	$: tasksCompleted = ticket?.tasks.filter(t => t.is_completed).length ?? 0;
 	$: tasksTotal = ticket?.tasks.length ?? 0;
@@ -138,6 +250,12 @@
 						{#if ticket.status}
 							<span class="badge badge-primary">{ticket.status.display_name}</span>
 						{/if}
+						{#if ticket.type === 'epic'}
+							<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
+								style="background: rgba(255,208,0,0.12); color: #ffd000; border: 1px solid rgba(255,208,0,0.3);">
+								<Flag class="w-3 h-3" /> Epic
+							</span>
+						{/if}
 					</div>
 					<h2 class="text-xl font-bold leading-tight" style="color: var(--text);">{ticket.title}</h2>
 				</div>
@@ -162,6 +280,27 @@
 				</div>
 			</div>
 
+			<!-- Human Intervention Banner -->
+			{#if isAwaitingHuman}
+				<div class="rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap"
+					style="border: 1px solid rgba(0,212,255,0.3); background: rgba(0,212,255,0.06);"
+					in:fly={{ y: -8, duration: 250 }}>
+					<p class="text-sm" style="color: var(--text);">
+						Dieses Ticket wartet auf deine Antwort. Beantworte die Frage der KI (z.B. per Kommentar) und gib es dann zurück.
+					</p>
+					<button onclick={returnToAI} disabled={isReturning || !humanAnsweredStatus}
+						class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all"
+						style="background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary-glow); opacity: {isReturning || !humanAnsweredStatus ? 0.5 : 1};">
+						{#if isReturning}
+							<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+						{:else}
+							<Send class="w-3.5 h-3.5" />
+						{/if}
+						An die KI zurückgeben
+					</button>
+				</div>
+			{/if}
+
 			<!-- Inline edit -->
 			{#if isEditing}
 				<div transition:slide={{ duration: 280, easing: cubicOut }}
@@ -176,7 +315,7 @@
 						<div>
 							<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Status</label>
 							<select bind:value={editStatusId} class="input">
-								{#each statuses as s}<option value={s.id}>{s.display_name}</option>{/each}
+								{#each editableStatuses as s}<option value={s.id}>{s.display_name}</option>{/each}
 							</select>
 						</div>
 						<div>
@@ -186,11 +325,22 @@
 							<input type="text" bind:value={editAssignee} class="input" placeholder="Optional" />
 						</div>
 					</div>
-					<div>
-						<label class="block text-xs font-medium mb-1.5 flex items-center gap-1.5" style="color: var(--text-muted);">
-							<Cpu class="w-3 h-3" /> KI-Modell <span class="opacity-50">(optional)</span>
-						</label>
-						<input type="text" bind:value={editModel} class="input font-mono" placeholder="z.B. claude-sonnet-4-6" />
+					<div class="grid grid-cols-2 gap-3">
+						<div>
+							<label class="block text-xs font-medium mb-1.5 flex items-center gap-1.5" style="color: var(--text-muted);">
+								<Cpu class="w-3 h-3" /> KI-Modell <span class="opacity-50">(optional)</span>
+							</label>
+							<input type="text" bind:value={editModel} class="input font-mono" placeholder="z.B. claude-sonnet-4-6" />
+						</div>
+						<div>
+							<label class="block text-xs font-medium mb-1.5 flex items-center gap-1.5" style="color: var(--text-muted);">
+								<Flag class="w-3 h-3" /> Typ
+							</label>
+							<select bind:value={editType} class="input">
+								<option value="ticket">Ticket</option>
+								<option value="epic">Epic</option>
+							</select>
+						</div>
 					</div>
 					<div>
 						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Beschreibung</label>
@@ -232,7 +382,7 @@
 
 			<!-- Description -->
 			{#if ticket.description}
-				<p class="text-sm leading-relaxed whitespace-pre-wrap" style="color: var(--text);">{ticket.description}</p>
+				<div class="markdown-body text-sm leading-relaxed" style="color: var(--text);">{@html renderMarkdown(ticket.description)}</div>
 			{/if}
 
 			<!-- Tasks -->
@@ -264,15 +414,73 @@
 				</div>
 			{/if}
 
-			<!-- Comments -->
-			{#if ticket.comments.length > 0}
-				<div class="rounded-xl overflow-hidden" style="border: 1px solid var(--border);">
-					<div class="px-4 py-3" style="border-bottom: 1px solid var(--border);">
-						<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
-							<MessageSquare class="w-4 h-4" style="color: var(--accent);" />
-							Kommentare ({ticket.comments.length})
-						</h3>
+			<!-- Relations -->
+			<div class="rounded-xl overflow-hidden" style="border: 1px solid var(--border);">
+				<div class="px-4 py-3 flex items-center justify-between" style="border-bottom: 1px solid var(--border);">
+					<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
+						<GitBranch class="w-4 h-4" style="color: var(--accent);" /> Verknüpfungen
+						{#if ticket.relations.length > 0}<span class="text-xs font-normal" style="color: var(--text-muted);">({ticket.relations.length})</span>{/if}
+					</h3>
+					{#if !showAddRelation}
+						<button onclick={openAddRelation}
+							class="flex items-center gap-1 text-xs px-2 py-1 rounded-md transition-all"
+							style="color: var(--accent); background: rgba(139,92,246,0.1);">
+							<Plus class="w-3 h-3" /> Hinzufügen
+						</button>
+					{/if}
+				</div>
+
+				{#if showAddRelation}
+					<div class="px-4 py-3 space-y-2" style="border-bottom: 1px solid var(--border); background: rgba(139,92,246,0.03);" transition:slide={{ duration: 200 }}>
+						<div class="grid grid-cols-2 gap-2">
+							<select bind:value={relationType} class="input text-xs">
+								{#each Object.entries(relationLabels) as [value, label]}<option {value}>{label}</option>{/each}
+							</select>
+							<select bind:value={relationTargetId} class="input text-xs">
+								<option value={null}>Ticket wählen…</option>
+								{#each projectTickets as t}<option value={t.id}>#{t.id} — {t.title}</option>{/each}
+							</select>
+						</div>
+						<div class="flex justify-end gap-2">
+							<button onclick={() => showAddRelation = false} class="px-3 py-1 rounded-md text-xs" style="color: var(--text-muted); background: var(--border);">Abbrechen</button>
+							<button onclick={addRelation} disabled={!relationTargetId || isAddingRelation}
+								class="px-3 py-1 rounded-md text-xs font-semibold" style="background: var(--accent); color: #fff; opacity: {!relationTargetId || isAddingRelation ? 0.5 : 1};">
+								Verknüpfen
+							</button>
+						</div>
 					</div>
+				{/if}
+
+				{#if ticket.relations.length === 0 && !showAddRelation}
+					<div class="px-4 py-4 text-xs text-center" style="color: var(--text-muted);">Keine Verknüpfungen</div>
+				{:else if ticket.relations.length > 0}
+					<div class="px-4 py-2 space-y-1">
+						{#each ticket.relations as rel (rel.id)}
+							<div class="flex items-center justify-between gap-2 py-1.5 text-xs">
+								<span style="color: var(--text-muted);">
+									{ticket.title}
+									<span style="color: var(--accent);">{rel.direction === 'outgoing' ? relationLabels[rel.relation_type] : incomingRelationLabels[rel.relation_type]}</span>
+									<a href="/tickets/{rel.other_ticket_id}" style="color: var(--text);">#{rel.other_ticket_id} — {rel.other_ticket_title}</a>
+								</span>
+								<button onclick={() => removeRelation(rel.id)} disabled={deletingRelationId === rel.id}
+									class="shrink-0 p-1 rounded transition-all" style="color: var(--danger); opacity: {deletingRelationId === rel.id ? 0.5 : 1};">
+									<X class="w-3 h-3" />
+								</button>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
+			<!-- Comments -->
+			<div class="rounded-xl overflow-hidden" style="border: 1px solid var(--border);">
+				<div class="px-4 py-3" style="border-bottom: 1px solid var(--border);">
+					<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
+						<MessageSquare class="w-4 h-4" style="color: var(--accent);" />
+						Kommentare {#if ticket.comments.length > 0}({ticket.comments.length}){/if}
+					</h3>
+				</div>
+				{#if ticket.comments.length > 0}
 					<div class="px-4 py-3 space-y-3">
 						{#each ticket.comments as comment (comment.id)}
 							{@const hue = [195, 270, 150, 45][comment.id % 4]}
@@ -291,8 +499,19 @@
 							</div>
 						{/each}
 					</div>
+				{/if}
+				<div class="px-4 py-3 space-y-2" style="border-top: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+					<textarea bind:value={newCommentText} class="input resize-none text-sm" rows="2" placeholder="Kommentar hinzufügen…"></textarea>
+					<div class="flex justify-end">
+						<button onclick={addComment} disabled={!newCommentText.trim() || isAddingComment}
+							class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+							style="background: var(--accent); color: #fff; opacity: {!newCommentText.trim() || isAddingComment ? 0.5 : 1};">
+							{#if isAddingComment}<div class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{:else}<MessageSquare class="w-3.5 h-3.5" />{/if}
+							Kommentieren
+						</button>
+					</div>
 				</div>
-			{/if}
+			</div>
 		</div>
 	{/if}
 </div>

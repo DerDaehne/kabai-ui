@@ -5,16 +5,19 @@
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { z } from 'zod';
-	import { ArrowLeft, Plus, User } from 'lucide-svelte';
-	import type { BoardStatus } from '$lib/types';
+	import { ArrowLeft, Plus, User, Flag } from 'lucide-svelte';
+	import type { BoardStatus, Ticket, TicketType } from '$lib/types';
 
 	let title = '';
 	let description = '';
 	let status_id: number | null = null;
 	let assignee = '';
+	let type: TicketType = 'ticket';
+	let parentEpicId: number | null = null;
 	let error = '';
 	let isLoading = false;
 	let statuses: BoardStatus[] = [];
+	let epics: Ticket[] = [];
 
 	$: id = $page.params.id;
 
@@ -30,7 +33,10 @@
 			const res = await fetch(`/api/projects/${id}/statuses`);
 			const result = await res.json();
 			if (result.ok) {
-				statuses = result.data.sort((a: BoardStatus, b: BoardStatus) => a.position - b.position);
+				// Human-Intervention/-Answered sind keine regulären Startspalten für neue Tickets
+				statuses = result.data
+					.filter((s: BoardStatus) => !s.special_type)
+					.sort((a: BoardStatus, b: BoardStatus) => a.position - b.position);
 				// Pre-select status from URL param or first status
 				const urlStatusId = $page.url.searchParams.get('status_id');
 				if (urlStatusId) {
@@ -39,6 +45,14 @@
 					status_id = statuses[0].id;
 				}
 			}
+		} catch {}
+	}
+
+	async function fetchEpics() {
+		try {
+			const res = await fetch(`/api/projects/${id}/tickets`);
+			const result = await res.json();
+			if (result.ok) epics = result.data.filter((t: Ticket) => t.type === 'epic');
 		} catch {}
 	}
 
@@ -64,7 +78,8 @@
 					title: validation.data.title,
 					description: validation.data.description ?? null,
 					status_id: validation.data.status_id,
-					assignee: validation.data.assignee ?? null
+					assignee: validation.data.assignee ?? null,
+					type
 				})
 			});
 			const result = await res.json();
@@ -72,6 +87,16 @@
 				error = result.error || 'Fehler beim Erstellen';
 				return;
 			}
+
+			// Optional: Als Kind des gewählten Parent-Epics verknüpfen
+			if (parentEpicId) {
+				await fetch(`/api/tickets/${parentEpicId}/relations`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ to_ticket_id: result.data.id, relation_type: 'parent_of' })
+				}).catch(() => {});
+			}
+
 			goto(`/projects/${id}?success=Ticket+erstellt`);
 		} catch {
 			error = 'Netzwerkfehler';
@@ -80,7 +105,7 @@
 		}
 	}
 
-	onMount(fetchStatuses);
+	onMount(() => { fetchStatuses(); fetchEpics(); });
 </script>
 
 <div class="w-full max-w-2xl">
@@ -165,6 +190,29 @@
 						class="input"
 						placeholder="Name des Verantwortlichen"
 					/>
+				</div>
+
+				<!-- Type + Parent Epic -->
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label class="block text-sm font-medium mb-2 flex items-center gap-2" style="color: var(--text);">
+							<Flag class="w-4 h-4" style="color: #ffd000;" />
+							Typ
+						</label>
+						<select bind:value={type} class="input">
+							<option value="ticket">Ticket</option>
+							<option value="epic">Epic</option>
+						</select>
+					</div>
+					<div>
+						<label class="block text-sm font-medium mb-2" style="color: var(--text);">
+							Parent-Epic <span class="text-xs" style="color: var(--text-muted);">(optional)</span>
+						</label>
+						<select bind:value={parentEpicId} class="input" disabled={epics.length === 0}>
+							<option value={null}>{epics.length === 0 ? 'Keine Epics vorhanden' : 'Keiner'}</option>
+							{#each epics as epic}<option value={epic.id}>#{epic.id} — {epic.title}</option>{/each}
+						</select>
+					</div>
 				</div>
 
 				{#if error}
