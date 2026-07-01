@@ -89,6 +89,11 @@ docker compose exec -T postgres psql -U kb_user -d kb_ai \
   < init-db/V1__Initial_Multi_Project_Kanban_Schema.sql
 ```
 
+## Releases
+
+Container-Images werden automatisch bei jedem Tag-Push nach `codeberg.org/danszek/kbai-ui`
+gebaut und veröffentlicht. Details und Kriterien für ein Release: [RELEASING.md](./RELEASING.md).
+
 ## Lizenz
 
 MIT
