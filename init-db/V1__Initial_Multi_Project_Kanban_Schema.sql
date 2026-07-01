@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS projects (
 );
 
 -- ── Board-Statuses (Kanban-Spalten) ──────────────────────────────────────────
+-- special_type: 'human_intervention' (jeder Status darf hierher wechseln, Eskalation)
+--               'human_answered'     (darf zu jedem Status wechseln, nachdem der Mensch geantwortet hat)
+--               NULL = normale Spalte
 CREATE TABLE IF NOT EXISTS board_statuses (
     id                     SERIAL PRIMARY KEY,
     project_id             INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -18,6 +21,7 @@ CREATE TABLE IF NOT EXISTS board_statuses (
     display_name           VARCHAR(255) NOT NULL,
     position               INTEGER NOT NULL DEFAULT 0,
     agent_role_instruction TEXT,
+    special_type           VARCHAR(50),
     created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (project_id, name)
 );
@@ -39,8 +43,21 @@ CREATE TABLE IF NOT EXISTS tickets (
     status_id   INTEGER NOT NULL REFERENCES board_statuses(id),
     assignee    VARCHAR(255),
     model       VARCHAR(100),
+    type        VARCHAR(50) NOT NULL DEFAULT 'ticket',
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ── Ticket-Relationen (Epics, Blockaden, Duplikate, generische Bezüge) ────────
+CREATE TABLE IF NOT EXISTS ticket_relations (
+    id             SERIAL PRIMARY KEY,
+    from_ticket_id INT NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+    to_ticket_id   INT NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+    relation_type  VARCHAR(50) NOT NULL
+        CHECK (relation_type IN ('parent_of', 'blocks', 'duplicate_of', 'relates_to')),
+    created_at     TIMESTAMP DEFAULT NOW(),
+    UNIQUE (from_ticket_id, to_ticket_id, relation_type),
+    CONSTRAINT check_not_self_related CHECK (from_ticket_id <> to_ticket_id)
 );
 
 -- Automatisches updated_at
@@ -92,24 +109,55 @@ CREATE TABLE IF NOT EXISTS ticket_dependencies (
 
 -- ── Workflow-Enforcement Trigger ──────────────────────────────────────────────
 -- Verhindert Status-Übergänge die nicht in status_transitions definiert sind.
--- Ausnahme: Neuerstellung eines Tickets (INSERT wird nicht geprüft).
+-- Ausnahme: Neuerstellung eines Tickets (INSERT wird nicht geprüft), sowie
+-- Eskalation nach human_intervention (immer erlaubt) und Rückkehr aus
+-- human_answered (immer erlaubt) — siehe special_type auf board_statuses.
+-- Prüft außerdem, dass beim Wechsel nach "done" keine offenen Tasks bleiben.
 CREATE OR REPLACE FUNCTION enforce_kanban_workflow_integrity()
 RETURNS TRIGGER AS $$
+DECLARE
+    target_status_name  VARCHAR(50);
+    target_special_type VARCHAR(50);
+    source_special_type VARCHAR(50);
+    open_tasks_count    INT;
+    is_initial_insert   BOOLEAN := (TG_OP = 'INSERT');
 BEGIN
-    -- Nur bei tatsächlicher Status-Änderung prüfen
-    IF OLD.status_id = NEW.status_id THEN
+    IF NOT is_initial_insert AND OLD.status_id = NEW.status_id THEN
         RETURN NEW;
     END IF;
 
-    -- Prüfen ob Transition erlaubt ist
-    IF NOT EXISTS (
-        SELECT 1 FROM status_transitions
-        WHERE project_id    = NEW.project_id
-          AND from_status_id = OLD.status_id
-          AND to_status_id   = NEW.status_id
-    ) THEN
-        RAISE EXCEPTION 'enforce_kanban_workflow_integrity: transition from % to % not allowed',
-            OLD.status_id, NEW.status_id;
+    IF NOT is_initial_insert THEN
+        SELECT special_type INTO target_special_type
+          FROM board_statuses WHERE id = NEW.status_id;
+        SELECT special_type INTO source_special_type
+          FROM board_statuses WHERE id = OLD.status_id;
+
+        IF (target_special_type IS DISTINCT FROM 'human_intervention') AND
+           (source_special_type IS DISTINCT FROM 'human_answered') THEN
+            IF NOT EXISTS (
+                SELECT 1 FROM status_transitions
+                WHERE project_id    = NEW.project_id
+                  AND from_status_id = OLD.status_id
+                  AND to_status_id   = NEW.status_id
+            ) THEN
+                RAISE EXCEPTION 'enforce_kanban_workflow_integrity: transition from % to % not allowed',
+                    OLD.status_id, NEW.status_id;
+            END IF;
+        END IF;
+    END IF;
+
+    SELECT name INTO target_status_name
+      FROM board_statuses WHERE id = NEW.status_id;
+
+    IF target_status_name = 'done' THEN
+        SELECT COUNT(*) INTO open_tasks_count
+          FROM ticket_tasks
+         WHERE ticket_id = NEW.id AND is_completed = FALSE;
+
+        IF open_tasks_count > 0 THEN
+            RAISE EXCEPTION 'enforce_kanban_workflow_integrity: ticket % has % unresolved task(s)',
+                NEW.id, open_tasks_count;
+        END IF;
     END IF;
 
     RETURN NEW;
@@ -117,8 +165,47 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER enforce_kanban_workflow_integrity
-    BEFORE UPDATE ON tickets
+    BEFORE INSERT OR UPDATE ON tickets
     FOR EACH ROW EXECUTE FUNCTION enforce_kanban_workflow_integrity();
+
+-- ── Auto-Erstellung der Human-Intervention-Statuses für neue Projekte ────────
+CREATE OR REPLACE FUNCTION create_human_intervention_statuses()
+RETURNS TRIGGER AS $$
+DECLARE
+    hi_id INT;
+    ha_id INT;
+BEGIN
+    INSERT INTO board_statuses
+        (project_id, name, display_name, position, special_type, agent_role_instruction)
+    VALUES (
+        NEW.id, 'human_intervention', 'Human Intervention', 98, 'human_intervention',
+        'Dieses Ticket wartet auf menschliche Intervention. '
+        'Lies alle Kommentare, beantworte die Frage des Agenten und '
+        'verschiebe das Ticket danach nach "human_answered".'
+    )
+    RETURNING id INTO hi_id;
+
+    INSERT INTO board_statuses
+        (project_id, name, display_name, position, special_type, agent_role_instruction)
+    VALUES (
+        NEW.id, 'human_answered', 'Human Answered', 99, 'human_answered',
+        'Der Mensch hat geantwortet. Lies die neuesten Kommentare und '
+        'fahre mit der Arbeit fort. Verschiebe das Ticket in den passenden '
+        'Folgestatus.'
+    )
+    RETURNING id INTO ha_id;
+
+    INSERT INTO status_transitions (project_id, from_status_id, to_status_id)
+    VALUES (NEW.id, hi_id, ha_id)
+    ON CONFLICT DO NOTHING;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER projects_create_human_statuses
+    AFTER INSERT ON projects
+    FOR EACH ROW EXECUTE FUNCTION create_human_intervention_statuses();
 
 -- ── Echtzeit-Benachrichtigungen (SSE via pg_notify) ───────────────────────────
 CREATE OR REPLACE FUNCTION notify_ticket_change()
@@ -143,3 +230,43 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER tickets_notify
     AFTER INSERT OR UPDATE OR DELETE ON tickets
     FOR EACH ROW EXECUTE FUNCTION notify_ticket_change();
+
+-- Auch Kommentare/Tasks lösen eine Notification aus (KI-Agenten ändern Tickets
+-- oft nur darüber, ohne die tickets-Zeile selbst per UPDATE anzufassen)
+CREATE OR REPLACE FUNCTION notify_ticket_child_change()
+RETURNS TRIGGER AS $$
+DECLARE
+    rec RECORD;
+    v_ticket_id INT;
+    v_project_id INT;
+    v_status_id INT;
+BEGIN
+    IF TG_OP = 'DELETE' THEN rec := OLD; ELSE rec := NEW; END IF;
+    v_ticket_id := rec.ticket_id;
+
+    SELECT project_id, status_id INTO v_project_id, v_status_id
+      FROM tickets WHERE id = v_ticket_id;
+
+    IF v_project_id IS NOT NULL THEN
+        PERFORM pg_notify(
+            'tickets_' || v_project_id::text,
+            json_build_object(
+                'op',         'UPDATE',
+                'ticket_id',  v_ticket_id,
+                'status_id',  v_status_id,
+                'project_id', v_project_id
+            )::text
+        );
+    END IF;
+
+    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER ticket_comments_notify
+    AFTER INSERT OR UPDATE OR DELETE ON ticket_comments
+    FOR EACH ROW EXECUTE FUNCTION notify_ticket_child_change();
+
+CREATE TRIGGER ticket_tasks_notify
+    AFTER INSERT OR UPDATE OR DELETE ON ticket_tasks
+    FOR EACH ROW EXECUTE FUNCTION notify_ticket_child_change();

@@ -137,7 +137,21 @@ Für spätere Migrationen SQL-Datei manuell einspielen:
 # V3: Echtzeit-Benachrichtigungen (pg_notify-Trigger für Live-Board-Updates)
 docker compose exec -T postgres psql -U kb_user -d kb_ai \
   < V3__Add_Ticket_Notify_Trigger.sql
+
+# V4: Ticket-Relations, Epics, Human-Intervention-Workflow
+docker compose exec -T postgres psql -U kb_user -d kb_ai \
+  < init-db/V4__Ticket_Relations_Epic_HumanIntervention.sql
+
+# V5: Live-Updates auch bei Kommentaren/Tasks (ohne Ticket-Statuswechsel)
+docker compose exec -T postgres psql -U kb_user -d kb_ai \
+  < V5__Notify_On_Comments_And_Tasks.sql
+
+# V6: Human-Intervention/-Answered-Statuses automatisch für neue Projekte anlegen
+docker compose exec -T postgres psql -U kb_user -d kb_ai \
+  < V6__Auto_Create_Human_Statuses_For_New_Projects.sql
 ```
+
+Bei einer **frischen** Installation (leeres `postgres_data`-Volume) sind alle Migrationen bis V6 bereits in `init-db/V1__Initial_Multi_Project_Kanban_Schema.sql` enthalten — es ist keine manuelle Migration nötig.
 
 ---
 
