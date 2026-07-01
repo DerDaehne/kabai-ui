@@ -9,9 +9,7 @@ on:
 
 jobs:
   build-and-publish:
-    # Passe das runner-Label bei Bedarf an die tatsächliche Forgejo-Runner-
-    # Konfiguration dieses Servers an (Standard-Label ist häufig "docker").
-    runs-on: docker
+    runs-on: ci
     steps:
       - name: Checkout
         uses: actions/checkout@v4
