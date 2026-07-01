@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { renderMarkdown } from '$lib/markdown';
@@ -29,6 +29,9 @@
 	let editModel = '';
 	let editStatusId: number | null = null;
 
+	let eventSource: EventSource | null = null;
+	let justUpdatedLive = false;
+
 	async function fetchTicket() {
 		try {
 			isLoading = true;
@@ -39,8 +42,10 @@
 					...result.data.ticket,
 					status: result.data.status,
 					tasks: result.data.tasks,
-					comments: result.data.comments
+					comments: result.data.comments,
+					relations: result.data.relations
 				};
+				connectLiveUpdates(ticket.project_id);
 			} else {
 				error = result.error || 'Ticket nicht gefunden';
 			}
@@ -147,6 +152,28 @@
 	// in der Liste, damit das Dropdown ihn korrekt anzeigt.
 	$: editableStatuses = statuses.filter(s => !s.special_type || s.id === ticket?.status_id);
 
+	function connectLiveUpdates(projectId: number) {
+		if (eventSource) return;
+		eventSource = new EventSource(`/api/projects/${projectId}/events`);
+		eventSource.onmessage = (event) => {
+			try {
+				const payload = JSON.parse(event.data) as { op: string; ticket_id: number };
+				if (payload.ticket_id !== Number(id) || isEditing) return;
+				fetch(`/api/tickets/${id}`)
+					.then(r => r.json())
+					.then(res => {
+						if (!res.ok) return;
+						ticket = { ...res.data.ticket, status: res.data.status, tasks: res.data.tasks, comments: res.data.comments, relations: res.data.relations };
+						justUpdatedLive = true;
+						setTimeout(() => justUpdatedLive = false, 2000);
+					})
+					.catch(() => {});
+			} catch { /* ignore */ }
+		};
+	}
+
+	onDestroy(() => eventSource?.close());
+
 	async function toggleTask(task: TicketTask) {
 		try {
 			const res = await fetch(`/api/tasks/${task.id}`, {
@@ -201,9 +228,16 @@
 
 	{:else if ticket}
 		<div class="space-y-4" in:fly={{ y: 20, duration: 400, easing: quintOut }}>
+			{#if justUpdatedLive}
+				<div class="flex items-center gap-1.5 text-xs" style="color: var(--primary);" in:fade={{ duration: 150 }}>
+					<span class="w-1.5 h-1.5 rounded-full" style="background: var(--primary); box-shadow: 0 0 6px var(--primary-glow);"></span>
+					Gerade aktualisiert
+				</div>
+			{/if}
 
 			<!-- Main Card -->
-			<div class="rounded-2xl overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+			<div class="rounded-2xl overflow-hidden transition-shadow duration-500"
+				style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: {justUpdatedLive ? '0 0 0 1px var(--primary), 0 0 20px rgba(0,212,255,0.25)' : '0 0 40px rgba(0,0,0,0.3)'};">
 
 				<!-- Header Bar -->
 				<div class="px-6 py-4 flex items-start justify-between gap-4" style="border-bottom: 1px solid var(--border);">

@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { renderMarkdown } from '$lib/markdown';
-	import { fly, slide } from 'svelte/transition';
+	import { fly, slide, fade } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus } from 'lucide-svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
@@ -10,6 +10,7 @@
 	export let ticketId: number;
 	export let onClose: () => void = () => {};
 	export let onDeleted: () => void = () => {};
+	export let liveUpdateSignal: { ticketId: number; seq: number } | null = null;
 
 	let ticket: TicketDetailed | null = null;
 	let statuses: BoardStatus[] = [];
@@ -69,6 +70,31 @@
 		} finally {
 			isLoading = false;
 		}
+	}
+
+	let justUpdatedLive = false;
+
+	// Live-Refresh, während das Modal offen ist (z.B. ein KI-Agent kommentiert,
+	// während der Mensch das Ticket gerade angeschaut hat). Kein Loading-Spinner,
+	// damit der bereits sichtbare Inhalt nicht wegflackert; während der Nutzer
+	// selbst editiert, wird nicht überschrieben, um unsaved changes zu schützen.
+	async function refreshTicketQuietly() {
+		if (isEditing) return;
+		try {
+			const res = await fetch(`/api/tickets/${ticketId}`);
+			const result = await res.json();
+			if (result.ok) {
+				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations };
+				justUpdatedLive = true;
+				setTimeout(() => justUpdatedLive = false, 2000);
+			}
+		} catch { /* still showing the previous state is fine */ }
+	}
+
+	let lastSeenSeq = -1;
+	$: if (liveUpdateSignal && liveUpdateSignal.ticketId === ticketId && liveUpdateSignal.seq !== lastSeenSeq) {
+		lastSeenSeq = liveUpdateSignal.seq;
+		refreshTicketQuietly();
 	}
 
 	async function fetchStatuses() {
@@ -241,7 +267,15 @@
 	{:else if error && !ticket}
 		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);">{error}</div>
 	{:else if ticket}
-		<div class="space-y-4" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
+		<div class="space-y-4 rounded-2xl transition-shadow duration-500"
+			style="box-shadow: {justUpdatedLive ? '0 0 0 1px var(--primary), 0 0 20px rgba(0,212,255,0.25)' : 'none'};"
+			in:fly={{ y: 12, duration: 300, easing: quintOut }}>
+			{#if justUpdatedLive}
+				<div class="flex items-center gap-1.5 text-xs" style="color: var(--primary);" in:fade={{ duration: 150 }}>
+					<span class="w-1.5 h-1.5 rounded-full" style="background: var(--primary); box-shadow: 0 0 6px var(--primary-glow);"></span>
+					Gerade aktualisiert
+				</div>
+			{/if}
 			<!-- Title + badges + actions -->
 			<div class="flex items-start justify-between gap-4">
 				<div class="flex-1 min-w-0">

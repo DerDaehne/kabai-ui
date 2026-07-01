@@ -37,6 +37,9 @@
 	// Echtzeit-Updates via SSE
 	let movedTicketIds = new Set<number>();
 	let eventSource: EventSource | null = null;
+	// Signalisiert dem offenen TicketModal, dass sich sein Ticket geändert hat
+	// (z.B. ein KI-Agent kommentiert, während der Mensch das Ticket offen hat).
+	let liveUpdateSignal: { ticketId: number; seq: number } | null = null;
 
 	// Verhindert, dass eine ältere Fetch-Response eine neuere überschreibt, wenn
 	// mehrere SSE-Events kurz hintereinander für dasselbe Ticket eintreffen
@@ -83,6 +86,10 @@
 						setTimeout(() => {
 							movedTicketIds = new Set([...movedTicketIds].filter(id => id !== updated.id));
 						}, 2000);
+					}
+
+					if (openTicketId === updated.id) {
+						liveUpdateSignal = { ticketId: updated.id, seq };
 					}
 				})
 				.catch(() => {});
@@ -227,14 +234,14 @@
 <!-- Inbox Modal -->
 <Modal open={showInbox} onClose={() => showInbox = false} size="md">
 	{#if showInbox}
-		<InboxModal tickets={inboxTickets} onTicketClick={(id) => { showInbox = false; onTicketClick(id); }} onClose={() => showInbox = false} />
+		<InboxModal tickets={inboxTickets} onTicketClick={(id) => { showInbox = false; onTicketClick(id); }} onClose={() => showInbox = false} {movedTicketIds} />
 	{/if}
 </Modal>
 
 <!-- Ticket Detail Modal -->
 <Modal open={openTicketId !== null} onClose={() => openTicketId = null} size="lg">
 	{#if openTicketId !== null}
-		<TicketModal ticketId={openTicketId} onClose={() => openTicketId = null} onDeleted={onTicketDeleted} />
+		<TicketModal ticketId={openTicketId} onClose={() => openTicketId = null} onDeleted={onTicketDeleted} {liveUpdateSignal} />
 	{/if}
 </Modal>
 
