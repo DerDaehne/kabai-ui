@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { renderMarkdown } from '$lib/markdown';
-	import { fly, slide, fade } from 'svelte/transition';
+	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus, BookOpen, Compass, AlertTriangle, Archive } from 'lucide-svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
@@ -277,12 +277,8 @@
 		<div class="space-y-4 rounded-2xl transition-shadow duration-500"
 			style="box-shadow: {justUpdatedLive ? '0 0 0 1px var(--primary), 0 0 20px rgba(0,212,255,0.25)' : 'none'};"
 			in:fly={{ y: 12, duration: 300, easing: quintOut }}>
-			{#if justUpdatedLive}
-				<div class="flex items-center gap-1.5 text-xs" style="color: var(--primary);" in:fade={{ duration: 150 }}>
-					<span class="w-1.5 h-1.5 rounded-full" style="background: var(--primary); box-shadow: 0 0 6px var(--primary-glow);"></span>
-					Gerade aktualisiert
-				</div>
-			{/if}
+			<!-- Live-Update wird nur über den Rahmen-Glow visualisiert (box-shadow
+			     oben) — kein einschiebender Hinweistext, der das Layout verschiebt (#309) -->
 			<!-- Title + badges + actions -->
 			<div class="flex items-start justify-between gap-4">
 				<div class="flex-1 min-w-0">

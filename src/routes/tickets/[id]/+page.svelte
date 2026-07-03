@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { renderMarkdown } from '$lib/markdown';
-	import { fly, slide, fade } from 'svelte/transition';
+	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { ArrowLeft, CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, BookOpen, Compass, AlertTriangle, Archive } from 'lucide-svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
@@ -236,12 +236,8 @@
 
 	{:else if ticket}
 		<div class="space-y-4" in:fly={{ y: 20, duration: 400, easing: quintOut }}>
-			{#if justUpdatedLive}
-				<div class="flex items-center gap-1.5 text-xs" style="color: var(--primary);" in:fade={{ duration: 150 }}>
-					<span class="w-1.5 h-1.5 rounded-full" style="background: var(--primary); box-shadow: 0 0 6px var(--primary-glow);"></span>
-					Gerade aktualisiert
-				</div>
-			{/if}
+			<!-- Live-Update wird nur über den Rahmen-Glow der Karte visualisiert —
+			     kein einschiebender Hinweistext, der das Layout verschiebt (#309) -->
 
 			<!-- Main Card -->
 			<div class="rounded-2xl overflow-hidden transition-shadow duration-500"
