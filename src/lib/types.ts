@@ -130,6 +130,33 @@ export interface NoteSummary {
 	rank?: number;
 }
 
+export type NoteLinkType = 'references' | 'contains' | 'supersedes' | 'contradicts';
+
+export interface NoteLinkRef {
+	direction: 'outgoing' | 'incoming';
+	link_type: NoteLinkType;
+	note_id: number;
+	slug: string;
+	title: string;
+	kind: NoteKind;
+	archived: boolean;
+}
+
+export type NoteTicketRelation = 'documents' | 'created_by' | 'verified_by' | 'references';
+
+export interface NoteTicketLink {
+	ticket_id: number;
+	relation: NoteTicketRelation;
+	ticket_title: string;
+	project_id: number;
+}
+
+export interface NoteDetail extends NoteSummary {
+	body: string;
+	links: NoteLinkRef[];
+	ticket_links: NoteTicketLink[];
+}
+
 export interface NotesListResponse {
 	notes: NoteSummary[];
 	// Alle bekannten Tags für den Filter-Dropdown
