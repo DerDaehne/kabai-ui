@@ -59,8 +59,22 @@ export interface Ticket {
 	assignee: string | null;
 	model: string | null;
 	type: TicketType;
+	// Opt-in Doku-Pflicht (V8): done-Move erfordert eine verlinkte Note
+	docs_required?: boolean;
+	// Nur in Listen-Antworten gesetzt (für Board-Icons)
+	linked_notes_count?: number;
 	created_at: string;
 	updated_at: string;
+}
+
+// Knowledge-Base-Note, die über note_ticket_links an einem Ticket hängt
+export interface TicketLinkedNote {
+	note_id: number;
+	slug: string;
+	title: string;
+	kind: 'note' | 'adr' | 'hub';
+	relation: 'documents' | 'created_by' | 'verified_by' | 'references';
+	archived: boolean;
 }
 
 export interface TicketDetailed extends Ticket {
@@ -68,6 +82,7 @@ export interface TicketDetailed extends Ticket {
 	comments: TicketComment[];
 	status: BoardStatus;
 	relations: TicketRelation[];
+	linked_notes: TicketLinkedNote[];
 }
 
 export interface TicketTask {

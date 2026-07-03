@@ -5,7 +5,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide, fade } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { ArrowLeft, CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu } from 'lucide-svelte';
+	import { ArrowLeft, CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, BookOpen, Compass, AlertTriangle, Archive } from 'lucide-svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
 
 	$: id = $page.params.id;
@@ -43,7 +43,8 @@
 					status: result.data.status,
 					tasks: result.data.tasks,
 					comments: result.data.comments,
-					relations: result.data.relations
+					relations: result.data.relations,
+					linked_notes: result.data.linked_notes ?? []
 				};
 				connectLiveUpdates(ticket.project_id);
 			} else {
@@ -163,7 +164,7 @@
 					.then(r => r.json())
 					.then(res => {
 						if (!res.ok) return;
-						ticket = { ...res.data.ticket, status: res.data.status, tasks: res.data.tasks, comments: res.data.comments, relations: res.data.relations };
+						ticket = { ...res.data.ticket, status: res.data.status, tasks: res.data.tasks, comments: res.data.comments, relations: res.data.relations, linked_notes: res.data.linked_notes ?? [] };
 						justUpdatedLive = true;
 						setTimeout(() => justUpdatedLive = false, 2000);
 					})
@@ -188,6 +189,13 @@
 			}
 		} catch {}
 	}
+
+	const noteRelationLabels: Record<string, string> = {
+		documents: 'dokumentiert',
+		created_by: 'erstellt durch',
+		verified_by: 'verifiziert durch',
+		references: 'referenziert'
+	};
 
 	$: assigneeInitials = ticket?.assignee
 		? ticket.assignee.split(' ').map(p => p.charAt(0).toUpperCase()).slice(0, 2).join('')
@@ -246,6 +254,13 @@
 							<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: rgba(0,212,255,0.1); color: var(--primary);">#{ticket.id}</span>
 							{#if ticket.status}
 								<span class="badge badge-primary">{ticket.status.display_name}</span>
+							{/if}
+							{#if ticket.docs_required}
+								<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
+									title="Dieses Ticket erfordert eine verlinkte Knowledge-Base-Note, bevor es geschlossen werden kann"
+									style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.3);">
+									<BookOpen class="w-3 h-3" /> Doku-Pflicht
+								</span>
 							{/if}
 						</div>
 						<h1 class="text-xl font-bold mt-2 leading-tight" style="color: var(--text);">{ticket.title}</h1>
@@ -432,6 +447,47 @@
 					{/if}
 				</div>
 			</div>
+
+			<!-- Knowledge-Base-Notes -->
+			{#if ticket.docs_required || ticket.linked_notes.length > 0}
+				<div class="rounded-2xl overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--border);">
+					<div class="px-6 py-4" style="border-bottom: 1px solid var(--border);">
+						<h3 class="flex items-center gap-2 font-semibold" style="color: var(--text);">
+							<BookOpen class="w-4 h-4" style="color: var(--accent);" />
+							Knowledge Base
+							{#if ticket.linked_notes.length > 0}<span class="text-sm font-normal" style="color: var(--text-muted);">({ticket.linked_notes.length})</span>{/if}
+						</h3>
+					</div>
+					{#if ticket.docs_required && ticket.linked_notes.length === 0}
+						<div class="mx-6 my-4 flex items-start gap-2.5 p-3 rounded-lg text-sm"
+							style="background: rgba(255,180,50,0.07); border: 1px solid rgba(255,180,50,0.35); color: hsl(35, 90%, 60%);">
+							<AlertTriangle class="w-4 h-4 shrink-0 mt-0.5" />
+							<span>Dieses Ticket hat <strong>Doku-Pflicht</strong>, aber noch keine verlinkte Note — es kann erst geschlossen werden, wenn eine Knowledge-Base-Note verlinkt ist (via <code>kb_ai_docs_link_ticket</code>) oder die Pflicht mit Begründung entfernt wird.</span>
+						</div>
+					{/if}
+					{#if ticket.linked_notes.length > 0}
+						<div class="px-6 py-3 space-y-1">
+							{#each ticket.linked_notes as ln (`${ln.note_id}-${ln.relation}`)}
+								<a href="/notes/{ln.slug}"
+									class="flex items-center gap-2.5 py-2 px-3 rounded-lg text-sm transition-all"
+									style="{ln.archived ? 'opacity: 0.55;' : ''}"
+									onmouseenter={(e) => e.currentTarget.style.background = 'var(--border)'}
+									onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}>
+									{#if ln.kind === 'hub'}
+										<Compass class="w-4 h-4 shrink-0" style="color: hsl(45, 90%, 60%);" />
+									{:else}
+										<BookOpen class="w-4 h-4 shrink-0" style="color: {ln.kind === 'adr' ? 'hsl(270, 70%, 70%)' : 'var(--primary)'};" />
+									{/if}
+									<span class="text-xs font-semibold px-1.5 py-0.5 rounded shrink-0" style="background: rgba(139,92,246,0.1); color: var(--accent);">{noteRelationLabels[ln.relation] ?? ln.relation}</span>
+									<span class="truncate" style="color: var(--text);">{ln.title}</span>
+									{#if ln.archived}<Archive class="w-3.5 h-3.5 shrink-0" style="color: var(--text-muted);" />{/if}
+									<code class="text-xs ml-auto shrink-0 hidden sm:inline" style="color: var(--text-muted);">{ln.slug}</code>
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
 
 			<!-- Comments -->
 			<div class="rounded-2xl overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--border);">

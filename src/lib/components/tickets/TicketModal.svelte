@@ -4,7 +4,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide, fade } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus } from 'lucide-svelte';
+	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus, BookOpen, Compass, AlertTriangle, Archive } from 'lucide-svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
 
 	export let ticketId: number;
@@ -47,6 +47,13 @@
 		duplicate_of: 'ist Duplikat von',
 		relates_to: 'bezieht sich auf'
 	};
+	const noteRelationLabels: Record<string, string> = {
+		documents: 'dokumentiert',
+		created_by: 'erstellt durch',
+		verified_by: 'verifiziert durch',
+		references: 'referenziert'
+	};
+
 	const incomingRelationLabels: Record<RelationType, string> = {
 		parent_of: 'ist Kind von',
 		blocks: 'wird blockiert von',
@@ -60,7 +67,7 @@
 			const res = await fetch(`/api/tickets/${ticketId}`);
 			const result = await res.json();
 			if (result.ok) {
-				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations };
+				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [] };
 				if (ticket.status?.special_type === 'human_intervention') await fetchStatuses();
 			} else {
 				error = result.error || 'Ticket nicht gefunden';
@@ -84,7 +91,7 @@
 			const res = await fetch(`/api/tickets/${ticketId}`);
 			const result = await res.json();
 			if (result.ok) {
-				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations };
+				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [] };
 				justUpdatedLive = true;
 				setTimeout(() => justUpdatedLive = false, 2000);
 			}
@@ -288,6 +295,13 @@
 							<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
 								style="background: rgba(255,208,0,0.12); color: #ffd000; border: 1px solid rgba(255,208,0,0.3);">
 								<Flag class="w-3 h-3" /> Epic
+							</span>
+						{/if}
+						{#if ticket.docs_required}
+							<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
+								title="Dieses Ticket erfordert eine verlinkte Knowledge-Base-Note, bevor es geschlossen werden kann"
+								style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.3);">
+								<BookOpen class="w-3 h-3" /> Doku-Pflicht
 							</span>
 						{/if}
 					</div>
@@ -505,6 +519,45 @@
 					</div>
 				{/if}
 			</div>
+
+			<!-- Knowledge-Base-Notes -->
+			{#if ticket.docs_required || ticket.linked_notes.length > 0}
+				<div class="rounded-xl overflow-hidden" style="border: 1px solid var(--border);">
+					<div class="px-4 py-3" style="border-bottom: 1px solid var(--border);">
+						<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
+							<BookOpen class="w-4 h-4" style="color: var(--accent);" />
+							Knowledge Base {#if ticket.linked_notes.length > 0}({ticket.linked_notes.length}){/if}
+						</h3>
+					</div>
+					{#if ticket.docs_required && ticket.linked_notes.length === 0}
+						<div class="mx-4 my-3 flex items-start gap-2 p-3 rounded-lg text-xs"
+							style="background: rgba(255,180,50,0.07); border: 1px solid rgba(255,180,50,0.35); color: hsl(35, 90%, 60%);">
+							<AlertTriangle class="w-4 h-4 shrink-0" />
+							<span>Dieses Ticket hat <strong>Doku-Pflicht</strong>, aber noch keine verlinkte Note — es kann erst geschlossen werden, wenn eine Knowledge-Base-Note verlinkt ist (via <code>kb_ai_docs_link_ticket</code>) oder die Pflicht mit Begründung entfernt wird.</span>
+						</div>
+					{/if}
+					{#if ticket.linked_notes.length > 0}
+						<div class="px-4 py-2 space-y-1">
+							{#each ticket.linked_notes as ln (`${ln.note_id}-${ln.relation}`)}
+								<a href="/notes/{ln.slug}"
+									class="flex items-center gap-2 py-1.5 px-2 rounded-lg text-xs transition-all"
+									style="{ln.archived ? 'opacity: 0.55;' : ''}"
+									onmouseenter={(e) => e.currentTarget.style.background = 'var(--border)'}
+									onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}>
+									<Compass class="w-3.5 h-3.5 shrink-0 {ln.kind === 'hub' ? '' : 'hidden'}" style="color: hsl(45, 90%, 60%);" />
+									<BookOpen class="w-3.5 h-3.5 shrink-0 {ln.kind === 'hub' ? 'hidden' : ''}" style="color: {ln.kind === 'adr' ? 'hsl(270, 70%, 70%)' : 'var(--primary)'};" />
+									<span class="font-semibold px-1.5 py-0.5 rounded shrink-0" style="background: rgba(139,92,246,0.1); color: var(--accent);">{noteRelationLabels[ln.relation] ?? ln.relation}</span>
+									<span class="truncate" style="color: var(--text);">{ln.title}</span>
+									{#if ln.archived}<Archive class="w-3 h-3 shrink-0" style="color: var(--text-muted);" />{/if}
+									<code class="ml-auto shrink-0 hidden sm:inline" style="color: var(--text-muted);">{ln.slug}</code>
+								</a>
+							{/each}
+						</div>
+					{:else if !ticket.docs_required}
+						<div class="px-4 py-4 text-xs text-center" style="color: var(--text-muted);">Keine Notes verlinkt</div>
+					{/if}
+				</div>
+			{/if}
 
 			<!-- Comments -->
 			<div class="rounded-xl overflow-hidden" style="border: 1px solid var(--border);">

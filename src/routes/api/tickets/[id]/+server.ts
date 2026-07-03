@@ -24,6 +24,7 @@ function mapTicket(row: any): Ticket {
 		assignee: row.assignee,
 		model: row.model ?? null,
 		type: row.type ?? 'ticket',
+		docs_required: row.docs_required ?? false,
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};
@@ -81,6 +82,15 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			ORDER BY r.created_at ASC
 		`;
 
+		// Verlinkte Knowledge-Base-Notes (note_ticket_links, V7)
+		const linkedNotes = await sql`
+			SELECT ntl.note_id, ntl.relation, n.slug, n.title, n.kind, n.archived
+			FROM note_ticket_links ntl
+			JOIN notes n ON n.id = ntl.note_id
+			WHERE ntl.ticket_id = ${ticketId}
+			ORDER BY ntl.relation, n.title
+		`;
+
 		return json({
 			ok: true,
 			data: {
@@ -109,6 +119,14 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 					other_ticket_id: row.other_ticket_id,
 					other_ticket_title: row.other_ticket_title,
 					direction: row.direction
+				})),
+				linked_notes: linkedNotes.map((row: any) => ({
+					note_id: row.note_id,
+					slug: row.slug,
+					title: row.title,
+					kind: row.kind,
+					relation: row.relation,
+					archived: row.archived
 				}))
 			}
 		});

@@ -29,6 +29,8 @@ function mapTicket(row: any): Ticket {
 		assignee: row.assignee,
 		model: row.model ?? null,
 		type: row.type ?? 'ticket',
+		docs_required: row.docs_required ?? false,
+		linked_notes_count: row.linked_notes_count !== undefined ? Number(row.linked_notes_count) : undefined,
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};
@@ -59,8 +61,11 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 		
 		const statusIdNum = queryParams.status_id ? parseInt(queryParams.status_id) : NaN;
 		const statusFilter = !isNaN(statusIdNum) ? sql`AND status_id = ${statusIdNum}` : sql``;
+		// linked_notes_count für Board-Icons (Doku vorhanden / docs_required unerfüllt)
 		const tickets = await sql`
-			SELECT * FROM tickets
+			SELECT t.*,
+				(SELECT COUNT(*)::int FROM note_ticket_links ntl WHERE ntl.ticket_id = t.id) AS linked_notes_count
+			FROM tickets t
 			WHERE project_id = ${projectId}
 			${statusFilter}
 			ORDER BY updated_at DESC

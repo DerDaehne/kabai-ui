@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Bot, Flag } from 'lucide-svelte';
+	import { Bot, Flag, BookOpen, AlertTriangle } from 'lucide-svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
 
 	export let ticket: Ticket;
@@ -51,6 +51,15 @@
 					title={ticket.model}>
 					<Bot class="w-2.5 h-2.5 shrink-0" />
 					{ticket.model.split('-').slice(0, 2).join('-')}
+				</span>
+			{/if}
+			{#if ticket.docs_required && !(ticket.linked_notes_count ?? 0)}
+				<span class="shrink-0" title="Doku-Pflicht: keine Knowledge-Base-Note verlinkt — Ticket kann so nicht geschlossen werden">
+					<AlertTriangle class="w-3 h-3" style="color: hsl(35, 90%, 60%);" />
+				</span>
+			{:else if (ticket.linked_notes_count ?? 0) > 0}
+				<span class="shrink-0" title="{ticket.linked_notes_count} Knowledge-Base-Note{(ticket.linked_notes_count ?? 0) !== 1 ? 's' : ''} verlinkt">
+					<BookOpen class="w-3 h-3" style="color: var(--accent);" />
 				</span>
 			{/if}
 		</div>
