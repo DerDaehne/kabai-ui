@@ -14,3 +14,9 @@ export function renderMarkdown(text: string): string {
 	const html = marked.parse(text, { async: false }) as string;
 	return browser ? DOMPurify.sanitize(html) : html;
 }
+
+// Für Server-generierte HTML-Fragmente (z.B. ts_headline-Snippets mit <mark>),
+// die ohne Markdown-Parsing direkt via {@html} gerendert werden.
+export function sanitizeHtml(html: string): string {
+	return browser ? DOMPurify.sanitize(html) : html;
+}

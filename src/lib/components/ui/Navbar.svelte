@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SessionInfo } from '$lib/types';
-	import { User, LogOut, Home, Folder, KanbanSquare } from 'lucide-svelte';
+	import { User, LogOut, Home, Folder, KanbanSquare, BookOpen } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	
 	interface Props {
@@ -11,6 +11,7 @@
 	
 	const navItems = [
 		{ href: '/projects', label: 'Projekte', icon: Folder },
+		{ href: '/notes', label: 'Knowledge Base', icon: BookOpen },
 		{ href: '/', label: 'Dashboard', icon: Home }
 	];
 	

@@ -105,6 +105,39 @@ export interface TicketRelation {
 	direction: 'outgoing' | 'incoming';
 }
 
+// Knowledge Base (kbai-docs Zettelkasten, V7)
+export type NoteKind = 'note' | 'adr' | 'hub';
+
+export interface NoteProjectRef {
+	id: number;
+	name: string;
+}
+
+export interface NoteSummary {
+	id: number;
+	slug: string;
+	title: string;
+	kind: NoteKind;
+	tags: string[];
+	archived: boolean;
+	created_at: string;
+	updated_at: string;
+	last_verified_at: string | null;
+	last_verified_ticket_id: number | null;
+	projects: NoteProjectRef[];
+	// Nur bei Suchtreffern gesetzt
+	snippet?: string;
+	rank?: number;
+}
+
+export interface NotesListResponse {
+	notes: NoteSummary[];
+	// Alle bekannten Tags für den Filter-Dropdown
+	tags: string[];
+	// true wenn die FTS-Suche leer war und der pg_trgm-Titel-Fallback griff
+	fuzzy_fallback: boolean;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
 	ok: boolean;
