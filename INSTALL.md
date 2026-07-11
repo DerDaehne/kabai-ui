@@ -1,18 +1,20 @@
-# Kabai UI — Installationsanleitung
+# Kabai UI — Installation Guide
 
-Browser-basierter Kanban-Client für kabai, betrieben mit Docker Compose.
+Browser-based kanban client for [kabai](https://codeberg.org/danszek/kb.ai), operated with Docker Compose.
+
+To make the setup complete for AI agents, also install the kabai MCP server — Kabai UI is the human-facing frontend, kabai is how agents work the same database.
 
 ---
 
-## Voraussetzungen
+## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) ≥ 24
-- [Docker Compose](https://docs.docker.com/compose/install/) ≥ 2.20 (i.d.R. in Docker Desktop enthalten)
-- `openssl` zum Erzeugen des Session-Secrets (auf jedem Linux/macOS vorhanden)
+- [Docker Compose](https://docs.docker.com/compose/install/) ≥ 2.20 (usually included in Docker Desktop)
+- `openssl` for generating the session secret (present on every Linux/macOS)
 
 ---
 
-## 1. Repository klonen
+## 1. Clone the repository
 
 ```bash
 git clone <repo-url> kabai-ui
@@ -21,197 +23,201 @@ cd kabai-ui
 
 ---
 
-## 2. Umgebungsvariablen konfigurieren
+## 2. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
-`.env` öffnen und mindestens diese drei Werte anpassen:
+Open `.env` and adjust at least these three values:
 
-| Variable | Beschreibung | Beispiel |
+| Variable | Description | Example |
 |---|---|---|
-| `KABAI_DB_PASSWORD` | PostgreSQL-Passwort | `mein-sicheres-passwort` |
-| `KABAI_SESSION_SECRET` | Zufälliger Schlüssel für Session-Signierung | siehe unten |
-| `KABAI_DB_USER` | PostgreSQL-Benutzername | `kb_user` |
+| `KABAI_DB_PASSWORD` | PostgreSQL password | `my-secure-password` |
+| `KABAI_SESSION_SECRET` | Random key for session signing | see below |
+| `KABAI_DB_USER` | PostgreSQL username | `kb_user` |
 
-Session-Secret erzeugen:
+Generate a session secret:
 
 ```bash
 openssl rand -hex 32
 ```
 
-Fertige `.env` (Minimalbeispiel):
+A complete `.env` (minimal example):
 
 ```env
 KABAI_DB_USER=kb_user
-KABAI_DB_PASSWORD=mein-sicheres-passwort
+KABAI_DB_PASSWORD=my-secure-password
 KABAI_DB_NAME=kabai
-KABAI_SESSION_SECRET=a1b2c3d4e5f6...  # Ausgabe von openssl rand -hex 32
+KABAI_SESSION_SECRET=a1b2c3d4e5f6...  # output of openssl rand -hex 32
 KABAI_SESSION_TTL_MINUTES=480
 KABAI_PORT=3000
 ```
 
 ---
 
-## 3. Starten
+## 3. Start
 
 ```bash
 docker compose up -d
 ```
 
-Docker Compose startet:
+Docker Compose starts:
 
-1. **`postgres`** — PostgreSQL 16, legt beim ersten Start die Datenbank an und wendet die Migrationen aus `migrations/` über den Runner an.
-2. **`kabai-ui`** — baut das SvelteKit-Image und startet die App, sobald PostgreSQL bereit ist.
+1. **`postgres`** — PostgreSQL 16; creates the database on first start.
+2. **`migrate`** — short-lived migration runner; applies all pending schema migrations from `migrations/` on **every** `docker compose up`, then exits. Applied versions are tracked in the `schema_migrations` table, so re-runs are no-ops.
+3. **`kabai-ui`** — builds the SvelteKit image and starts the app once PostgreSQL is ready and migrations have completed successfully.
 
-Logs beobachten:
+Watch the logs:
 
 ```bash
 docker compose logs -f
 ```
 
-Die App ist erreichbar unter: **http://localhost:3000** (oder dem in `KABAI_PORT` konfigurierten Port).
+The app is reachable at: **http://localhost:3000** (or the port configured in `KABAI_PORT`).
 
 ---
 
-## 4. Einloggen
+## 4. Log in
 
-Kabai UI verwendet keine eigene Benutzerverwaltung — die Anmeldung erfolgt direkt mit PostgreSQL-Credentials.
+Kabai UI has no user management of its own — you log in directly with PostgreSQL credentials.
 
-Beim ersten Start sind die Credentials identisch mit den Werten aus `.env`:
+On first start the credentials are identical to the values from `.env`:
 
-| Feld | Wert |
+| Field | Value |
 |---|---|
-| Benutzername | Wert von `KABAI_DB_USER` (z.B. `kb_user`) |
-| Passwort | Wert von `KABAI_DB_PASSWORD` |
+| Username | value of `KABAI_DB_USER` (e.g. `kb_user`) |
+| Password | value of `KABAI_DB_PASSWORD` |
 
-Weitere PostgreSQL-Benutzer können mit Standard-SQL-Befehlen angelegt werden (siehe Abschnitt 6).
+Additional PostgreSQL users can be created with standard SQL commands (see section 6).
 
 ---
 
-## 5. Stoppen und Daten verwalten
+## 5. Stop and manage data
 
 ```bash
-# Stoppen (Daten bleiben erhalten)
+# Stop (data is kept)
 docker compose down
 
-# Stoppen und Datenbank-Volume löschen (Datenverlust!)
+# Stop and delete the database volume (data loss!)
 docker compose down -v
 
-# Nur die App neu starten (z.B. nach Code-Änderungen)
+# Restart only the app (e.g. after code changes)
 docker compose up -d --build kabai-ui
 ```
 
 ---
 
-## 6. Weitere PostgreSQL-Benutzer anlegen
+## 6. Create additional PostgreSQL users
 
-Da sich jeder Nutzer mit eigenen PostgreSQL-Credentials anmeldet, können mehrere Benutzer mit unterschiedlichen Rechten eingerichtet werden.
+Since every user logs in with their own PostgreSQL credentials, multiple users with different permissions can be set up.
 
 ```bash
-# Shell in den Postgres-Container öffnen
+# Open a shell into the postgres container
 docker compose exec postgres psql -U kb_user -d kabai
 ```
 
 ```sql
--- Neuen Benutzer anlegen
-CREATE USER alice WITH PASSWORD 'alice-passwort';
+-- Create a new user
+CREATE USER alice WITH PASSWORD 'alice-password';
 
--- Lesezugriff auf alle Tabellen
+-- Read access to all tables
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO alice;
 
--- Vollzugriff (Lesen + Schreiben)
+-- Full access (read + write)
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO alice;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO alice;
 ```
 
 ---
 
-## 7. Datenbankschema aktualisieren
+## 7. Updating the database schema
 
-Das Schema kommt aus `migrations/` (V1–V9, unveränderte Kopien aus dem
-kabai-Backend-Repo) und wird von `scripts/migrate.sh` verwaltet: jede Migration
-läuft genau einmal, angewendete Versionen stehen in der Tabelle
-`schema_migrations`. Re-Runs sind immer fehlerfrei.
+The schema comes from `migrations/` (V1–V9, unmodified copies from the kabai
+backend repo) and is managed by `scripts/migrate.sh`: every migration runs
+exactly once; applied versions are stored in the `schema_migrations` table.
 
-Bei einer **frischen** Installation (leeres `postgres_data`-Volume) läuft der
-Runner automatisch beim ersten Start — keine manuelle Migration nötig.
-
-**Update einer laufenden Installation** (neue `V*.sql` sind per `git pull`
-angekommen):
+**There is no manual migration step.** When new `V*.sql` files arrive via
+`git pull`, simply run:
 
 ```bash
-docker compose exec -T postgres sh /docker-entrypoint-initdb.d/00-migrate.sh
+docker compose up -d
 ```
 
-**Bestands-DB von vor Einführung des Runners** (kein `schema_migrations`
-vorhanden): einmalig den vorhandenen Stand markieren, ohne die Migrationen
-erneut auszuführen — danach normale Updates wie oben:
+The `migrate` service applies whatever is pending before the app starts.
+
+**Existing database that predates the runner** (no `schema_migrations`
+table): mark the existing state once, without re-executing the migrations —
+then normal updates as above:
 
 ```bash
-docker compose exec -T postgres sh /docker-entrypoint-initdb.d/00-migrate.sh --baseline V6
-# V6 = Beispiel; den tatsächlichen Migrationsstand der DB angeben
+docker compose run --rm migrate --baseline V6
+# V6 is an example; state the actual migration level of your database
 ```
 
 ---
 
-## 8. Externe PostgreSQL-Datenbank verwenden
+## 8. Using an external PostgreSQL database
 
-Kabai UI kann auch gegen eine bestehende PostgreSQL-Instanz betrieben werden (z.B. Managed DB in der Cloud). Dazu in `docker-compose.yml` den `postgres`-Service entfernen und in `.env` die Verbindungsdaten der externen DB eintragen:
+Kabai UI can also run against an existing PostgreSQL instance (e.g. a managed cloud DB). Remove the `postgres` service from `docker-compose.yml` and put the external connection data into `.env`:
 
 ```env
-KABAI_DB_HOST=meine-db.example.com
+KABAI_DB_HOST=my-db.example.com
 KABAI_DB_PORT=5432
 KABAI_DB_NAME=kabai
 KABAI_DB_SSL=true
 ```
 
-Das Schema wird dann mit dem Migrations-Runner eingespielt (psql lokal
-vorausgesetzt):
+Apply the schema with the migration runner (requires local psql):
 
 ```bash
-set -a; . ./.env; set +a     # KABAI_DB_* laden
+set -a; . ./.env; set +a     # load KABAI_DB_*
 scripts/migrate.sh
 ```
 
 ---
 
-## 9. Verzeichnisstruktur
+## 9. Directory layout
 
 ```
 kabai-ui/
-├── migrations/                      # Schema-Migrationen V1–V9 (Kopien aus dem Backend-Repo)
+├── migrations/                      # schema migrations V1–V9 (copies from the backend repo)
 │   └── V*__*.sql
 ├── scripts/
-│   └── migrate.sh                   # Migrations-Runner (schema_migrations-Tracking)
-├── src/                             # SvelteKit-Quellcode
-├── Dockerfile                       # Multi-Stage Build
-├── docker-compose.yml               # App + PostgreSQL
-├── .env.example                     # Vorlage für Umgebungsvariablen
-└── .env                             # Eigene Konfiguration (nicht einchecken)
+│   └── migrate.sh                   # migration runner (schema_migrations tracking)
+├── src/                             # SvelteKit source code
+├── Dockerfile                       # multi-stage build
+├── docker-compose.yml               # app + PostgreSQL + migration runner
+├── .env.example                     # template for environment variables
+└── .env                             # your configuration (do not commit)
 ```
 
 ---
 
 ## 10. Troubleshooting
 
-**App startet nicht / `KABAI_SESSION_SECRET is required`**
+**App does not start / `KABAI_SESSION_SECRET is required`**
 
-`.env` fehlt oder `KABAI_SESSION_SECRET` ist leer. Schritt 2 wiederholen.
+`.env` is missing or `KABAI_SESSION_SECRET` is empty. Repeat step 2.
 
-**Login schlägt fehl: "Connection test failed"**
+**Login fails: "Connection test failed"**
 
-PostgreSQL ist noch nicht bereit. Kurz warten und erneut versuchen. Logs prüfen:
+PostgreSQL is not ready yet. Wait a moment and try again. Check the logs:
 ```bash
 docker compose logs postgres
 ```
 
-**Port 3000 ist belegt**
+**`migrate` service fails on an old database**
 
-`KABAI_PORT` in `.env` auf einen freien Port ändern (z.B. `3001`), dann `docker compose up -d`.
+A database created before the migration runner existed has no
+`schema_migrations` table, so the runner tries to apply everything from V1.
+Baseline it once to the actual state of your schema (see section 7).
 
-**Datenbank-Volume zurücksetzen**
+**Port 3000 is already in use**
+
+Change `KABAI_PORT` in `.env` to a free port (e.g. `3001`), then `docker compose up -d`.
+
+**Reset the database volume**
 
 ```bash
 docker compose down -v

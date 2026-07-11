@@ -11,11 +11,6 @@ services:
       POSTGRES_PASSWORD: ${KABAI_DB_PASSWORD:?KABAI_DB_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Migrations-Runner als Init-Hook: wendet /migrations in Versions-
-      # reihenfolge an und protokolliert in schema_migrations. Upgrade
-      # bestehender Container: siehe INSTALL.md "Schema aktualisieren".
-      - ./migrations:/migrations:ro
-      - ./scripts/migrate.sh:/docker-entrypoint-initdb.d/00-migrate.sh:ro
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
@@ -23,6 +18,30 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  # ── migrations ───────────────────────────────────────────────────────────────
+  # Short-lived runner: applies pending migrations/V*.sql on EVERY
+  # `docker compose up` before the app starts (schema_migrations tracking
+  # makes re-runs no-ops). Baseline for pre-runner databases:
+  #   docker compose run --rm migrate --baseline V6
+  migrate:
+    image: postgres:16-alpine
+    container_name: kabai-migrate
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KABAI_DB_HOST: postgres
+      KABAI_DB_PORT: 5432
+      KABAI_DB_NAME: ${KABAI_DB_NAME:-kabai}
+      KABAI_DB_USER: ${KABAI_DB_USER:-kb_user}
+      KABAI_DB_PASSWORD: ${KABAI_DB_PASSWORD:?KABAI_DB_PASSWORD is required}
+      MIGRATIONS_DIR: /migrations
+    volumes:
+      - ./migrations:/migrations:ro
+      - ./scripts/migrate.sh:/migrate.sh:ro
+    entrypoint: ["sh", "/migrate.sh"]
 
   # ── kabai-ui ──────────────────────────────────────────────────────────────────
   kabai-ui:
@@ -34,6 +53,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       NODE_ENV: production
       PORT: 3000

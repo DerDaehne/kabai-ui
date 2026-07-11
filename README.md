@@ -1,138 +1,144 @@
 # Kabai UI
 
-Browser-basierter Kanban-Client für [kabai](https://codeberg.com/danszek/kb.ai). Verbindet sich direkt mit einer PostgreSQL-Datenbank — kein separates Backend, kein API-Gateway.
+Browser-based kanban client for [kabai](https://codeberg.org/danszek/kb.ai). Connects directly to a PostgreSQL database — no separate backend, no API gateway.
+
+## How it fits together
+
+Kabai is a two-part system sharing one PostgreSQL database:
+
+- **[kabai](https://codeberg.org/danszek/kb.ai)** — the MCP server through which AI agents work the boards and the knowledge base (tickets, workflow transitions, zettelkasten notes). This is what makes the setup complete: without it, agents have no way to interact with the database.
+- **Kabai UI** (this repo) — the web frontend for humans: watch the boards live, review and answer agent questions, browse the knowledge base. It also owns database setup: migrations are applied automatically (see [Database schema](#database-schema)).
 
 ## Features
 
-- **Kanban-Board** mit Drag-and-Drop zwischen Spalten
-- **Workflow-Enforcement** — nur erlaubte Status-Übergänge sind möglich (per DB-Trigger)
-- **Workflow-Editor** — grafischer Graph-Editor für Status-Transitionen
-- **Modal-basierte Navigation** — Ticket-Details, Statuses und Workflow öffnen als Overlays
-- **Ticket-Verwaltung** — Inline-Bearbeitung, Tasks (Checkliste), Kommentare
-- **Credential-basierte Auth** — Login direkt mit PostgreSQL-Benutzername und Passwort
-- **Dark Neon Design** — responsives UI mit Animationen
+- **Kanban board** with drag-and-drop between columns
+- **Workflow enforcement** — only permitted status transitions are possible (via DB triggers)
+- **Workflow editor** — graphical graph editor for status transitions
+- **Modal-based navigation** — ticket details, statuses, and workflow open as overlays
+- **Ticket management** — inline editing, tasks (checklist), comments
+- **Knowledge base** — browse the zettelkasten notes agents maintain, with full-text search
+- **Credential-based auth** — log in directly with PostgreSQL username and password
+- **Dark neon design** — responsive UI with animations
 
-## Tech-Stack
+## Tech stack
 
 | | |
 |---|---|
 | Framework | SvelteKit + TypeScript |
 | Styling | Tailwind CSS v4 |
-| Datenbank | postgres.js (direkt gegen PostgreSQL) |
-| Workflow-Graph | @xyflow/svelte |
+| Database | postgres.js (directly against PostgreSQL) |
+| Workflow graph | @xyflow/svelte |
 | Icons | lucide-svelte |
-| Validierung | zod |
+| Validation | zod |
 
-## Schnellstart (Docker)
+## Quick start (Docker)
 
 ```bash
 git clone <repo-url> kabai-ui && cd kabai-ui
 
 cp .env.example .env
-# .env öffnen und KABAI_DB_PASSWORD + KABAI_SESSION_SECRET setzen:
+# open .env and set KABAI_DB_PASSWORD + KABAI_SESSION_SECRET:
 #   openssl rand -hex 32   →  KABAI_SESSION_SECRET
 
 docker compose up -d
 ```
 
-App läuft unter **http://localhost:3000**.  
-Login mit den in `.env` gesetzten PostgreSQL-Credentials (`KABAI_DB_USER` / `KABAI_DB_PASSWORD`).
+The app runs at **http://localhost:3000**.  
+Log in with the PostgreSQL credentials set in `.env` (`KABAI_DB_USER` / `KABAI_DB_PASSWORD`).
 
-Vollständige Anleitung: [INSTALL.md](./INSTALL.md)
+Full guide: [INSTALL.md](./INSTALL.md)
 
-## Lokale Entwicklung
+## Local development
 
-Node.js ≥ 22 und eine laufende PostgreSQL-Instanz vorausgesetzt.
+Requires Node.js ≥ 22 and a running PostgreSQL instance.
 
 ```bash
 npm install
-cp .env.example .env   # KABAI_DB_HOST, KABAI_DB_NAME, KABAI_SESSION_SECRET anpassen
+cp .env.example .env   # adjust KABAI_DB_HOST, KABAI_DB_NAME, KABAI_SESSION_SECRET
 npm run dev
 ```
 
-## Umgebungsvariablen
+## Environment variables
 
-| Variable | Pflicht | Default | Beschreibung |
+| Variable | Required | Default | Description |
 |---|---|---|---|
-| `KABAI_DB_HOST` | ja | — | PostgreSQL-Host |
-| `KABAI_DB_PORT` | nein | `5432` | PostgreSQL-Port |
-| `KABAI_DB_NAME` | ja | — | Datenbankname |
-| `KABAI_DB_SSL` | nein | `false` | `true` für SSL/TLS |
-| `KABAI_SESSION_SECRET` | ja | — | Zufälliger Schlüssel für Session-Signierung |
-| `KABAI_SESSION_TTL_MINUTES` | nein | `480` | Session-Lebensdauer in Minuten |
-| `PORT` | nein | `3000` | HTTP-Port der App |
+| `KABAI_DB_HOST` | yes | — | PostgreSQL host |
+| `KABAI_DB_PORT` | no | `5432` | PostgreSQL port |
+| `KABAI_DB_NAME` | yes | — | Database name |
+| `KABAI_DB_SSL` | no | `false` | `true` for SSL/TLS |
+| `KABAI_SESSION_SECRET` | yes | — | Random key for session signing |
+| `KABAI_SESSION_TTL_MINUTES` | no | `480` | Session lifetime in minutes |
+| `PORT` | no | `3000` | HTTP port of the app |
 
-## Architektur
+## Architecture
 
 ```
-Browser (Svelte)
-      │  fetch (JSON)
-      ▼
-SvelteKit Server (Node.js)
-  ├── /api/*              REST-Endpunkte
-  ├── src/lib/db.ts       postgres.js Session-Pool
-  └── hooks.server.ts     Session-Middleware
-      │  SQL
-      ▼
-PostgreSQL
+Browser (Svelte)                 AI agents
+      │  fetch (JSON)                 │  MCP
+      ▼                               ▼
+SvelteKit Server (Node.js)      kabai MCP server
+  ├── /api/*              REST endpoints
+  ├── src/lib/db.ts       postgres.js session pool
+  └── hooks.server.ts     session middleware
+      │  SQL                          │  SQL
+      ▼                               ▼
+           PostgreSQL (shared database)
 ```
 
-**Auth-Prinzip:** Host/Port kommen aus Umgebungsvariablen. Benutzername und Passwort gibt der Nutzer im Browser ein. Credentials werden nicht persistiert — nur als serverseitige In-Memory-Session gehalten. Die PostgreSQL-Benutzerrechte steuern den Datenzugriff.
+**Auth principle:** host/port come from environment variables. Username and password are entered by the user in the browser. Credentials are never persisted — they are held only in a server-side in-memory session. PostgreSQL user permissions govern data access.
 
-## Datenbankschema
+## Database schema
 
-Kabai UI richtet die kabai-Datenbank für Nutzer ein und hält sie aktuell. Die
-Migrationen liegen in `migrations/` (aktuell **V1–V9**, inkl. Zettelkasten-Schema
-und docs_required-Guard) und werden von `scripts/migrate.sh` in Versionsreihenfolge
-angewendet — jede genau einmal, protokolliert in der Tabelle `schema_migrations`.
-Re-Runs sind immer fehlerfrei.
+Kabai UI sets up the kabai database and keeps it up to date — **no manual
+migration steps required**. Migrations live in `migrations/` (currently
+**V1–V9**, including the zettelkasten schema and the docs_required guard) and
+are applied by `scripts/migrate.sh` in version order — each exactly once,
+recorded in the `schema_migrations` table. Re-runs are always safe.
 
-**Neue Datenbank (Docker):** passiert automatisch beim ersten `docker compose up`
-(der Runner ist als Init-Hook eingebunden).
+**Docker:** the `migrate` compose service runs automatically on **every**
+`docker compose up` — it applies pending migrations before the app starts.
+Fresh setups and updates (new `V*.sql` arriving via `git pull`) are both
+covered; there is nothing to run by hand.
 
-**Neue Datenbank (ohne Docker):**
+**Without Docker / external database:**
 
 ```bash
 createdb kabai
-set -a; . ./.env; set +a     # KABAI_DB_* laden
+set -a; . ./.env; set +a     # load KABAI_DB_*
 scripts/migrate.sh
 ```
 
-**Bestehende Datenbank aktualisieren** (z.B. nach einem Backend-Release mit neuen
-Migrationen): neue `V*.sql` nach `migrations/` übernehmen, dann
+**Existing database that predates the runner** (no `schema_migrations`
+table): mark the current state once, without re-executing the migrations —
 
 ```bash
-scripts/migrate.sh                  # ohne Docker
-docker compose exec -T postgres sh /docker-entrypoint-initdb.d/00-migrate.sh   # mit Docker
+docker compose run --rm migrate --baseline V6   # use the actual state of your DB
+# or without Docker: scripts/migrate.sh --baseline V6
 ```
 
-**Bestands-DB, die vor Einführung des Runners aufgesetzt wurde:** einmalig den
-aktuellen Stand markieren, ohne die Migrationen erneut auszuführen —
-`scripts/migrate.sh --baseline V9` (bzw. den tatsächlichen Stand der DB angeben).
+### Syncing with the backend repo
 
-### Sync mit dem Backend-Repo
+The source of truth for migrations is the kabai backend repo
+([`migrations/`](https://codeberg.org/danszek/kb.ai)). The copies here are
+**never edited**, only synced. Process for every backend release that adds
+migrations:
 
-Die Quelle der Migrationen ist das kabai-Backend-Repo
-([`migrations/`](https://codeberg.org/danszek/kb.ai)). Die Kopien hier werden
-**nie editiert**, nur synchronisiert. Prozess bei jedem Backend-Release, das
-Migrationen hinzufügt:
+1. Copy new `V*.sql` from the backend repo unchanged into `migrations/`
+   (existing files must remain byte-identical — `diff -r` against the
+   backend `migrations/` must be empty).
+2. Verify: fresh database + run `scripts/migrate.sh` twice
+   (the second run must report "0 applied").
+3. Update the V1–V*N* range in README/INSTALL, commit.
 
-1. Neue `V*.sql` aus dem Backend-Repo unverändert nach `migrations/` kopieren
-   (bestehende Dateien müssen byte-identisch bleiben — `diff -r` gegen das
-   Backend-`migrations/` muss leer sein).
-2. Verifizieren: frische DB + `scripts/migrate.sh` zweimal laufen lassen
-   (zweiter Lauf muss „0 angewendet" melden).
-3. README/INSTALL-Versionsangabe (V1–V*N*) aktualisieren, committen.
-
-Bewusst Kopie statt Git-Submodule/-Subtree: Migrationen ändern sich selten,
-Releases sind manuell, und ein Submodule würde jeden Nutzer-Checkout
-verkomplizieren. Details: KB-Note `concept-kabai-ui-migrations-sync`.
+Deliberately a copy instead of a git submodule/subtree: migrations change
+rarely, releases are manual anyway, and a submodule would complicate every
+user checkout. Details: knowledge-base note `concept-kabai-ui-migrations-sync`.
 
 ## Releases
 
-Container-Images werden automatisch bei jedem Tag-Push nach `codeberg.org/danszek/kbai-ui`
-gebaut und veröffentlicht. Details und Kriterien für ein Release: [RELEASING.md](./RELEASING.md).
+Container images are built and published automatically on every tag push to
+`codeberg.org/danszek/kbai-ui`. Details and release criteria: [RELEASING.md](./RELEASING.md).
 
-## Lizenz
+## License
 
 MIT
