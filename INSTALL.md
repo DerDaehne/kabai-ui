@@ -62,7 +62,7 @@ docker compose up -d
 
 Docker Compose startet:
 
-1. **`postgres`** — PostgreSQL 16, legt beim ersten Start die Datenbank an und führt alle SQL-Skripte aus `init-db/` aus.
+1. **`postgres`** — PostgreSQL 16, legt beim ersten Start die Datenbank an und wendet die Migrationen aus `migrations/` über den Runner an.
 2. **`kabai-ui`** — baut das SvelteKit-Image und startet die App, sobald PostgreSQL bereit ist.
 
 Logs beobachten:
@@ -130,28 +130,29 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO alice;
 
 ## 7. Datenbankschema aktualisieren
 
-Beim ersten Start führt PostgreSQL automatisch alle Skripte in `init-db/` aus.
-Für spätere Migrationen SQL-Datei manuell einspielen:
+Das Schema kommt aus `migrations/` (V1–V9, unveränderte Kopien aus dem
+kabai-Backend-Repo) und wird von `scripts/migrate.sh` verwaltet: jede Migration
+läuft genau einmal, angewendete Versionen stehen in der Tabelle
+`schema_migrations`. Re-Runs sind immer fehlerfrei.
+
+Bei einer **frischen** Installation (leeres `postgres_data`-Volume) läuft der
+Runner automatisch beim ersten Start — keine manuelle Migration nötig.
+
+**Update einer laufenden Installation** (neue `V*.sql` sind per `git pull`
+angekommen):
 
 ```bash
-# V3: Echtzeit-Benachrichtigungen (pg_notify-Trigger für Live-Board-Updates)
-docker compose exec -T postgres psql -U kb_user -d kabai \
-  < V3__Add_Ticket_Notify_Trigger.sql
-
-# V4: Ticket-Relations, Epics, Human-Intervention-Workflow
-docker compose exec -T postgres psql -U kb_user -d kabai \
-  < init-db/V4__Ticket_Relations_Epic_HumanIntervention.sql
-
-# V5: Live-Updates auch bei Kommentaren/Tasks (ohne Ticket-Statuswechsel)
-docker compose exec -T postgres psql -U kb_user -d kabai \
-  < V5__Notify_On_Comments_And_Tasks.sql
-
-# V6: Human-Intervention/-Answered-Statuses automatisch für neue Projekte anlegen
-docker compose exec -T postgres psql -U kb_user -d kabai \
-  < V6__Auto_Create_Human_Statuses_For_New_Projects.sql
+docker compose exec -T postgres sh /docker-entrypoint-initdb.d/00-migrate.sh
 ```
 
-Bei einer **frischen** Installation (leeres `postgres_data`-Volume) sind alle Migrationen bis V6 bereits in `init-db/V1__Initial_Multi_Project_Kanban_Schema.sql` enthalten — es ist keine manuelle Migration nötig.
+**Bestands-DB von vor Einführung des Runners** (kein `schema_migrations`
+vorhanden): einmalig den vorhandenen Stand markieren, ohne die Migrationen
+erneut auszuführen — danach normale Updates wie oben:
+
+```bash
+docker compose exec -T postgres sh /docker-entrypoint-initdb.d/00-migrate.sh --baseline V6
+# V6 = Beispiel; den tatsächlichen Migrationsstand der DB angeben
+```
 
 ---
 
@@ -166,11 +167,12 @@ KABAI_DB_NAME=kabai
 KABAI_DB_SSL=true
 ```
 
-Das Schema muss dann manuell eingespielt werden:
+Das Schema wird dann mit dem Migrations-Runner eingespielt (psql lokal
+vorausgesetzt):
 
 ```bash
-psql -h meine-db.example.com -U kb_user -d kabai \
-  -f init-db/V1__Initial_Multi_Project_Kanban_Schema.sql
+set -a; . ./.env; set +a     # KABAI_DB_* laden
+scripts/migrate.sh
 ```
 
 ---
@@ -179,8 +181,10 @@ psql -h meine-db.example.com -U kb_user -d kabai \
 
 ```
 kabai-ui/
-├── init-db/                         # SQL-Skripte (werden beim DB-Start ausgeführt)
-│   └── V1__Initial_Multi_Project_Kanban_Schema.sql
+├── migrations/                      # Schema-Migrationen V1–V9 (Kopien aus dem Backend-Repo)
+│   └── V*__*.sql
+├── scripts/
+│   └── migrate.sh                   # Migrations-Runner (schema_migrations-Tracking)
 ├── src/                             # SvelteKit-Quellcode
 ├── Dockerfile                       # Multi-Stage Build
 ├── docker-compose.yml               # App + PostgreSQL

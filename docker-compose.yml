@@ -11,7 +11,11 @@ services:
       POSTGRES_PASSWORD: ${KABAI_DB_PASSWORD:?KABAI_DB_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d:ro
+      # Migrations-Runner als Init-Hook: wendet /migrations in Versions-
+      # reihenfolge an und protokolliert in schema_migrations. Upgrade
+      # bestehender Container: siehe INSTALL.md "Schema aktualisieren".
+      - ./migrations:/migrations:ro
+      - ./scripts/migrate.sh:/docker-entrypoint-initdb.d/00-migrate.sh:ro
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:

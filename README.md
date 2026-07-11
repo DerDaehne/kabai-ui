@@ -81,13 +81,52 @@ PostgreSQL
 
 ## Datenbankschema
 
-Das Schema wird beim ersten `docker compose up` automatisch aus `init-db/` eingespielt.  
-Für manuelle Migrationen:
+Kabai UI richtet die kabai-Datenbank für Nutzer ein und hält sie aktuell. Die
+Migrationen liegen in `migrations/` (aktuell **V1–V9**, inkl. Zettelkasten-Schema
+und docs_required-Guard) und werden von `scripts/migrate.sh` in Versionsreihenfolge
+angewendet — jede genau einmal, protokolliert in der Tabelle `schema_migrations`.
+Re-Runs sind immer fehlerfrei.
+
+**Neue Datenbank (Docker):** passiert automatisch beim ersten `docker compose up`
+(der Runner ist als Init-Hook eingebunden).
+
+**Neue Datenbank (ohne Docker):**
 
 ```bash
-docker compose exec -T postgres psql -U kb_user -d kabai \
-  < init-db/V1__Initial_Multi_Project_Kanban_Schema.sql
+createdb kabai
+set -a; . ./.env; set +a     # KABAI_DB_* laden
+scripts/migrate.sh
 ```
+
+**Bestehende Datenbank aktualisieren** (z.B. nach einem Backend-Release mit neuen
+Migrationen): neue `V*.sql` nach `migrations/` übernehmen, dann
+
+```bash
+scripts/migrate.sh                  # ohne Docker
+docker compose exec -T postgres sh /docker-entrypoint-initdb.d/00-migrate.sh   # mit Docker
+```
+
+**Bestands-DB, die vor Einführung des Runners aufgesetzt wurde:** einmalig den
+aktuellen Stand markieren, ohne die Migrationen erneut auszuführen —
+`scripts/migrate.sh --baseline V9` (bzw. den tatsächlichen Stand der DB angeben).
+
+### Sync mit dem Backend-Repo
+
+Die Quelle der Migrationen ist das kabai-Backend-Repo
+([`migrations/`](https://codeberg.org/danszek/kb.ai)). Die Kopien hier werden
+**nie editiert**, nur synchronisiert. Prozess bei jedem Backend-Release, das
+Migrationen hinzufügt:
+
+1. Neue `V*.sql` aus dem Backend-Repo unverändert nach `migrations/` kopieren
+   (bestehende Dateien müssen byte-identisch bleiben — `diff -r` gegen das
+   Backend-`migrations/` muss leer sein).
+2. Verifizieren: frische DB + `scripts/migrate.sh` zweimal laufen lassen
+   (zweiter Lauf muss „0 angewendet" melden).
+3. README/INSTALL-Versionsangabe (V1–V*N*) aktualisieren, committen.
+
+Bewusst Kopie statt Git-Submodule/-Subtree: Migrationen ändern sich selten,
+Releases sind manuell, und ein Submodule würde jeden Nutzer-Checkout
+verkomplizieren. Details: KB-Note `concept-kabai-ui-migrations-sync`.
 
 ## Releases
 
