@@ -137,7 +137,7 @@ user checkout. Details: knowledge-base note `concept-kabai-ui-migrations-sync`.
 ## Releases
 
 Container images are built and published automatically on every tag push to
-`codeberg.org/danszek/kbai-ui`. Details and release criteria: [RELEASING.md](./RELEASING.md).
+`codeberg.org/danszek/kabai-ui`. Details and release criteria: [RELEASING.md](./RELEASING.md).
 
 ## License
 

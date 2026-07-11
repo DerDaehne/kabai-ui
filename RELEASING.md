@@ -2,8 +2,9 @@
 
 A release is created exclusively by pushing a git tag in the format
 `vMAJOR.MINOR.PATCH` (e.g. `v1.2.0`) to `main`. This triggers
-`.forgejo/workflows/release.yml`, which builds a Docker image and publishes it
-to `codeberg.org/danszek/kbai-ui:<version>` and `:latest`.
+`.forgejo/workflows/release.yml`, which builds an OCI image (via kaniko,
+daemon-less) and publishes it to `codeberg.org/danszek/kabai-ui:<version>`
+and `:latest`.
 
 ```bash
 git tag v1.2.0
