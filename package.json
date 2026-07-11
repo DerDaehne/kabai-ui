@@ -1,7 +1,7 @@
 {
-  "name": "kbai-ui",
+  "name": "kabai-ui",
   "version": "1.0.0",
-  "description": "Browser-basierter Kanban-Client für kb.ai",
+  "description": "Browser-basierter Kanban-Client für kabai",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -79,7 +79,7 @@
     "sveltekit",
     "kanban",
     "postgresql",
-    "kbai"
+    "kabai"
   ],
   "author": "",
   "license": "MIT"

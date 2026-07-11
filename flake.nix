@@ -1,5 +1,5 @@
 {
-  description = "kbai-ui - Browser-basierter Kanban-Client für kb.ai";
+  description = "Kabai UI - Browser-basierter Kanban-Client für kabai";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
@@ -22,12 +22,12 @@
           shellHook = ''
             export NODE_VERSION=22
             export PATH="$PWD/node_modules/.bin:$PATH"
-            echo "kbai-ui Dev Shell - Ready!"
+            echo "Kabai UI Dev Shell - Ready!"
           '';
         };
 
         packages.default = pkgs.stdenv.mkDerivation {
-          name = "kbai-ui";
+          name = "kabai-ui";
           src = ./.;
           buildInputs = [ pkgs.nodejs_22 pkgs.npm ];
           installPhase = "npm install --production && npm run build";

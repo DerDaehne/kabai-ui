@@ -30,7 +30,7 @@
 			<div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--primary); box-shadow: 0 0 12px var(--primary-glow);">
 				<KanbanSquare class="w-5 h-5" style="color: #000;" />
 			</div>
-			<span class="font-bold text-xl" style="color: var(--primary); text-shadow: 0 0 10px var(--primary-glow);">kbai-ui</span>
+			<span class="font-bold text-xl" style="color: var(--primary); text-shadow: 0 0 10px var(--primary-glow);">Kabai UI</span>
 		</button>
 		
 		<!-- Navigation Links -->

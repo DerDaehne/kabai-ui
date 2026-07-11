@@ -529,7 +529,7 @@
 						<div class="mx-4 my-3 flex items-start gap-2 p-3 rounded-lg text-xs"
 							style="background: rgba(255,180,50,0.07); border: 1px solid rgba(255,180,50,0.35); color: hsl(35, 90%, 60%);">
 							<AlertTriangle class="w-4 h-4 shrink-0" />
-							<span>Dieses Ticket hat <strong>Doku-Pflicht</strong>, aber noch keine verlinkte Note — es kann erst geschlossen werden, wenn eine Knowledge-Base-Note verlinkt ist (via <code>kb_ai_docs_link_ticket</code>) oder die Pflicht mit Begründung entfernt wird.</span>
+							<span>Dieses Ticket hat <strong>Doku-Pflicht</strong>, aber noch keine verlinkte Note — es kann erst geschlossen werden, wenn eine Knowledge-Base-Note verlinkt ist (via <code>kabai_docs_link_ticket</code>) oder die Pflicht mit Begründung entfernt wird.</span>
 						</div>
 					{/if}
 					{#if ticket.linked_notes.length > 0}

@@ -1,6 +1,6 @@
-# kbai-ui
+# Kabai UI
 
-Browser-basierter Kanban-Client für [kb.ai](https://codeberg.com/danszek/kb.ai). Verbindet sich direkt mit einer PostgreSQL-Datenbank — kein separates Backend, kein API-Gateway.
+Browser-basierter Kanban-Client für [kabai](https://codeberg.com/danszek/kb.ai). Verbindet sich direkt mit einer PostgreSQL-Datenbank — kein separates Backend, kein API-Gateway.
 
 ## Features
 
@@ -26,17 +26,17 @@ Browser-basierter Kanban-Client für [kb.ai](https://codeberg.com/danszek/kb.ai)
 ## Schnellstart (Docker)
 
 ```bash
-git clone <repo-url> kbai-ui && cd kbai-ui
+git clone <repo-url> kabai-ui && cd kabai-ui
 
 cp .env.example .env
-# .env öffnen und KBAI_DB_PASSWORD + KBAI_SESSION_SECRET setzen:
-#   openssl rand -hex 32   →  KBAI_SESSION_SECRET
+# .env öffnen und KABAI_DB_PASSWORD + KABAI_SESSION_SECRET setzen:
+#   openssl rand -hex 32   →  KABAI_SESSION_SECRET
 
 docker compose up -d
 ```
 
 App läuft unter **http://localhost:3000**.  
-Login mit den in `.env` gesetzten PostgreSQL-Credentials (`KBAI_DB_USER` / `KBAI_DB_PASSWORD`).
+Login mit den in `.env` gesetzten PostgreSQL-Credentials (`KABAI_DB_USER` / `KABAI_DB_PASSWORD`).
 
 Vollständige Anleitung: [INSTALL.md](./INSTALL.md)
 
@@ -46,7 +46,7 @@ Node.js ≥ 22 und eine laufende PostgreSQL-Instanz vorausgesetzt.
 
 ```bash
 npm install
-cp .env.example .env   # KBAI_DB_HOST, KBAI_DB_NAME, KBAI_SESSION_SECRET anpassen
+cp .env.example .env   # KABAI_DB_HOST, KABAI_DB_NAME, KABAI_SESSION_SECRET anpassen
 npm run dev
 ```
 
@@ -54,12 +54,12 @@ npm run dev
 
 | Variable | Pflicht | Default | Beschreibung |
 |---|---|---|---|
-| `KBAI_DB_HOST` | ja | — | PostgreSQL-Host |
-| `KBAI_DB_PORT` | nein | `5432` | PostgreSQL-Port |
-| `KBAI_DB_NAME` | ja | — | Datenbankname |
-| `KBAI_DB_SSL` | nein | `false` | `true` für SSL/TLS |
-| `KBAI_SESSION_SECRET` | ja | — | Zufälliger Schlüssel für Session-Signierung |
-| `KBAI_SESSION_TTL_MINUTES` | nein | `480` | Session-Lebensdauer in Minuten |
+| `KABAI_DB_HOST` | ja | — | PostgreSQL-Host |
+| `KABAI_DB_PORT` | nein | `5432` | PostgreSQL-Port |
+| `KABAI_DB_NAME` | ja | — | Datenbankname |
+| `KABAI_DB_SSL` | nein | `false` | `true` für SSL/TLS |
+| `KABAI_SESSION_SECRET` | ja | — | Zufälliger Schlüssel für Session-Signierung |
+| `KABAI_SESSION_TTL_MINUTES` | nein | `480` | Session-Lebensdauer in Minuten |
 | `PORT` | nein | `3000` | HTTP-Port der App |
 
 ## Architektur
@@ -85,7 +85,7 @@ Das Schema wird beim ersten `docker compose up` automatisch aus `init-db/` einge
 Für manuelle Migrationen:
 
 ```bash
-docker compose exec -T postgres psql -U kb_user -d kb_ai \
+docker compose exec -T postgres psql -U kb_user -d kabai \
   < init-db/V1__Initial_Multi_Project_Kanban_Schema.sql
 ```
 

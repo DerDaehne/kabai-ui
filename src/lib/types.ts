@@ -1,4 +1,4 @@
-// DB Types - basierend auf kb.ai Schema
+// DB Types - basierend auf kabai Schema
 
 export interface Project {
 	id: number;
@@ -120,7 +120,7 @@ export interface TicketRelation {
 	direction: 'outgoing' | 'incoming';
 }
 
-// Knowledge Base (kbai-docs Zettelkasten, V7)
+// Knowledge Base (kabai-docs Zettelkasten, V7)
 export type NoteKind = 'note' | 'adr' | 'hub';
 
 export interface NoteProjectRef {

@@ -3,14 +3,14 @@ import { deleteSession } from '$lib/db';
 
 export const POST: RequestHandler = async ({ cookies }) => {
 	try {
-		const sessionId = cookies.get('kbai_session');
+		const sessionId = cookies.get('kabai_session');
 		
 		if (sessionId) {
 			// Session löschen
 			deleteSession(sessionId);
 			
 			// Cookie entfernen
-			cookies.delete('kbai_session', { path: '/' });
+			cookies.delete('kabai_session', { path: '/' });
 		}
 		
 		return json({ ok: true });
@@ -25,11 +25,11 @@ export const POST: RequestHandler = async ({ cookies }) => {
 
 // Auch GET-Request unterstützen für direkte Navigation
 export const GET: RequestHandler = async ({ cookies }) => {
-	const sessionId = cookies.get('kbai_session');
+	const sessionId = cookies.get('kabai_session');
 	
 	if (sessionId) {
 		deleteSession(sessionId);
-		cookies.delete('kbai_session', { path: '/' });
+		cookies.delete('kabai_session', { path: '/' });
 	}
 	
 	// Redirect zu Login

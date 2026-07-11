@@ -39,7 +39,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.session = null;
 
 	// Session aus Cookie lesen und in locals speichern
-	const sessionId = event.cookies.get('kbai_session');
+	const sessionId = event.cookies.get('kabai_session');
 	
 	if (sessionId) {
 		// Session validieren und in locals speichern
@@ -55,7 +55,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		} else {
 			// Session abgelaufen - löschen
 			sessions.delete(sessionId);
-			event.cookies.delete('kbai_session', { path: '/' });
+			event.cookies.delete('kabai_session', { path: '/' });
 		}
 	}
 	

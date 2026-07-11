@@ -6,10 +6,10 @@ import type { SessionInfo } from './types';
 export const sessions = new Map<string, { username: string; password: string; expires: Date }>();
 
 // Session TTL in Minuten (Default: 8 Stunden)
-const SESSION_TTL_MINUTES = parseInt(env.KBAI_SESSION_TTL_MINUTES || '480');
+const SESSION_TTL_MINUTES = parseInt(env.KABAI_SESSION_TTL_MINUTES || '480');
 
 // Session Secret für Signierung
-const SESSION_SECRET = env.KBAI_SESSION_SECRET || 'default-secret-change-me';
+const SESSION_SECRET = env.KABAI_SESSION_SECRET || 'default-secret-change-me';
 
 // Connection-Pool-Cache pro Nutzer (username:password). getDb() wird pro
 // Request aufgerufen — ohne Cache würde jeder Request einen frischen Pool
@@ -31,14 +31,14 @@ export function getDb(username: string, password: string) {
 	let sql = dbPoolCache.get(key);
 	if (!sql) {
 		sql = postgres({
-			host: env.KBAI_DB_HOST,
-			port: parseInt(env.KBAI_DB_PORT || '5432'),
-			database: env.KBAI_DB_NAME,
+			host: env.KABAI_DB_HOST,
+			port: parseInt(env.KABAI_DB_PORT || '5432'),
+			database: env.KABAI_DB_NAME,
 			username,
 			password,
 			max: 5,
 			idle_timeout: 60,
-			ssl: env.KBAI_DB_SSL === 'true' ? 'require' : undefined
+			ssl: env.KABAI_DB_SSL === 'true' ? 'require' : undefined
 		});
 		dbPoolCache.set(key, sql);
 	}
@@ -148,9 +148,9 @@ export function getSessionInfo(sessionId: string): SessionInfo | null {
 	
 	return {
 		username: session.username,
-		db_host: env.KBAI_DB_HOST || 'localhost',
-		db_port: env.KBAI_DB_PORT || '5432',
-		db_name: env.KBAI_DB_NAME || 'kb_ai'
+		db_host: env.KABAI_DB_HOST || 'localhost',
+		db_port: env.KABAI_DB_PORT || '5432',
+		db_name: env.KABAI_DB_NAME || 'kabai'
 	};
 }
 
@@ -163,13 +163,13 @@ export function getSessionInfo(sessionId: string): SessionInfo | null {
  */
 export async function testConnection(username: string, password: string): Promise<boolean> {
 	const sql = postgres({
-		host: env.KBAI_DB_HOST,
-		port: parseInt(env.KBAI_DB_PORT || '5432'),
-		database: env.KBAI_DB_NAME,
+		host: env.KABAI_DB_HOST,
+		port: parseInt(env.KABAI_DB_PORT || '5432'),
+		database: env.KABAI_DB_NAME,
 		username,
 		password,
 		max: 1,
-		ssl: env.KBAI_DB_SSL === 'true' ? 'require' : undefined
+		ssl: env.KABAI_DB_SSL === 'true' ? 'require' : undefined
 	});
 	try {
 		await sql`SELECT 1`;
@@ -186,7 +186,7 @@ export async function testConnection(username: string, password: string): Promis
 import type { Handle } from '@sveltejs/kit';
 
 export const handleSession: Handle = async ({ event, resolve }) => {
-	const sessionId = event.cookies.get('kbai_session');
+	const sessionId = event.cookies.get('kabai_session');
 	
 	if (sessionId && sessions.has(sessionId)) {
 		const session = sessions.get(sessionId)!;

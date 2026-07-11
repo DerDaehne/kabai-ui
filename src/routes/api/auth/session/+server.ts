@@ -3,7 +3,7 @@ import { getSessionInfo } from '$lib/db';
 import type { SessionInfo } from '$lib/types';
 
 export const GET: RequestHandler = async ({ cookies }) => {
-	const sessionId = cookies.get('kbai_session');
+	const sessionId = cookies.get('kabai_session');
 	
 	if (!sessionId) {
 		return json(

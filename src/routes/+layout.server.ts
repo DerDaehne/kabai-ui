@@ -9,9 +9,9 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	if (session) {
 		sessionInfo = {
 			username: session.username,
-			db_host: env.KBAI_DB_HOST || 'localhost',
-			db_port: env.KBAI_DB_PORT || '5432',
-			db_name: env.KBAI_DB_NAME || 'kb_ai'
+			db_host: env.KABAI_DB_HOST || 'localhost',
+			db_port: env.KABAI_DB_PORT || '5432',
+			db_name: env.KABAI_DB_NAME || 'kabai'
 		};
 	}
 

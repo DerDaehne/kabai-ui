@@ -180,7 +180,7 @@
 			</div>
 			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Keine Notes gefunden</h3>
 			<p class="text-sm" style="color: var(--text-muted);">
-				{query.trim() ? 'Suche oder Filter anpassen.' : 'Die Knowledge Base ist noch leer — Agenten legen Notes über die kb_ai_docs-Tools an.'}
+				{query.trim() ? 'Suche oder Filter anpassen.' : 'Die Knowledge Base ist noch leer — Agenten legen Notes über die kabai_docs-Tools an.'}
 			</p>
 		</div>
 

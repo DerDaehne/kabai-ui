@@ -13,7 +13,7 @@
 </script>
 
 <svelte:head>
-	<title>kbai-ui - {data.title || 'Kanban Client'}</title>
+	<title>Kabai UI - {data.title || 'Kanban Client'}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-[var(--bg)]">

@@ -3,29 +3,29 @@ services:
   # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: kbai-postgres
+    container_name: kabai-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${KBAI_DB_NAME:-kb_ai}
-      POSTGRES_USER: ${KBAI_DB_USER:-kb_user}
-      POSTGRES_PASSWORD: ${KBAI_DB_PASSWORD:?KBAI_DB_PASSWORD is required}
+      POSTGRES_DB: ${KABAI_DB_NAME:-kabai}
+      POSTGRES_USER: ${KABAI_DB_USER:-kb_user}
+      POSTGRES_PASSWORD: ${KABAI_DB_PASSWORD:?KABAI_DB_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d:ro
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${KBAI_DB_USER:-kb_user} -d ${KBAI_DB_NAME:-kb_ai}"]
+      test: ["CMD-SHELL", "pg_isready -U ${KABAI_DB_USER:-kb_user} -d ${KABAI_DB_NAME:-kabai}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  # ── kbai-ui ──────────────────────────────────────────────────────────────────
-  kbai-ui:
+  # ── kabai-ui ──────────────────────────────────────────────────────────────────
+  kabai-ui:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kbai-ui
+    container_name: kabai-ui
     restart: unless-stopped
     depends_on:
       postgres:
@@ -33,14 +33,14 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      KBAI_DB_HOST: postgres
-      KBAI_DB_PORT: 5432
-      KBAI_DB_NAME: ${KBAI_DB_NAME:-kb_ai}
-      KBAI_DB_SSL: "false"
-      KBAI_SESSION_SECRET: ${KBAI_SESSION_SECRET:?KBAI_SESSION_SECRET is required}
-      KBAI_SESSION_TTL_MINUTES: ${KBAI_SESSION_TTL_MINUTES:-480}
+      KABAI_DB_HOST: postgres
+      KABAI_DB_PORT: 5432
+      KABAI_DB_NAME: ${KABAI_DB_NAME:-kabai}
+      KABAI_DB_SSL: "false"
+      KABAI_SESSION_SECRET: ${KABAI_SESSION_SECRET:?KABAI_SESSION_SECRET is required}
+      KABAI_SESSION_TTL_MINUTES: ${KABAI_SESSION_TTL_MINUTES:-480}
     ports:
-      - "${KBAI_PORT:-3000}:3000"
+      - "${KABAI_PORT:-3000}:3000"
 
 volumes:
   postgres_data:

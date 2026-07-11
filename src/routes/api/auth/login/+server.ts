@@ -42,7 +42,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			{
 				status: 200,
 				headers: {
-					'set-cookie': `kbai_session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 8}`
+					'set-cookie': `kabai_session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 8}`
 				}
 			}
 		);

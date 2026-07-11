@@ -73,7 +73,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
 		if (q) {
 			// FTS: websearch_to_tsquery gegen die generierte search_tsv-Spalte,
-			// Ranking + Headline-Snippet (Muster aus src/docs/docs_tools.c im kb.ai-Repo)
+			// Ranking + Headline-Snippet (Muster aus src/docs/docs_tools.c im kabai-Repo)
 			notes = await sql`
 				SELECT ${baseSelect},
 					ts_rank(n.search_tsv, websearch_to_tsquery('simple', ${q})) AS rank,
