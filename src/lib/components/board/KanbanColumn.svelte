@@ -67,7 +67,10 @@
 	}
 </script>
 
-<div class="flex flex-col rounded-xl overflow-hidden transition-all duration-200"
+<!-- h-full: der Wrapper im Board wird per Flex-Stretch auf die Höhe der
+     längsten Spalte gezogen — die Karte muss ihn füllen, damit kurze/leere
+     Spalten gleich hoch sind und ihre Drop-Zone (flex-1) mitwächst (#18) -->
+<div class="flex flex-col h-full rounded-xl overflow-hidden transition-all duration-200"
 	style="border: 1px solid {isDragOver ? accent.border : 'var(--border)'}; background: var(--card-bg); box-shadow: {isDragOver ? `0 0 20px ${accent.glow}` : '0 2px 12px rgba(0,0,0,0.2)'};"
 >
 	<!-- Column Header -->
