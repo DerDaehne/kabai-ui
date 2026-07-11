@@ -40,6 +40,11 @@
 	let newCommentText = '';
 	let isAddingComment = false;
 
+	// Tasks
+	let newTaskTitle = '';
+	let isAddingTask = false;
+	let deletingTaskId: number | null = null;
+
 	// Label aus Sicht des aktuell offenen Tickets: "outgoing" = dieses Ticket ist from_ticket
 	const relationLabels: Record<RelationType, string> = {
 		parent_of: 'ist Parent von',
@@ -236,7 +241,7 @@
 
 	async function toggleTask(task: TicketTask) {
 		try {
-			const res = await fetch(`/api/tasks/${task.id}`, {
+			const res = await fetch(`/api/tickets/${ticketId}/tasks/${task.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ is_completed: !task.is_completed })
@@ -247,6 +252,36 @@
 				ticket = ticket;
 			}
 		} catch {}
+	}
+
+	async function addTask() {
+		if (!newTaskTitle.trim() || !ticket) return;
+		isAddingTask = true;
+		try {
+			const res = await fetch(`/api/tickets/${ticketId}/tasks`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ title: newTaskTitle.trim() })
+			});
+			const result = await res.json();
+			if (result.ok) {
+				ticket.tasks = [...ticket.tasks, result.data];
+				newTaskTitle = '';
+			} else error = result.error || 'Fehler beim Anlegen der Task';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isAddingTask = false; }
+	}
+
+	async function deleteTask(taskId: number) {
+		deletingTaskId = taskId;
+		try {
+			const res = await fetch(`/api/tickets/${ticketId}/tasks/${taskId}`, { method: 'DELETE' });
+			const result = await res.json();
+			if (result.ok && ticket) {
+				ticket.tasks = ticket.tasks.filter(t => t.id !== taskId);
+			}
+		} catch {}
+		finally { deletingTaskId = null; }
 	}
 
 	$: humanAnsweredStatus = statuses.find(s => s.special_type === 'human_answered') ?? null;
@@ -430,33 +465,53 @@
 			{/if}
 
 			<!-- Tasks -->
-			{#if tasksTotal > 0}
-				<div class="rounded-xl overflow-hidden" style="border: 1px solid var(--border);">
-					<div class="px-4 py-3 flex items-center justify-between" style="border-bottom: 1px solid var(--border);">
-						<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
-							<CheckSquare class="w-4 h-4" style="color: var(--accent);" /> Tasks
-						</h3>
+			<div class="rounded-xl overflow-hidden" style="border: 1px solid var(--border);">
+				<div class="px-4 py-3 flex items-center justify-between" style="border-bottom: 1px solid var(--border);">
+					<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
+						<CheckSquare class="w-4 h-4" style="color: var(--accent);" /> Tasks
+					</h3>
+					{#if tasksTotal > 0}
 						<span class="text-xs" style="color: var(--text-muted);">{tasksCompleted}/{tasksTotal}</span>
-					</div>
+					{/if}
+				</div>
+				{#if tasksTotal > 0}
 					<div class="px-4 pt-3 pb-1">
 						<div class="h-1 rounded-full mb-3" style="background: var(--border);">
 							<div class="h-full rounded-full transition-all duration-500" style="width: {taskProgress}%; background: {taskProgress === 100 ? 'var(--success)' : 'var(--primary)'}; box-shadow: 0 0 6px {taskProgress === 100 ? 'var(--success-glow)' : 'var(--primary-glow)'};"></div>
 						</div>
 					</div>
-					<div class="px-4 pb-3 space-y-0.5">
+					<div class="px-4 pb-2 space-y-0.5">
 						{#each ticket.tasks as task (task.id)}
-							<label class="flex items-center gap-3 py-1.5 px-2 rounded-lg cursor-pointer transition-all"
+							<div class="group flex items-center gap-3 py-1.5 px-2 rounded-lg transition-all"
 								onmouseenter={(e) => e.currentTarget.style.background = 'var(--border)'}
 								onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}>
-								<input type="checkbox" checked={task.is_completed} onchange={() => toggleTask(task)}
-									class="w-4 h-4 rounded shrink-0" style="accent-color: var(--primary);" />
-								<span class="text-sm {task.is_completed ? 'line-through' : ''}"
-									style="color: {task.is_completed ? 'var(--text-muted)' : 'var(--text)'};">{task.title}</span>
-							</label>
+								<label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+									<input type="checkbox" checked={task.is_completed} onchange={() => toggleTask(task)}
+										class="w-4 h-4 rounded shrink-0" style="accent-color: var(--primary);" />
+									<span class="text-sm {task.is_completed ? 'line-through' : ''}"
+										style="color: {task.is_completed ? 'var(--text-muted)' : 'var(--text)'};">{task.title}</span>
+								</label>
+								<button onclick={() => deleteTask(task.id)} disabled={deletingTaskId === task.id}
+									class="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+									style="color: var(--danger);" title="Task löschen">
+									<X class="w-3 h-3" />
+								</button>
+							</div>
 						{/each}
 					</div>
+				{/if}
+				<div class="px-4 py-3 flex gap-2" style="border-top: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+					<input type="text" bind:value={newTaskTitle} placeholder="Neue Task…"
+						class="input text-sm flex-1"
+						onkeydown={(e) => e.key === 'Enter' && addTask()} />
+					<button onclick={addTask} disabled={!newTaskTitle.trim() || isAddingTask}
+						class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all"
+						style="background: var(--accent); color: #fff; opacity: {!newTaskTitle.trim() || isAddingTask ? 0.5 : 1};">
+						{#if isAddingTask}<div class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-3.5 h-3.5" />{/if}
+						Hinzufügen
+					</button>
 				</div>
-			{/if}
+			</div>
 
 			<!-- Relations -->
 			<div class="rounded-xl overflow-hidden" style="border: 1px solid var(--border);">

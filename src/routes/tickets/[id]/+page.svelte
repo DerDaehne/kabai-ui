@@ -5,7 +5,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { ArrowLeft, CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, BookOpen, Compass, AlertTriangle, Archive } from 'lucide-svelte';
+	import { ArrowLeft, CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, BookOpen, Compass, AlertTriangle, Archive, Plus } from 'lucide-svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
 
 	$: id = $page.params.id;
@@ -177,7 +177,7 @@
 
 	async function toggleTask(task: TicketTask) {
 		try {
-			const res = await fetch(`/api/tasks/${task.id}`, {
+			const res = await fetch(`/api/tickets/${id}/tasks/${task.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ is_completed: !task.is_completed })
@@ -188,6 +188,40 @@
 				ticket = ticket; // trigger reactivity
 			}
 		} catch {}
+	}
+
+	let newTaskTitle = '';
+	let isAddingTask = false;
+	let deletingTaskId: number | null = null;
+
+	async function addTask() {
+		if (!newTaskTitle.trim() || !ticket) return;
+		isAddingTask = true;
+		try {
+			const res = await fetch(`/api/tickets/${id}/tasks`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ title: newTaskTitle.trim() })
+			});
+			const result = await res.json();
+			if (result.ok) {
+				ticket.tasks = [...ticket.tasks, result.data];
+				newTaskTitle = '';
+			} else error = result.error || 'Fehler beim Anlegen der Task';
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isAddingTask = false; }
+	}
+
+	async function deleteTask(taskId: number) {
+		deletingTaskId = taskId;
+		try {
+			const res = await fetch(`/api/tickets/${id}/tasks/${taskId}`, { method: 'DELETE' });
+			const result = await res.json();
+			if (result.ok && ticket) {
+				ticket.tasks = ticket.tasks.filter(t => t.id !== taskId);
+			}
+		} catch {}
+		finally { deletingTaskId = null; }
 	}
 
 	const noteRelationLabels: Record<string, string> = {
@@ -422,25 +456,44 @@
 
 				<div class="px-6 pb-4 space-y-1 mt-2">
 					{#each ticket.tasks as task (task.id)}
-						<label class="flex items-center gap-3 py-2 px-3 rounded-lg cursor-pointer transition-all duration-150"
+						<div class="group flex items-center gap-3 py-2 px-3 rounded-lg transition-all duration-150"
 							style="color: {task.is_completed ? 'var(--text-muted)' : 'var(--text)'};"
 							onmouseenter={(e) => e.currentTarget.style.background = 'var(--border)'}
 							onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}
 						>
-							<input
-								type="checkbox"
-								checked={task.is_completed}
-								onchange={() => toggleTask(task)}
-								class="w-4 h-4 rounded shrink-0"
-								style="accent-color: var(--primary);"
-							/>
-							<span class="text-sm {task.is_completed ? 'line-through' : ''}">{task.title}</span>
-						</label>
+							<label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+								<input
+									type="checkbox"
+									checked={task.is_completed}
+									onchange={() => toggleTask(task)}
+									class="w-4 h-4 rounded shrink-0"
+									style="accent-color: var(--primary);"
+								/>
+								<span class="text-sm {task.is_completed ? 'line-through' : ''}">{task.title}</span>
+							</label>
+							<button onclick={() => deleteTask(task.id)} disabled={deletingTaskId === task.id}
+								class="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+								style="color: var(--danger);" title="Task löschen">
+								<X class="w-3.5 h-3.5" />
+							</button>
+						</div>
 					{/each}
 
 					{#if ticket.tasks.length === 0}
 						<p class="text-sm text-center py-4" style="color: var(--text-muted);">Keine Tasks definiert.</p>
 					{/if}
+				</div>
+
+				<div class="px-6 py-4 flex gap-2" style="border-top: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+					<input type="text" bind:value={newTaskTitle} placeholder="Neue Task…"
+						class="input text-sm flex-1"
+						onkeydown={(e) => e.key === 'Enter' && addTask()} />
+					<button onclick={addTask} disabled={!newTaskTitle.trim() || isAddingTask}
+						class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold shrink-0 transition-all"
+						style="background: var(--accent); color: #fff; opacity: {!newTaskTitle.trim() || isAddingTask ? 0.5 : 1};">
+						{#if isAddingTask}<div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-4 h-4" />{/if}
+						Hinzufügen
+					</button>
 				</div>
 			</div>
 
