@@ -12,6 +12,7 @@
 	import WorkflowModal from '$components/workflow/WorkflowModal.svelte';
 	import InboxModal from '$components/inbox/InboxModal.svelte';
 	import { pushAiEvent, sseConnected } from '$lib/stores/aiActivity';
+	import { openTicketRequest } from '$lib/stores/ui';
 	import type { Project, BoardStatus, Ticket } from '$lib/types';
 
 	$: id = $page.params.id;
@@ -127,6 +128,14 @@
 
 	function onTicketClick(ticketId: number) {
 		openTicketId = ticketId;
+	}
+
+	// Klick in der AI-Activity-Rail (liegt im Layout) öffnet das Ticket-Sidepanel
+	// auf dieser Seite; Store danach zurücksetzen, damit ein erneuter Klick auf
+	// dasselbe Ticket wieder greift.
+	$: if ($openTicketRequest !== null) {
+		onTicketClick($openTicketRequest);
+		openTicketRequest.set(null);
 	}
 
 	function onTicketDeleted() {

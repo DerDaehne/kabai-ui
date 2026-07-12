@@ -4,6 +4,7 @@
 	import type { LayoutData } from './$types';
 	import Toast from '$components/ui/Toast.svelte';
 	import SideNav from '$components/ui/SideNav.svelte';
+	import ActivityRail from '$components/ui/ActivityRail.svelte';
 	import { PanelRight } from 'lucide-svelte';
 	import { railOpen } from '$lib/stores/ui';
 
@@ -46,10 +47,7 @@
 			class="shrink-0 overflow-y-auto"
 			style="width: 300px; border-left: 1px solid var(--color-border); background: var(--color-surface); padding: var(--space-6);"
 		>
-			<h2 class="h3 mb-2">AI-Aktivität</h2>
-			<p class="text-small" style="color: var(--color-text-secondary);">
-				Noch keine Aktivität — kommt mit einem späteren Update.
-			</p>
+			<ActivityRail />
 		</aside>
 	{/if}
 
