@@ -31,10 +31,9 @@
 	ondragstart={handleDragStart}
 	ondragend={handleDragEnd}
 	onclick={() => onTicketClick(ticket.id)}
-	class="p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
-	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : highlight ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(255,208,0,0.35)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1}; transform: {isDragging ? 'rotate(1.5deg) scale(1.02)' : 'none'};"
-	onmouseenter={(e) => { if (!isDragging) e.currentTarget.style.borderColor = 'var(--border-bright)'; }}
-	onmouseleave={(e) => { if (!isDragging) e.currentTarget.style.borderColor = highlight ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(255,208,0,0.35)' : 'var(--border)'; }}
+	class="ticket-card min-h-[92px] flex flex-col p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
+	class:is-dragging={isDragging}
+	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : highlight ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(255,208,0,0.35)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1};{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
 >
 	{#if ticket.type === 'epic'}
 		<div class="flex items-center gap-1 mb-1.5 text-xs font-semibold" style="color: #ffd000;">
@@ -42,7 +41,7 @@
 		</div>
 	{/if}
 	<p class="text-sm font-medium leading-snug mb-2" style="color: var(--text);">{ticket.title}</p>
-	<div class="flex items-center justify-between gap-2">
+	<div class="mt-auto flex items-center justify-between gap-2">
 		<div class="flex items-center gap-1.5 min-w-0">
 			<span class="text-xs font-mono shrink-0" style="color: var(--text-muted);">#{ticket.id}</span>
 			{#if ticket.model}
@@ -72,3 +71,11 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.ticket-card:hover:not(.is-dragging) {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+		border-color: var(--border-bright);
+	}
+</style>

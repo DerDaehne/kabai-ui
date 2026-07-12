@@ -76,14 +76,14 @@
 	<!-- Column Header -->
 	<div
 		class="px-4 py-3 flex items-center justify-between gap-2"
-		style="background: {accent.bg}; border-bottom: 1px solid {accent.border}40;"
+		style="background: var(--color-surface-hover); border-bottom: 1px solid var(--color-border);"
 	>
 		<div class="flex items-center gap-2 min-w-0">
 			<div class="w-2 h-2 rounded-full shrink-0" style="background: {accent.border};"></div>
 			<span class="font-semibold truncate text-sm" style="color: var(--text);">{status.display_name}</span>
 			<span
-				class="shrink-0 text-xs px-1.5 py-0.5 rounded-full font-medium"
-				style="background: {accent.border}20; color: {accent.border}; border: 1px solid {accent.border}40;"
+				class="status-chip shrink-0"
+				style="--chip-color: {accent.border};"
 			>{tickets.length}</span>
 		</div>
 		<div class="flex items-center gap-1 shrink-0">

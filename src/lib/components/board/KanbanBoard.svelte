@@ -65,7 +65,7 @@
 
 	<div class="flex gap-4 pb-4 overflow-x-auto">
 		{#each groupedTickets as { status, tickets: statusTickets }, i (status.id)}
-			<div in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }} class="flex-1 min-w-[260px] max-w-[340px]">
+			<div in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }} class="w-[400px] shrink-0">
 				<KanbanColumn
 					{status}
 					tickets={statusTickets}

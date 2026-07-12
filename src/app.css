@@ -291,6 +291,18 @@
   .toast-warning {
     border-left: 4px solid var(--warning);
   }
+
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 12px;
+    background: color-mix(in srgb, var(--chip-color) 15%, transparent);
+    color: var(--chip-color);
+    border: 1px solid color-mix(in srgb, var(--chip-color) 30%, transparent);
+  }
 }
 
 @layer utilities {
