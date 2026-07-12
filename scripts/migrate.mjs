@@ -25,12 +25,14 @@
 // migration exits non-zero so the app does not start against a broken
 // or half-migrated schema.
 //
-// Existing databases (no schema_migrations table yet) are detected
-// automatically: each known migration has a feature probe (table/column/
-// trigger/function marker). Versions whose features are already present
-// are recorded as applied WITHOUT executing anything — only genuinely
-// missing migrations run. An existing database is therefore never touched
-// beyond what a fresh migration would add.
+// Existing databases are detected automatically: every known migration has
+// a feature probe (table/column/trigger/function marker), checked for each
+// version that is not in the ledger yet — regardless of how the ledger got
+// into that state (pre-runner database, interrupted earlier run). Versions
+// whose features are already present are recorded as applied WITHOUT
+// executing anything — only genuinely missing migrations run. An existing
+// database is therefore never touched beyond what a fresh migration would
+// add.
 //
 // Options:
 //   --baseline VN   Manual override of the automatic detection: marks
@@ -116,20 +118,6 @@ try {
 	const appliedRows = await sql`SELECT version FROM schema_migrations`;
 	const alreadyApplied = new Set(appliedRows.map((r) => r.version));
 
-	// Auto-baseline: empty ledger, but the database already carries schema —
-	// record everything that is verifiably present instead of re-running it.
-	// Stop at the first version whose feature is missing (strict ordering).
-	if (alreadyApplied.size === 0 && !baseline) {
-		for (const file of files) {
-			const version = file.split('__')[0];
-			const probe = featureProbes[version];
-			if (!probe || !(await probe())) break;
-			await sql`INSERT INTO schema_migrations (version) VALUES (${version})`;
-			alreadyApplied.add(version);
-			console.log(`[migrate] detected  ${version} already present (${file}) — recorded, not re-run`);
-		}
-	}
-
 	let applied = 0;
 	let skipped = 0;
 
@@ -147,6 +135,18 @@ try {
 			console.log(`[migrate] baseline  ${version} (${file})`);
 			applied++;
 			if (version === baseline) break;
+			continue;
+		}
+
+		// Auto-detection for pre-runner databases (and runs interrupted before
+		// the ledger was complete): if this migration's feature probe confirms
+		// its effect is already present, record it WITHOUT executing — only
+		// genuinely missing migrations run. Checked per version, on every run.
+		const probe = featureProbes[version];
+		if (probe && (await probe())) {
+			await sql`INSERT INTO schema_migrations (version) VALUES (${version})`;
+			console.log(`[migrate] detected  ${version} already present (${file}) — recorded, not re-run`);
+			applied++;
 			continue;
 		}
 
