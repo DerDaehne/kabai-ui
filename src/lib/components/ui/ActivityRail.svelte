@@ -70,7 +70,7 @@
 
 {#if visibleEvents.length === 0}
 	<p class="text-small" style="color: var(--color-text-secondary);">
-		Noch keine KI-Aktivität in dieser Session.
+		Noch keine KI-Aktivität in dieser Session. Ereignisse laufen ein, solange ein Projekt-Board oder eine Ticket-Seite geöffnet ist.
 	</p>
 {:else}
 	<ul aria-live="polite" class="space-y-1" style="list-style: none; padding: 0; margin: 0;">

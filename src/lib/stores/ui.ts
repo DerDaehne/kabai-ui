@@ -22,3 +22,20 @@ if (browser) {
 // Sidepanel-State liegt auf der Projektseite). Die Projektseite subscribed,
 // öffnet das Ticket und setzt den Store zurück auf null.
 export const openTicketRequest = writable<number | null>(null);
+
+// Manuell kollabierte SideNav (56px-Icon-Rail) für schmale Monitore; unterhalb
+// von 768px kollabiert sie unabhängig davon weiterhin automatisch per CSS.
+const NAV_COLLAPSED_KEY = 'kabai:navCollapsed';
+
+function readInitialNavCollapsed(): boolean {
+	if (!browser) return false;
+	return sessionStorage.getItem(NAV_COLLAPSED_KEY) === '1';
+}
+
+export const navCollapsed = writable(readInitialNavCollapsed());
+
+if (browser) {
+	navCollapsed.subscribe(collapsed => {
+		sessionStorage.setItem(NAV_COLLAPSED_KEY, collapsed ? '1' : '0');
+	});
+}

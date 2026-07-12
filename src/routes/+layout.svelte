@@ -5,8 +5,10 @@
 	import Toast from '$components/ui/Toast.svelte';
 	import SideNav from '$components/ui/SideNav.svelte';
 	import ActivityRail from '$components/ui/ActivityRail.svelte';
-	import { PanelRight } from 'lucide-svelte';
+	import { Activity } from 'lucide-svelte';
+	import { browser } from '$app/environment';
 	import { railOpen } from '$lib/stores/ui';
+	import { aiEvents, unseenActivityCount, markActivitySeen } from '$lib/stores/aiActivity';
 
 	export let data: LayoutData;
 
@@ -16,6 +18,20 @@
 
 	function toggleRail() {
 		$railOpen = !$railOpen;
+	}
+
+	// Solange die Rail sichtbar ist, gelten eintreffende Events als gesehen —
+	// das Unseen-Badge zählt nur Aktivität bei geschlossener Rail.
+	$: if ($railOpen && $aiEvents.length > 0) {
+		markActivitySeen($aiEvents[0].id);
+	}
+
+	// Beim ERSTEN AI-Event der Session öffnet die Rail einmalig automatisch,
+	// damit das Feature entdeckbar ist; danach zählt nur noch die Nutzerwahl.
+	const AUTO_OPEN_KEY = 'kabai:railAutoOpened';
+	$: if (browser && $aiEvents.length > 0 && !$railOpen && sessionStorage.getItem(AUTO_OPEN_KEY) !== '1') {
+		sessionStorage.setItem(AUTO_OPEN_KEY, '1');
+		$railOpen = true;
 	}
 </script>
 
@@ -30,12 +46,25 @@
 		<div class="flex justify-end mb-2">
 			<button
 				onclick={toggleRail}
-				title="AI-Aktivität umschalten"
-				aria-label="AI-Aktivität umschalten"
-				class="btn-ghost flex items-center justify-center w-9 h-9 rounded-md focus-visible:outline focus-visible:outline-2"
-				style="outline-color: var(--color-primary);"
+				title="AI-Aktivität ein-/ausblenden"
+				aria-label="AI-Aktivität ein-/ausblenden"
+				aria-expanded={$railOpen}
+				class="btn-ghost relative flex items-center gap-2 px-3 py-1.5 rounded-md text-sm focus-visible:outline focus-visible:outline-2"
+				style="outline-color: var(--color-primary); color: {$railOpen ? 'var(--color-text)' : 'var(--color-text-secondary)'};"
 			>
-				<PanelRight class="w-4 h-4" />
+				<span class="relative inline-flex">
+					<Activity class="w-4 h-4" />
+					{#if $unseenActivityCount > 0}
+						<span class="live-dot absolute -top-1 -right-1 w-2 h-2 rounded-full" style="background: var(--color-primary);"></span>
+					{/if}
+				</span>
+				<span class="hidden md:inline">AI-Aktivität</span>
+				{#if $unseenActivityCount > 0}
+					<span class="text-caption px-1.5 py-0.5 rounded-full font-semibold"
+						style="background: color-mix(in srgb, var(--color-primary) 18%, transparent); color: var(--color-primary);">
+						{$unseenActivityCount}
+					</span>
+				{/if}
 			</button>
 		</div>
 		<slot />
@@ -59,3 +88,20 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	.live-dot {
+		animation: live-pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes live-pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.35; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.live-dot {
+			animation: none;
+		}
+	}
+</style>

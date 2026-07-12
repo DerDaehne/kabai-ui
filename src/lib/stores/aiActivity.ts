@@ -64,3 +64,17 @@ export const latestEventByTicket = derived(aiEvents, $events => {
 // Projektseite gesetzt (onopen -> true, onerror -> false). Dient der künftigen
 // AI-Activity-Rail (#467) als Live-Indikator.
 export const sseConnected = writable(false);
+
+// "Ungesehene" Aktivität für Badge/Indikator (#471): Events mit id oberhalb
+// der zuletzt gesehenen. Gesehen = Rail war offen, während sie ankamen
+// (das Layout ruft markActivitySeen auf, solange die Rail sichtbar ist).
+const lastSeenEventId = writable(0);
+
+export function markActivitySeen(latestId: number) {
+	lastSeenEventId.update(current => Math.max(current, latestId));
+}
+
+export const unseenActivityCount = derived(
+	[aiEvents, lastSeenEventId],
+	([$events, $lastSeen]) => $events.filter(e => e.id > $lastSeen).length
+);
