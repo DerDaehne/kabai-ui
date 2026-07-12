@@ -2,17 +2,17 @@
 @import '@fontsource-variable/inter';
 
 @theme {
-  --color-primary-50: #e0faff;
-  --color-primary-100: #b3f3ff;
-  --color-primary-200: #66e9ff;
-  --color-primary-300: #19daff;
-  --color-primary-400: #00cfff;
-  --color-primary-500: #00d9ff;
-  --color-primary-600: #0099cc;
-  --color-primary-700: #006e99;
-  --color-primary-800: #004466;
-  --color-primary-900: #001a33;
-  --color-primary-950: #000d1a;
+  --color-primary-50: #eef0fe;
+  --color-primary-100: #dfe2fd;
+  --color-primary-200: #c3c9fb;
+  --color-primary-300: #a2aaf8;
+  --color-primary-400: #8791f5;
+  --color-primary-500: #6e7bf2;
+  --color-primary-600: #5563d9;
+  --color-primary-700: #414db3;
+  --color-primary-800: #2f388a;
+  --color-primary-900: #1f2560;
+  --color-primary-950: #12163d;
 
   --color-secondary-50: #e8eaff;
   --color-secondary-100: #c5caff;
@@ -29,18 +29,21 @@
 
 @layer base {
   :root {
-    /* Design tokens — source of truth */
-    --color-bg: #070912;
-    --color-surface: #101526;
-    --color-surface-hover: #151c30;
-    --color-border: rgba(255, 255, 255, 0.06);
-    --color-primary: #00d9ff;
+    /* Design tokens — source of truth.
+       Theme v3 "Elegance": neutraler Graphit-Grundton (kein Blaustich),
+       Indigo als einziger prägender Akzent — Farbe trägt Bedeutung
+       (Semantik, AI-Feedback), nicht Dekoration. */
+    --color-bg: #0e0f13;
+    --color-surface: #16181d;
+    --color-surface-hover: #1d2027;
+    --color-border: rgba(255, 255, 255, 0.07);
+    --color-primary: #6e7bf2;
     --color-secondary: #8b5cf6;
     --color-success: #22c55e;
     --color-warning: #f59e0b;
     --color-danger: #ef4444;
-    --color-text: #e2e8f0;
-    --color-text-secondary: #94a3b8;
+    --color-text: #e6e7eb;
+    --color-text-secondary: #9ba1ae;
 
     --radius-card: 16px;
     --radius-panel: 20px;
@@ -49,7 +52,7 @@
     --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
     --elevation-2: 0 4px 8px rgba(0, 0, 0, 0.45), 0 24px 64px rgba(0, 0, 0, 0.4);
     --highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    --surface-translucent: rgba(16, 21, 38, 0.85);
+    --surface-translucent: rgba(22, 24, 29, 0.85);
     --blur-panel: 16px;
     --hairline-gradient: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
     --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -77,7 +80,7 @@
     --text-muted: var(--color-text-secondary);
 
     --primary: var(--color-primary);
-    --primary-dark: #00aecc;
+    --primary-dark: #5563d9;
     --primary-glow: transparent;
 
     --accent: var(--color-secondary);
@@ -210,7 +213,7 @@
   .btn-primary {
     @apply px-4 py-2 rounded-md font-medium cursor-pointer;
     background: var(--color-primary);
-    color: #04121a;
+    color: #0e0f13; /* dunkler Text auf Indigo: Kontrast ~5.2:1 (AA) — Weiß läge nur bei ~3.6:1 */
     box-shadow: none;
     transition: all var(--duration-fast) var(--ease-soft);
   }

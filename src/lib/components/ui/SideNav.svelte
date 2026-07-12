@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SessionInfo } from '$lib/types';
-	import { User, LogOut, Home, Folder, KanbanSquare, BookOpen, Activity, PanelLeftClose, PanelLeftOpen } from 'lucide-svelte';
+	import { User, LogOut, Home, Folder, BookOpen, Activity, PanelLeftClose, PanelLeftOpen } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { navCollapsed, railOpen } from '$lib/stores/ui';
@@ -46,9 +46,13 @@
 		style="outline-color: var(--color-primary);"
 		title="Kabai UI"
 	>
-		<div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: var(--color-primary);">
-			<KanbanSquare class="w-5 h-5" style="color: #000;" />
-		</div>
+		<!-- Marke: gleiches Kanban-Zeichen wie static/favicon.svg -->
+		<svg class="w-8 h-8 shrink-0" viewBox="0 0 64 64" aria-hidden="true">
+			<rect width="64" height="64" rx="14" fill="var(--color-surface-hover)" />
+			<rect x="13" y="14" width="10" height="36" rx="5" fill="#6e7bf2" />
+			<rect x="27" y="14" width="10" height="25" rx="5" fill="#8791f5" opacity="0.85" />
+			<rect x="41" y="14" width="10" height="14" rx="5" fill="#a2aaf8" opacity="0.7" />
+		</svg>
 		<span class="{labelClass} font-bold text-xl truncate" style="color: var(--color-text);">Kabai UI</span>
 	</button>
 
