@@ -45,6 +45,18 @@
     --radius-card: 16px;
     --radius-panel: 20px;
 
+    /* Theme v2 — Tiefe & Transparenz statt harter Borders */
+    --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
+    --elevation-2: 0 4px 8px rgba(0, 0, 0, 0.45), 0 24px 64px rgba(0, 0, 0, 0.4);
+    --highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --surface-translucent: rgba(16, 21, 38, 0.85);
+    --blur-panel: 16px;
+    --hairline-gradient: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
+    --duration-slow: 400ms;
+
     /* 8pt grid spacing */
     --space-1: 4px;
     --space-2: 8px;
@@ -159,32 +171,68 @@
     font-size: 11px;
   }
 
-  .card {
-    @apply rounded-xl border;
+  /* Elevation statt Border: Tiefe über Schatten + dezenten Top-Highlight
+     (simuliert Licht von oben), keine 1px-Trennlinie. */
+  .elevated {
     background: var(--color-surface);
-    border-color: var(--color-border);
+    border: none;
+    box-shadow: var(--elevation-1), var(--highlight-top);
     border-radius: var(--radius-card);
-    box-shadow: none;
-    transition: background-color 0.2s ease;
+  }
+
+  /* Funktionaler Ersatz für border-top/-bottom-Sektionstrenner: ein 1px
+     hohes Gradient-Div statt einer durchgezogenen Linie. */
+  .hairline {
+    height: 1px;
+    background: var(--hairline-gradient);
+    border: none;
+  }
+
+  .card {
+    @apply rounded-xl;
+    background: var(--color-surface);
+    border: none;
+    border-radius: var(--radius-card);
+    box-shadow: var(--elevation-1), var(--highlight-top);
+    transition: background-color var(--duration-base) var(--ease-soft), box-shadow var(--duration-base) var(--ease-soft);
   }
 
   .card:hover {
     background: var(--color-surface-hover);
+    box-shadow: var(--elevation-2), var(--highlight-top);
   }
 
   .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
+    @apply px-4 py-2 rounded-md font-medium cursor-pointer;
+    transition: all var(--duration-fast) var(--ease-soft);
   }
 
   .btn-primary {
-    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
+    @apply px-4 py-2 rounded-md font-medium cursor-pointer;
     background: var(--color-primary);
     color: #04121a;
     box-shadow: none;
+    transition: all var(--duration-fast) var(--ease-soft);
   }
 
   .btn-primary:hover {
     background: var(--primary-dark);
+  }
+
+  .btn-primary:active,
+  .btn-secondary:active,
+  .btn-ghost:active,
+  .btn-danger:active {
+    transform: scale(0.98);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary:active,
+    .btn-secondary:active,
+    .btn-ghost:active,
+    .btn-danger:active {
+      transform: none;
+    }
   }
 
   .btn-primary:disabled {
@@ -194,10 +242,11 @@
   }
 
   .btn-secondary {
-    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
+    @apply px-4 py-2 rounded-md font-medium cursor-pointer;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     color: var(--color-text);
+    transition: all var(--duration-fast) var(--ease-soft);
   }
 
   .btn-secondary:hover {
@@ -205,10 +254,11 @@
   }
 
   .btn-danger {
-    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
+    @apply px-4 py-2 rounded-md font-medium cursor-pointer;
     background: var(--color-danger);
     color: #fff;
     box-shadow: none;
+    transition: all var(--duration-fast) var(--ease-soft);
   }
 
   .btn-danger:hover {
@@ -216,9 +266,10 @@
   }
 
   .btn-ghost {
-    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
+    @apply px-4 py-2 rounded-md font-medium cursor-pointer;
     background: transparent;
     color: var(--color-text-secondary);
+    transition: all var(--duration-fast) var(--ease-soft);
   }
 
   .btn-ghost:hover {

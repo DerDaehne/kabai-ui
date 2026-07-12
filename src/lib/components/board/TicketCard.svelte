@@ -46,9 +46,9 @@
 	ondragstart={handleDragStart}
 	ondragend={handleDragEnd}
 	onclick={() => onTicketClick(ticket.id)}
-	class="ticket-card relative min-h-[92px] flex flex-col p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
+	class="ticket-card relative min-h-[92px] flex flex-col p-3 rounded-lg border cursor-pointer select-none"
 	class:is-dragging={isDragging}
-	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(245,158,11,0.35)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1};{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
+	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(245,158,11,0.35)' : 'transparent'}; box-shadow: 0 1px 2px rgba(0,0,0,0.35), var(--highlight-top); opacity: {isDragging ? 0.5 : 1}; transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft), background-color var(--duration-fast) var(--ease-soft), transform var(--duration-fast) var(--ease-soft), opacity var(--duration-fast) var(--ease-soft);{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
 >
 	<OrbitHighlight signal={orbitSignal} radius="0.5rem" />
 	{#if showAiBadge}
@@ -99,7 +99,6 @@
 <style>
 	.ticket-card:hover:not(.is-dragging) {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-		border-color: var(--border-bright);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), var(--highlight-top);
 	}
 </style>

@@ -87,13 +87,13 @@
      max-h koppelt die Spalte an die Viewport-Höhe (Abzug für Nav-/Header-
      Bereich); längere Listen scrollen in der Drop-Zone statt die Seite zu
      verlängern. -->
-<div class="flex flex-col h-full max-h-[calc(100vh-14rem)] rounded-xl overflow-hidden transition-all duration-200"
-	style="border: 1px solid {isDragOver ? accent.border : 'var(--border)'}; background: var(--card-bg);"
+<div class="flex flex-col h-full max-h-[calc(100vh-14rem)] rounded-xl overflow-hidden"
+	style="border: 1px solid {isDragOver ? accent.border : 'transparent'}; box-shadow: var(--elevation-1), var(--highlight-top); background: var(--card-bg); transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft);"
 >
 	<!-- Column Header -->
 	<div
 		class="px-4 py-3 flex items-center justify-between gap-2"
-		style="background: var(--color-surface-hover); border-bottom: 1px solid var(--color-border);"
+		style="background: var(--color-surface-hover);"
 	>
 		<div class="flex items-center gap-2 min-w-0">
 			<div class="w-2 h-2 rounded-full shrink-0" style="background: {accent.border};"></div>
@@ -126,6 +126,7 @@
 			</button>
 		</div>
 	</div>
+	<div class="hairline"></div>
 
 	<!-- Drop Zone Body: scrollt innerhalb der (viewport-gedeckelten) Spalte;
 	     Scroll ans Ende lädt automatisch weitere Tickets nach -->
@@ -170,10 +171,11 @@
 	</div>
 
 	<!-- Footer -->
+	<div class="hairline"></div>
 	<button
 		onclick={onNewTicket}
 		class="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs transition-all duration-200"
-		style="color: var(--text-muted); border-top: 1px solid var(--border);"
+		style="color: var(--text-muted);"
 		onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.color = accent.border; }}
 		onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
 	>

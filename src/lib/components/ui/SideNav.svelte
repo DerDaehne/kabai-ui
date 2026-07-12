@@ -37,7 +37,7 @@
 <nav
 	aria-label="Hauptnavigation"
 	class="flex flex-col h-full shrink-0 {$navCollapsed ? 'w-14' : 'w-14 md:w-[232px]'}"
-	style="background: var(--color-surface); border-right: 1px solid var(--color-border);"
+	style="background: var(--color-surface); box-shadow: 1px 0 0 rgba(255,255,255,0.03), 4px 0 24px rgba(0,0,0,0.3);"
 >
 	<!-- Logo -->
 	<button
@@ -123,7 +123,8 @@
 	</div>
 
 	<!-- Session Info und Logout -->
-	<div class="px-2 pb-4 pt-2 flex flex-col gap-2" style="border-top: 1px solid var(--color-border);">
+	<div class="hairline mx-2"></div>
+	<div class="px-2 pb-4 pt-2 flex flex-col gap-2">
 		{#if session}
 			<div class="{infoClass} items-center gap-2 px-2 text-small truncate" style="color: var(--color-text-secondary);">
 				<User class="w-4 h-4 shrink-0" />

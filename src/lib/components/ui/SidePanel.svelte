@@ -163,7 +163,7 @@
 		<div
 			bind:this={panelEl}
 			class="fixed top-0 right-0 h-screen w-full overflow-y-auto outline-none"
-			style="max-width: {width}px; background: var(--color-surface); border-left: 1px solid var(--color-border); border-top-left-radius: var(--radius-panel); border-bottom-left-radius: var(--radius-panel);"
+			style="max-width: {width}px; background: var(--surface-translucent); -webkit-backdrop-filter: blur(var(--blur-panel)); backdrop-filter: blur(var(--blur-panel)); box-shadow: var(--elevation-2); border-top-left-radius: var(--radius-panel); border-bottom-left-radius: var(--radius-panel);"
 			role="dialog"
 			aria-modal="true"
 			aria-label={ariaLabel}

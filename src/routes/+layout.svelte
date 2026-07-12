@@ -74,7 +74,7 @@
 		<aside
 			aria-label="AI-Aktivität"
 			class="shrink-0 overflow-y-auto"
-			style="width: 300px; border-left: 1px solid var(--color-border); background: var(--color-surface); padding: var(--space-6);"
+			style="width: 300px; background: var(--surface-translucent); -webkit-backdrop-filter: blur(var(--blur-panel)); backdrop-filter: blur(var(--blur-panel)); box-shadow: -8px 0 32px rgba(0,0,0,0.35), var(--elevation-2); padding: var(--space-6);"
 		>
 			<ActivityRail />
 		</aside>
