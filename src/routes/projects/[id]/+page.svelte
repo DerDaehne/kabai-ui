@@ -11,6 +11,7 @@
 	import StatusesModal from '$components/statuses/StatusesModal.svelte';
 	import WorkflowModal from '$components/workflow/WorkflowModal.svelte';
 	import InboxModal from '$components/inbox/InboxModal.svelte';
+	import { pushAiEvent, sseConnected } from '$lib/stores/aiActivity';
 	import type { Project, BoardStatus, Ticket } from '$lib/types';
 
 	$: id = $page.params.id;
@@ -35,7 +36,16 @@
 	});
 
 	// Echtzeit-Updates via SSE
-	let movedTicketIds = new Set<number>();
+	// orbitSignals: ticket_id -> monoton steigender Zähler, erhöht sich bei jedem
+	// KI-Event für dieses Ticket. Treibt die einmalige Orbit-Highlight-Animation
+	// auf der jeweiligen TicketCard (ersetzt die alte movedTicketIds-Border-Färbung).
+	let orbitSignals = new Map<number, number>();
+	let orbitSignalSeq = 0;
+	function bumpOrbitSignal(ticketId: number) {
+		orbitSignalSeq += 1;
+		orbitSignals = new Map(orbitSignals).set(ticketId, orbitSignalSeq);
+	}
+
 	let eventSource: EventSource | null = null;
 	// Signalisiert dem offenen TicketModal, dass sich sein Ticket geändert hat
 	// (z.B. ein KI-Agent kommentiert, während der Mensch das Ticket offen hat).
@@ -54,6 +64,8 @@
 				status_id: number;
 				project_id: number;
 			};
+
+			pushAiEvent(payload.ticket_id, payload.op);
 
 			if (payload.op === 'DELETE') {
 				tickets = tickets.filter(t => t.id !== payload.ticket_id);
@@ -80,12 +92,10 @@
 					} else {
 						// Jede Änderung markieren (Status-Wechsel, aber auch Description/Assignee/
 						// Kommentare/Tasks durch KI-Agenten ohne Spaltenwechsel), damit der Nutzer
-						// sieht, dass sich am Ticket etwas getan hat.
+						// sieht, dass sich am Ticket etwas getan hat — einmalige Orbit-Animation
+						// statt permanenter Border-Färbung.
 						tickets = tickets.map(t => t.id === updated.id ? updated : t);
-						movedTicketIds = new Set([...movedTicketIds, updated.id]);
-						setTimeout(() => {
-							movedTicketIds = new Set([...movedTicketIds].filter(id => id !== updated.id));
-						}, 2000);
+						bumpOrbitSignal(updated.id);
 					}
 
 					if (openTicketId === updated.id) {
@@ -140,10 +150,13 @@
 		await fetchBoardData();
 		eventSource = new EventSource(`/api/projects/${id}/events`);
 		eventSource.onmessage = handleSSEMessage;
+		eventSource.onopen = () => { sseConnected.set(true); };
+		eventSource.onerror = () => { sseConnected.set(false); };
 	});
 
 	onDestroy(() => {
 		eventSource?.close();
+		sseConnected.set(false);
 	});
 </script>
 
@@ -216,7 +229,7 @@
 
 	{:else if project && kanbanStatuses.length > 0}
 		<div in:fly={{ y: 16, duration: 400, easing: quintOut }}>
-			<KanbanBoard projectId={project.id} statuses={kanbanStatuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} {movedTicketIds} />
+			<KanbanBoard projectId={project.id} statuses={kanbanStatuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} {orbitSignals} />
 		</div>
 
 	{:else if project}
@@ -234,7 +247,7 @@
 <!-- Inbox Panel -->
 <SidePanel open={showInbox} onClose={() => showInbox = false} size="md" ariaLabel="Inbox">
 	{#if showInbox}
-		<InboxModal tickets={inboxTickets} onTicketClick={(id) => { showInbox = false; onTicketClick(id); }} onClose={() => showInbox = false} {movedTicketIds} />
+		<InboxModal tickets={inboxTickets} onTicketClick={(id) => { showInbox = false; onTicketClick(id); }} onClose={() => showInbox = false} {orbitSignals} />
 	{/if}
 </SidePanel>
 

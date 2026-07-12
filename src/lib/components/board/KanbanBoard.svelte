@@ -11,7 +11,7 @@
 	export let tickets: Ticket[];
 	export let onTicketClick: (ticketId: number) => void = () => {};
 	export let onOpenStatuses: () => void = () => {};
-	export let movedTicketIds: Set<number> = new Set();
+	export let orbitSignals: Map<number, number> = new Map();
 
 	let dragError = '';
 	let dragErrorTimer: ReturnType<typeof setTimeout>;
@@ -75,7 +75,7 @@
 					onTicketDrop={(ticketId) => handleTicketDrop(ticketId, status.id)}
 					{onTicketClick}
 					{onOpenStatuses}
-					{movedTicketIds}
+					{orbitSignals}
 				/>
 			</div>
 		{/each}

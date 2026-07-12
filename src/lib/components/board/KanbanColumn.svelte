@@ -22,7 +22,9 @@
 	export let onTicketDrop: (ticketId: number) => void;
 	export let onTicketClick: (ticketId: number) => void = () => {};
 	export let onOpenStatuses: () => void = () => {};
-	export let movedTicketIds: Set<number> = new Set();
+	// Map ticket_id -> Zähler/Timestamp des letzten KI-Events (siehe aiActivity.ts).
+	// Treibt die einmalige Orbit-Animation auf der jeweiligen TicketCard.
+	export let orbitSignals: Map<number, number> = new Map();
 
 	const accentColors = [
 		{ border: '#00d4ff', glow: 'rgba(0,212,255,0.2)', bg: 'rgba(0,212,255,0.08)' },
@@ -138,7 +140,7 @@
 		{:else}
 			{#each displayedTickets as ticket (ticket.id)}
 				<div animate:flip={{ duration: 250 }} in:fly={{ y: -12, duration: 200 }} out:fly={{ y: 8, duration: 150, opacity: 0 }}>
-					<TicketCard {ticket} {projectId} {status} {onTicketClick} highlight={movedTicketIds.has(ticket.id)} />
+					<TicketCard {ticket} {projectId} {status} {onTicketClick} orbitSignal={orbitSignals.get(ticket.id) ?? null} />
 				</div>
 			{/each}
 			{#if hiddenCount > 0}

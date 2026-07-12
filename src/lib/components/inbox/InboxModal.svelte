@@ -3,12 +3,14 @@
 	import { flip } from 'svelte/animate';
 	import { quintOut } from 'svelte/easing';
 	import { Inbox, ArrowRight, Bot } from 'lucide-svelte';
+	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import type { Ticket } from '$lib/types';
 
 	export let tickets: Ticket[] = [];
 	export let onTicketClick: (ticketId: number) => void = () => {};
 	export let onClose: () => void = () => {};
-	export let movedTicketIds: Set<number> = new Set();
+	// Map ticket_id -> Zähler/Timestamp des letzten KI-Events (siehe aiActivity.ts).
+	export let orbitSignals: Map<number, number> = new Map();
 
 	$: sorted = [...tickets].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 </script>
@@ -34,15 +36,15 @@
 	{:else}
 		<div class="space-y-2">
 			{#each sorted as ticket, i (ticket.id)}
-				{@const highlight = movedTicketIds.has(ticket.id)}
 				<div animate:flip={{ duration: 250 }} in:fly={{ y: 8, duration: 250, delay: i * 30, easing: quintOut }}>
 					<button
 						onclick={() => onTicketClick(ticket.id)}
-						class="w-full text-left p-3 rounded-xl border transition-all duration-200 flex items-center justify-between gap-3"
-						style="border-color: {highlight ? 'var(--primary)' : 'var(--border)'}; background: var(--card-bg);"
+						class="relative w-full text-left p-3 rounded-xl border transition-all duration-200 flex items-center justify-between gap-3"
+						style="border-color: var(--border); background: var(--card-bg);"
 						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
-						onmouseleave={(e) => { e.currentTarget.style.borderColor = highlight ? 'var(--primary)' : 'var(--border)'; }}
+						onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
 					>
+						<OrbitHighlight signal={orbitSignals.get(ticket.id) ?? null} radius="0.75rem" />
 						<div class="min-w-0 flex-1">
 							<div class="flex items-center gap-2 mb-1">
 								<span class="text-xs font-mono" style="color: var(--text-muted);">#{ticket.id}</span>

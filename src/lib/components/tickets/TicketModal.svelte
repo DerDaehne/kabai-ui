@@ -5,6 +5,7 @@
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal } from 'lucide-svelte';
+	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
 
 	export let ticketId: number;
@@ -84,7 +85,9 @@
 		}
 	}
 
-	let justUpdatedLive = false;
+	// Treibt die einmalige Orbit-Highlight-Animation (siehe OrbitHighlight.svelte)
+	// auf dem Panel-Container, wenn ein Live-Refresh eintrifft.
+	let orbitSignal = 0;
 
 	// Live-Refresh, während das Modal offen ist (z.B. ein KI-Agent kommentiert,
 	// während der Mensch das Ticket gerade angeschaut hat). Kein Loading-Spinner,
@@ -97,8 +100,7 @@
 			const result = await res.json();
 			if (result.ok) {
 				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [] };
-				justUpdatedLive = true;
-				setTimeout(() => justUpdatedLive = false, 2000);
+				orbitSignal += 1;
 			}
 		} catch { /* still showing the previous state is fine */ }
 	}
@@ -333,12 +335,11 @@
 	{:else if error && !ticket}
 		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);">{error}</div>
 	{:else if ticket}
-		<div class="space-y-4 rounded-2xl transition-shadow duration-500"
-			style="box-shadow: {justUpdatedLive ? '0 0 0 1px var(--primary)' : 'none'};"
+		<div class="relative space-y-4 rounded-2xl"
 			in:fly={{ y: 12, duration: 300, easing: quintOut }}>
-			<!-- Live-Update wird nur über den Rahmen-Farbwechsel visualisiert (box-shadow
-			     oben, 1px Border ohne Glow) — kein einschiebender Hinweistext, der das Layout verschiebt (#309).
-			     TODO(Folge-Ticket): Orbit-Animation statt Border-Highlight. -->
+			<!-- Live-Update wird über eine einmalige Orbit-Animation entlang der Panel-Kontur
+			     visualisiert (kein einschiebender Hinweistext, der das Layout verschiebt, #309). -->
+			<OrbitHighlight signal={orbitSignal || null} radius="1rem" />
 			<!-- Title + badges + actions -->
 			<div class="flex items-start justify-between gap-4">
 				<div class="flex-1 min-w-0">

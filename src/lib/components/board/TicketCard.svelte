@@ -1,14 +1,29 @@
 <script lang="ts">
-	import { Bot, Flag, BookOpen, AlertTriangle } from 'lucide-svelte';
+	import { Bot, Flag, BookOpen, AlertTriangle, Sparkles } from 'lucide-svelte';
+	import { fade } from 'svelte/transition';
+	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
 
 	export let ticket: Ticket;
 	export let projectId: number;
 	export let status: BoardStatus;
 	export let onTicketClick: (ticketId: number) => void = () => {};
-	export let highlight = false;
+	// Zähler/Timestamp, der bei jedem KI-Event für dieses Ticket hochgezählt wird
+	// (siehe src/lib/stores/aiActivity.ts). Ersetzt die alte permanente
+	// highlight-Border (movedTicketIds) durch die einmalige Orbit-Animation.
+	export let orbitSignal: number | null = null;
 
 	let isDragging = false;
+	let showAiBadge = false;
+	let aiBadgeTimer: ReturnType<typeof setTimeout> | null = null;
+	let lastOrbitSignal: number | null = null;
+
+	$: if (orbitSignal !== null && orbitSignal !== lastOrbitSignal) {
+		lastOrbitSignal = orbitSignal;
+		showAiBadge = true;
+		if (aiBadgeTimer) clearTimeout(aiBadgeTimer);
+		aiBadgeTimer = setTimeout(() => { showAiBadge = false; }, 5000);
+	}
 
 	$: assigneeInitials = ticket.assignee
 		? ticket.assignee.split(' ').map(p => p.charAt(0).toUpperCase()).slice(0, 2).join('')
@@ -31,10 +46,19 @@
 	ondragstart={handleDragStart}
 	ondragend={handleDragEnd}
 	onclick={() => onTicketClick(ticket.id)}
-	class="ticket-card min-h-[92px] flex flex-col p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
+	class="ticket-card relative min-h-[92px] flex flex-col p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
 	class:is-dragging={isDragging}
-	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : highlight ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(255,208,0,0.35)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1};{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
+	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(255,208,0,0.35)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1};{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
 >
+	<OrbitHighlight signal={orbitSignal} radius="0.5rem" />
+	{#if showAiBadge}
+		<div class="ai-badge absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center"
+			style="background: var(--color-surface); border: 1px solid var(--primary); color: var(--primary);"
+			title="Von der KI aktualisiert"
+			transition:fade={{ duration: 200 }}>
+			<Sparkles class="w-3 h-3" />
+		</div>
+	{/if}
 	{#if ticket.type === 'epic'}
 		<div class="flex items-center gap-1 mb-1.5 text-xs font-semibold" style="color: #ffd000;">
 			<Flag class="w-3 h-3" /> Epic

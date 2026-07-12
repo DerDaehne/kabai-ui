@@ -6,6 +6,8 @@
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { ArrowLeft, CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, BookOpen, Compass, AlertTriangle, Archive, Plus } from 'lucide-svelte';
+	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
+	import { pushAiEvent } from '$lib/stores/aiActivity';
 	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
 
 	$: id = $page.params.id;
@@ -30,7 +32,9 @@
 	let editStatusId: number | null = null;
 
 	let eventSource: EventSource | null = null;
-	let justUpdatedLive = false;
+	// Treibt die einmalige Orbit-Highlight-Animation auf der Haupt-Karte, wenn ein
+	// Live-Refresh eintrifft (siehe OrbitHighlight.svelte).
+	let orbitSignal = 0;
 
 	async function fetchTicket() {
 		try {
@@ -159,14 +163,14 @@
 		eventSource.onmessage = (event) => {
 			try {
 				const payload = JSON.parse(event.data) as { op: string; ticket_id: number };
+				pushAiEvent(payload.ticket_id, payload.op);
 				if (payload.ticket_id !== Number(id) || isEditing) return;
 				fetch(`/api/tickets/${id}`)
 					.then(r => r.json())
 					.then(res => {
 						if (!res.ok) return;
 						ticket = { ...res.data.ticket, status: res.data.status, tasks: res.data.tasks, comments: res.data.comments, relations: res.data.relations, linked_notes: res.data.linked_notes ?? [] };
-						justUpdatedLive = true;
-						setTimeout(() => justUpdatedLive = false, 2000);
+						orbitSignal += 1;
 					})
 					.catch(() => {});
 			} catch { /* ignore */ }
@@ -270,13 +274,13 @@
 
 	{:else if ticket}
 		<div class="space-y-4" in:fly={{ y: 20, duration: 400, easing: quintOut }}>
-			<!-- Live-Update wird nur über den Rahmen-Farbwechsel der Karte visualisiert (1px Border,
-			     kein Glow) — kein einschiebender Hinweistext, der das Layout verschiebt (#309).
-			     TODO(Folge-Ticket): Orbit-Animation statt Border-Highlight. -->
+			<!-- Live-Update wird über eine einmalige Orbit-Animation entlang der Karten-Kontur
+			     visualisiert (kein einschiebender Hinweistext, der das Layout verschiebt, #309). -->
 
 			<!-- Main Card -->
-			<div class="rounded-2xl overflow-hidden transition-shadow duration-500"
-				style="background: var(--card-bg); border: 1px solid {justUpdatedLive ? 'var(--primary)' : 'var(--border)'}; box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+			<div class="relative rounded-2xl overflow-hidden"
+				style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+				<OrbitHighlight signal={orbitSignal || null} radius="1rem" />
 
 				<!-- Header Bar -->
 				<div class="px-6 py-4 flex items-start justify-between gap-4" style="border-bottom: 1px solid var(--border);">
