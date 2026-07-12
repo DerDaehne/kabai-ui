@@ -29,12 +29,14 @@
 		newName = newDisplayName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
 	}
 
+	// Gedämpfte Spalten-Akzente — nur noch für den kleinen Orientierungspunkt je
+	// Status-Zeile (Theme v3: Farbe trägt Bedeutung, keine Regenbogen-Codierung mehr).
 	const accentColors = [
-		{ border: '#00d9ff', glow: 'rgba(0,217,255,0.15)' },
+		{ border: '#6e7bf2', glow: 'rgba(110,123,242,0.15)' },
 		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.15)' },
-		{ border: '#22c55e', glow: 'rgba(34,197,94,0.15)' },
-		{ border: '#f59e0b', glow: 'rgba(245,158,11,0.15)' },
-		{ border: '#ef4444', glow: 'rgba(239,68,68,0.15)' },
+		{ border: '#3da06b', glow: 'rgba(61,160,107,0.15)' },
+		{ border: '#c98a2d', glow: 'rgba(201,138,45,0.15)' },
+		{ border: '#c25252', glow: 'rgba(194,82,82,0.15)' },
 	];
 	function accent(i: number) { return accentColors[i % accentColors.length]; }
 
@@ -110,7 +112,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-6">
 		<div class="flex items-center gap-3">
-			<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
+			<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 				<Layers class="w-5 h-5" style="color: var(--primary);" />
 			</div>
 			<div>
@@ -120,7 +122,7 @@
 		</div>
 		<button onclick={() => { showNewForm = !showNewForm; }}
 			class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-			style="background: {showNewForm ? 'rgba(0,217,255,0.15)' : 'var(--border)'}; color: {showNewForm ? 'var(--primary)' : 'var(--text-muted)'}; border: 1px solid {showNewForm ? 'rgba(0,217,255,0.3)' : 'transparent'};">
+			style="background: {showNewForm ? 'color-mix(in srgb, var(--color-primary) 15%, transparent)' : 'var(--border)'}; color: {showNewForm ? 'var(--primary)' : 'var(--text-muted)'}; border: 1px solid {showNewForm ? 'color-mix(in srgb, var(--color-primary) 30%, transparent)' : 'transparent'};">
 			<Plus class="w-4 h-4" /> Neu
 		</button>
 	</div>
@@ -133,7 +135,7 @@
 	{#if showNewForm}
 		<div transition:slide={{ duration: 260, easing: cubicOut }}
 			class="mb-4 p-4 rounded-xl space-y-3"
-			style="background: rgba(0,217,255,0.04); box-shadow: 0 0 0 1px rgba(0,217,255,0.25), var(--highlight-top);">
+			style="background: color-mix(in srgb, var(--color-primary) 4%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent), var(--highlight-top);">
 			<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Neuer Status</p>
 			<div class="grid grid-cols-2 gap-3">
 				<div>

@@ -26,10 +26,13 @@
 	// Verifikationsalter in Tagen, ab dem eine Note als "alt verifiziert" gilt
 	const VERIFY_STALE_DAYS = 30;
 
+	// Hub bleibt goldakzentuiert (semantisch: Einstiegspunkt), aber gedämpft über
+	// den Warning-Token statt eines eigenen Hue; ADR/Note laufen neutral/Secondary
+	// (Theme v3: Farbe trägt Bedeutung, keine Regenbogen-Codierung mehr).
 	const kindStyles: Record<string, { color: string; bg: string; label: string }> = {
-		hub: { color: 'hsl(45, 90%, 60%)', bg: 'hsla(45, 90%, 60%, 0.12)', label: 'Hub' },
-		adr: { color: 'hsl(270, 70%, 70%)', bg: 'hsla(270, 70%, 60%, 0.12)', label: 'ADR' },
-		note: { color: 'hsl(195, 80%, 60%)', bg: 'hsla(195, 80%, 60%, 0.12)', label: 'Note' }
+		hub: { color: 'var(--color-warning)', bg: 'color-mix(in srgb, var(--color-warning) 12%, transparent)', label: 'Hub' },
+		adr: { color: 'var(--color-secondary)', bg: 'color-mix(in srgb, var(--color-secondary) 12%, transparent)', label: 'ADR' },
+		note: { color: 'var(--color-text-secondary)', bg: 'color-mix(in srgb, var(--color-text-secondary) 12%, transparent)', label: 'Note' }
 	};
 
 	function verifyState(note: NoteSummary): 'fresh' | 'stale' | 'never' {
@@ -99,7 +102,7 @@
 	<div class="flex items-end justify-between gap-4" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
 		<div>
 			<div class="flex items-center gap-3 mb-1">
-				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
+				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 					<BookOpen class="w-5 h-5" style="color: var(--primary);" />
 				</div>
 				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Knowledge Base</h1>
@@ -160,7 +163,7 @@
 	{/if}
 
 	{#if fuzzyFallback && query.trim()}
-		<div class="p-3 rounded-xl text-sm" style="background: rgba(255,200,50,0.06); border-left: 2px solid hsl(35, 90%, 55%); color: var(--text-muted);" in:fade={{ duration: 200 }}>
+		<div class="p-3 rounded-xl text-sm" style="background: color-mix(in srgb, var(--color-warning) 6%, transparent); border-left: 2px solid var(--color-warning); color: var(--text-muted);" in:fade={{ duration: 200 }}>
 			Keine exakten Treffer — ähnliche Titel gefunden (Tippfehler-Suche).
 		</div>
 	{/if}
@@ -175,7 +178,7 @@
 
 	{:else if notes.length === 0}
 		<div class="flex flex-col items-center justify-center py-24 rounded-2xl card" in:fade={{ duration: 300 }}>
-			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
+			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: color-mix(in srgb, var(--color-primary) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);">
 				<BookOpen class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
 			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Keine Notes gefunden</h3>
@@ -189,7 +192,7 @@
 		{#if hubs.length > 0}
 			<div in:fly={{ y: 16, duration: 350, easing: quintOut }}>
 				<div class="flex items-center gap-2 mb-3">
-					<Compass class="w-4 h-4" style="color: hsl(45, 90%, 60%);" />
+					<Compass class="w-4 h-4" style="color: var(--color-warning);" />
 					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Einstiegspunkte</h2>
 				</div>
 				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -197,12 +200,12 @@
 						<button
 							onclick={() => goto(`/notes/${note.slug}`)}
 							class="text-left rounded-xl p-5 border cursor-pointer transition-all duration-200"
-							style="background: linear-gradient(135deg, hsla(45, 90%, 60%, 0.06), var(--card-bg)); border-color: hsla(45, 90%, 60%, 0.35);"
-							onmouseenter={(e) => { e.currentTarget.style.borderColor = 'hsl(45, 90%, 60%)'; }}
-							onmouseleave={(e) => { e.currentTarget.style.borderColor = 'hsla(45, 90%, 60%, 0.35)'; }}
+							style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--card-bg)); border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);"
+							onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--color-warning)'; }}
+							onmouseleave={(e) => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-warning) 35%, transparent)'; }}
 						>
 							<div class="flex items-center gap-2 mb-2">
-								<Compass class="w-4 h-4 shrink-0" style="color: hsl(45, 90%, 60%);" />
+								<Compass class="w-4 h-4 shrink-0" style="color: var(--color-warning);" />
 								<h3 class="font-semibold truncate" style="color: var(--text);">{note.title}</h3>
 							</div>
 							<code class="text-xs" style="color: var(--text-muted);">{note.slug}</code>
@@ -271,11 +274,11 @@
 						<div class="shrink-0 flex flex-col items-end gap-1.5 text-xs" style="color: var(--text-muted);">
 							<span>{formatDate(note.updated_at)}</span>
 							{#if vs === 'fresh'}
-								<span class="flex items-center gap-1" style="color: hsl(150, 70%, 55%);" title="Verifiziert am {formatDate(note.last_verified_at ?? '')}">
+								<span class="flex items-center gap-1" style="color: var(--color-success);" title="Verifiziert am {formatDate(note.last_verified_at ?? '')}">
 									<ShieldCheck class="w-3.5 h-3.5" /> verifiziert
 								</span>
 							{:else if vs === 'stale'}
-								<span class="flex items-center gap-1" style="color: hsl(35, 90%, 60%);" title="Letzte Verifikation: {formatDate(note.last_verified_at ?? '')} — älter als {VERIFY_STALE_DAYS} Tage">
+								<span class="flex items-center gap-1" style="color: var(--color-warning);" title="Letzte Verifikation: {formatDate(note.last_verified_at ?? '')} — älter als {VERIFY_STALE_DAYS} Tage">
 									<ShieldAlert class="w-3.5 h-3.5" /> Verifikation alt
 								</span>
 							{:else}
@@ -293,7 +296,7 @@
 
 <style>
 	.snippet :global(mark) {
-		background: rgba(0, 217, 255, 0.2);
+		background: color-mix(in srgb, var(--color-primary) 20%, transparent);
 		color: var(--text);
 		border-radius: 2px;
 		padding: 0 2px;

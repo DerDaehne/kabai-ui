@@ -344,7 +344,7 @@
 			<div class="flex items-start justify-between gap-4">
 				<div class="flex-1 min-w-0">
 					<div class="flex items-center gap-2 flex-wrap mb-2">
-						<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: rgba(0,217,255,0.1); color: var(--primary);">#{ticket.id}</span>
+						<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--primary);">#{ticket.id}</span>
 						{#if ticket.status}
 							<span class="status-chip" style="--chip-color: var(--color-primary);">{ticket.status.display_name}</span>
 						{/if}
@@ -400,7 +400,7 @@
 			<!-- Human Intervention Banner -->
 			{#if isAwaitingHuman}
 				<div class="rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap"
-					style="border-left: 2px solid var(--primary); background: rgba(0,217,255,0.06);"
+					style="border-left: 2px solid var(--primary); background: color-mix(in srgb, var(--color-primary) 6%, transparent);"
 					in:fly={{ y: -8, duration: 250 }}>
 					<p class="text-sm" style="color: var(--text);">
 						Dieses Ticket wartet auf deine Antwort. Beantworte die Frage der KI (z.B. per Kommentar) und gib es dann zurück.
@@ -422,7 +422,7 @@
 			{#if isEditing}
 				<div transition:slide={{ duration: 280, easing: cubicOut }}
 					class="rounded-xl p-4 space-y-3"
-					style="background: rgba(0,217,255,0.03); box-shadow: 0 0 0 1px rgba(0,217,255,0.2), var(--highlight-top);">
+					style="background: color-mix(in srgb, var(--color-primary) 3%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 20%, transparent), var(--highlight-top);">
 					<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Bearbeiten</p>
 					<div>
 						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Titel *</label>
@@ -625,7 +625,7 @@
 					<div class="hairline"></div>
 					{#if ticket.docs_required && ticket.linked_notes.length === 0}
 						<div class="mx-4 my-3 flex items-start gap-2 p-3 rounded-lg text-xs"
-							style="background: rgba(255,180,50,0.07); border-left: 2px solid hsl(35, 90%, 60%); color: hsl(35, 90%, 60%);">
+							style="background: color-mix(in srgb, var(--color-warning) 7%, transparent); border-left: 2px solid var(--color-warning); color: var(--color-warning);">
 							<AlertTriangle class="w-4 h-4 shrink-0" />
 							<span>Dieses Ticket hat <strong>Doku-Pflicht</strong>, aber noch keine verlinkte Note — es kann erst geschlossen werden, wenn eine Knowledge-Base-Note verlinkt ist (via <code>kabai_docs_link_ticket</code>) oder die Pflicht mit Begründung entfernt wird.</span>
 						</div>
@@ -636,8 +636,8 @@
 								<a href="/notes/{ln.slug}"
 									class="flex items-center gap-2 py-1.5 px-2 rounded-lg text-xs transition-all hover:bg-[var(--color-surface-hover)]"
 									style="{ln.archived ? 'opacity: 0.55;' : ''}">
-									<Compass class="w-3.5 h-3.5 shrink-0 {ln.kind === 'hub' ? '' : 'hidden'}" style="color: hsl(45, 90%, 60%);" />
-									<BookOpen class="w-3.5 h-3.5 shrink-0 {ln.kind === 'hub' ? 'hidden' : ''}" style="color: {ln.kind === 'adr' ? 'hsl(270, 70%, 70%)' : 'var(--primary)'};" />
+									<Compass class="w-3.5 h-3.5 shrink-0 {ln.kind === 'hub' ? '' : 'hidden'}" style="color: var(--color-warning);" />
+									<BookOpen class="w-3.5 h-3.5 shrink-0 {ln.kind === 'hub' ? 'hidden' : ''}" style="color: {ln.kind === 'adr' ? 'var(--color-secondary)' : 'var(--primary)'};" />
 									<span class="font-semibold px-1.5 py-0.5 rounded shrink-0" style="background: rgba(139,92,246,0.1); color: var(--accent);">{noteRelationLabels[ln.relation] ?? ln.relation}</span>
 									<span class="truncate" style="color: var(--text);">{ln.title}</span>
 									{#if ln.archived}<Archive class="w-3 h-3 shrink-0" style="color: var(--text-muted);" />{/if}
@@ -663,10 +663,9 @@
 				{#if ticket.comments.length > 0}
 					<div class="px-4 py-3 space-y-3">
 						{#each ticket.comments as comment (comment.id)}
-							{@const hue = [195, 270, 150, 45][comment.id % 4]}
 							<div class="flex gap-3">
 								<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-									style="background: hsl({hue},70%,20%); color: hsl({hue},80%,70%); border: 1px solid hsl({hue},60%,35%);">
+									style="background: var(--color-surface-hover); color: var(--color-text-secondary);">
 									{comment.author.split(' ').map((p: string) => p.charAt(0).toUpperCase()).slice(0,2).join('')}
 								</div>
 								<div class="flex-1 rounded-xl px-3 py-2.5" style="background: rgba(255,255,255,0.03); box-shadow: var(--highlight-top);">

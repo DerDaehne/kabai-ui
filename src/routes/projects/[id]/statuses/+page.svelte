@@ -19,12 +19,14 @@
 
 	$: id = $page.params.id;
 
+	// Gedämpfte Spalten-Akzente — nur noch für den kleinen Orientierungspunkt je
+	// Status-Zeile (Theme v3: Farbe trägt Bedeutung, keine Regenbogen-Codierung mehr).
 	const accentColors = [
-		{ border: '#00d9ff', glow: 'rgba(0,217,255,0.15)' },
+		{ border: '#6e7bf2', glow: 'rgba(110,123,242,0.15)' },
 		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.15)' },
-		{ border: '#22c55e', glow: 'rgba(34,197,94,0.15)' },
-		{ border: '#f59e0b', glow: 'rgba(245,158,11,0.15)' },
-		{ border: '#ef4444', glow: 'rgba(239,68,68,0.15)' },
+		{ border: '#3da06b', glow: 'rgba(61,160,107,0.15)' },
+		{ border: '#c98a2d', glow: 'rgba(201,138,45,0.15)' },
+		{ border: '#c25252', glow: 'rgba(194,82,82,0.15)' },
 	];
 
 	function accentFor(i: number) {
@@ -125,7 +127,7 @@
 		<div class="flex items-end justify-between gap-4">
 			<div>
 				<div class="flex items-center gap-3 mb-1">
-					<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
+					<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 						<Layers class="w-5 h-5" style="color: var(--primary);" />
 					</div>
 					<h1 class="text-3xl font-bold tracking-tight" style="color: var(--text);">Board-Statuses</h1>
@@ -173,7 +175,7 @@
 			in:fade={{ duration: 300 }}
 		>
 			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-				style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
+				style="background: color-mix(in srgb, var(--color-primary) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);">
 				<Layers class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
 			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Noch keine Statuses</h3>

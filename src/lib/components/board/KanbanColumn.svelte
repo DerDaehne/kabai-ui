@@ -26,12 +26,15 @@
 	// Treibt die einmalige Orbit-Animation auf der jeweiligen TicketCard.
 	export let orbitSignals: Map<number, number> = new Map();
 
+	// Gedämpfte Spalten-Akzente — nur noch für den kleinen Orientierungspunkt im
+	// Header verwendet (Theme v3: Farbe trägt Bedeutung, keine Regenbogen-Codierung
+	// mehr für Chips/Hover/Drag-Feedback — die laufen jetzt einheitlich über Primary).
 	const accentColors = [
-		{ border: '#00d9ff', glow: 'rgba(0,217,255,0.2)', bg: 'rgba(0,217,255,0.08)' },
-		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.2)', bg: 'rgba(139,92,246,0.08)' },
-		{ border: '#22c55e', glow: 'rgba(34,197,94,0.2)', bg: 'rgba(34,197,94,0.08)' },
-		{ border: '#f59e0b', glow: 'rgba(245,158,11,0.2)', bg: 'rgba(245,158,11,0.08)' },
-		{ border: '#ef4444', glow: 'rgba(239,68,68,0.2)', bg: 'rgba(239,68,68,0.08)' },
+		{ border: '#6e7bf2' },
+		{ border: '#8b5cf6' },
+		{ border: '#3da06b' },
+		{ border: '#c98a2d' },
+		{ border: '#c25252' },
 	];
 	$: accent = accentColors[colorIndex % accentColors.length];
 
@@ -88,7 +91,7 @@
      Bereich); längere Listen scrollen in der Drop-Zone statt die Seite zu
      verlängern. -->
 <div class="flex flex-col h-full max-h-[calc(100vh-14rem)] rounded-xl overflow-hidden"
-	style="border: 1px solid {isDragOver ? accent.border : 'transparent'}; box-shadow: var(--elevation-1), var(--highlight-top); background: var(--card-bg); transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft);"
+	style="border: 1px solid {isDragOver ? 'var(--color-primary)' : 'transparent'}; box-shadow: var(--elevation-1), var(--highlight-top); background: var(--card-bg); transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft);"
 >
 	<!-- Column Header -->
 	<div
@@ -100,7 +103,7 @@
 			<span class="font-semibold truncate text-sm" style="color: var(--text);">{status.display_name}</span>
 			<span
 				class="status-chip shrink-0"
-				style="--chip-color: {accent.border};"
+				style="--chip-color: var(--color-text-secondary);"
 			>{tickets.length}</span>
 		</div>
 		<div class="flex items-center gap-1 shrink-0">
@@ -108,7 +111,7 @@
 				onclick={onOpenStatuses}
 				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
 				style="color: var(--text-muted);"
-				onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.color = accent.border; }}
+				onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
 				onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
 				title="Status bearbeiten"
 			>
@@ -118,7 +121,7 @@
 				onclick={onNewTicket}
 				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
 				style="color: var(--text-muted);"
-				onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.color = accent.border; }}
+				onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
 				onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
 				title="Neues Ticket"
 			>
@@ -132,7 +135,7 @@
 	     Scroll ans Ende lädt automatisch weitere Tickets nach -->
 	<div
 		class="flex-1 p-2 space-y-2 min-h-[160px] overflow-y-auto transition-all duration-200"
-		style="background: {isDragOver ? accent.bg : 'transparent'};"
+		style="background: {isDragOver ? 'color-mix(in srgb, var(--color-primary) 8%, transparent)' : 'transparent'};"
 		bind:clientHeight={zoneHeight}
 		onscroll={handleZoneScroll}
 		ondragover={handleDragOver}
@@ -142,13 +145,13 @@
 		{#if sortedTickets.length === 0}
 			<div
 				class="flex flex-col items-center justify-center py-8 rounded-lg border-2 border-dashed text-xs transition-all duration-200"
-				style="border-color: {isDragOver ? accent.border : 'var(--border)'}; color: var(--text-muted);"
+				style="border-color: {isDragOver ? 'var(--color-primary)' : 'var(--border)'}; color: var(--text-muted);"
 			>
 				{#if isDragOver}
-					<div class="w-8 h-8 rounded-full flex items-center justify-center mb-2" style="background: {accent.bg}; color: {accent.border};">
+					<div class="w-8 h-8 rounded-full flex items-center justify-center mb-2" style="background: color-mix(in srgb, var(--color-primary) 8%, transparent); color: var(--color-primary);">
 						<Plus class="w-4 h-4" />
 					</div>
-					<span style="color: {accent.border};">Hier ablegen</span>
+					<span style="color: var(--color-primary);">Hier ablegen</span>
 				{:else}
 					Keine Tickets
 					<button onclick={onNewTicket} class="mt-1 transition-colors" style="color: var(--primary);" onmouseenter={(e) => e.currentTarget.style.opacity = '0.7'} onmouseleave={(e) => e.currentTarget.style.opacity = '1'}>
@@ -176,7 +179,7 @@
 		onclick={onNewTicket}
 		class="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs transition-all duration-200"
 		style="color: var(--text-muted);"
-		onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.color = accent.border; }}
+		onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
 		onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
 	>
 		<Plus class="w-3.5 h-3.5" />

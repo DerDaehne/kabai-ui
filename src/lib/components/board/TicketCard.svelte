@@ -29,9 +29,6 @@
 		? ticket.assignee.split(' ').map(p => p.charAt(0).toUpperCase()).slice(0, 2).join('')
 		: null;
 
-	const avatarHues = [195, 270, 150, 45, 345, 310, 220, 175];
-	$: hue = avatarHues[ticket.id % avatarHues.length];
-
 	function handleDragStart(e: DragEvent) {
 		isDragging = true;
 		e.dataTransfer?.setData('ticketId', String(ticket.id));
@@ -48,7 +45,7 @@
 	onclick={() => onTicketClick(ticket.id)}
 	class="ticket-card relative min-h-[92px] flex flex-col p-3 rounded-lg border cursor-pointer select-none"
 	class:is-dragging={isDragging}
-	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(245,158,11,0.35)' : 'transparent'}; box-shadow: 0 1px 2px rgba(0,0,0,0.35), var(--highlight-top); opacity: {isDragging ? 0.5 : 1}; transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft), background-color var(--duration-fast) var(--ease-soft), transform var(--duration-fast) var(--ease-soft), opacity var(--duration-fast) var(--ease-soft);{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
+	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : 'transparent'}; box-shadow: 0 1px 2px rgba(0,0,0,0.35), var(--highlight-top); opacity: {isDragging ? 0.5 : 1}; transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft), background-color var(--duration-fast) var(--ease-soft), transform var(--duration-fast) var(--ease-soft), opacity var(--duration-fast) var(--ease-soft);{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
 >
 	<OrbitHighlight signal={orbitSignal} radius="0.5rem" />
 	{#if showAiBadge}
@@ -60,7 +57,7 @@
 		</div>
 	{/if}
 	{#if ticket.type === 'epic'}
-		<div class="flex items-center gap-1 mb-1.5 text-xs font-semibold" style="color: #f59e0b;">
+		<div class="flex items-center gap-1 mb-1.5 text-xs font-semibold" style="color: var(--color-warning);">
 			<Flag class="w-3 h-3" /> Epic
 		</div>
 	{/if}
@@ -70,7 +67,7 @@
 			<span class="text-xs font-mono shrink-0" style="color: var(--text-muted);">#{ticket.id}</span>
 			{#if ticket.model}
 				<span class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs truncate max-w-[100px]"
-					style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.25);"
+					style="background: var(--color-surface-hover); color: var(--color-text-secondary);"
 					title={ticket.model}>
 					<Bot class="w-2.5 h-2.5 shrink-0" />
 					{ticket.model.split('-').slice(0, 2).join('-')}
@@ -78,17 +75,17 @@
 			{/if}
 			{#if ticket.docs_required && !(ticket.linked_notes_count ?? 0)}
 				<span class="shrink-0" title="Doku-Pflicht: keine Knowledge-Base-Note verlinkt — Ticket kann so nicht geschlossen werden">
-					<AlertTriangle class="w-3 h-3" style="color: hsl(35, 90%, 60%);" />
+					<AlertTriangle class="w-3 h-3" style="color: var(--color-warning);" />
 				</span>
 			{:else if (ticket.linked_notes_count ?? 0) > 0}
 				<span class="shrink-0" title="{ticket.linked_notes_count} Knowledge-Base-Note{(ticket.linked_notes_count ?? 0) !== 1 ? 's' : ''} verlinkt">
-					<BookOpen class="w-3 h-3" style="color: var(--accent);" />
+					<BookOpen class="w-3 h-3" style="color: var(--color-text-secondary);" />
 				</span>
 			{/if}
 		</div>
 		{#if assigneeInitials}
 			<div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-				style="background: hsl({hue},70%,25%); color: hsl({hue},80%,70%); border: 1px solid hsl({hue},70%,40%);"
+				style="background: var(--color-surface-hover); color: var(--color-text-secondary);"
 				title={ticket.assignee || ''}>
 				{assigneeInitials}
 			</div>

@@ -17,10 +17,13 @@
 
 	const VERIFY_STALE_DAYS = 30;
 
+	// Hub bleibt goldakzentuiert (semantisch: Einstiegspunkt), aber gedämpft über
+	// den Warning-Token statt eines eigenen Hue; ADR/Note laufen neutral/Secondary
+	// (Theme v3: Farbe trägt Bedeutung, keine Regenbogen-Codierung mehr).
 	const kindStyles: Record<string, { color: string; bg: string; label: string }> = {
-		hub: { color: 'hsl(45, 90%, 60%)', bg: 'hsla(45, 90%, 60%, 0.12)', label: 'Hub' },
-		adr: { color: 'hsl(270, 70%, 70%)', bg: 'hsla(270, 70%, 60%, 0.12)', label: 'ADR' },
-		note: { color: 'hsl(195, 80%, 60%)', bg: 'hsla(195, 80%, 60%, 0.12)', label: 'Note' }
+		hub: { color: 'var(--color-warning)', bg: 'color-mix(in srgb, var(--color-warning) 12%, transparent)', label: 'Hub' },
+		adr: { color: 'var(--color-secondary)', bg: 'color-mix(in srgb, var(--color-secondary) 12%, transparent)', label: 'ADR' },
+		note: { color: 'var(--color-text-secondary)', bg: 'color-mix(in srgb, var(--color-text-secondary) 12%, transparent)', label: 'Note' }
 	};
 
 	const relationLabels: Record<string, string> = {
@@ -128,8 +131,8 @@
 			</div>
 		{/if}
 		{#if supersededBy.length > 0}
-			<div class="p-4 rounded-xl" style="background: rgba(255,150,50,0.08); border-left: 2px solid hsl(30, 90%, 55%);" in:fade={{ duration: 200 }}>
-				<div class="flex items-center gap-2 mb-2" style="color: hsl(30, 90%, 60%);">
+			<div class="p-4 rounded-xl" style="background: color-mix(in srgb, var(--color-warning) 8%, transparent); border-left: 2px solid var(--color-warning);" in:fade={{ duration: 200 }}>
+				<div class="flex items-center gap-2 mb-2" style="color: var(--color-warning);">
 					<AlertTriangle class="w-5 h-5 shrink-0" />
 					<span class="text-sm font-semibold">Veraltet — abgelöst durch:</span>
 				</div>
@@ -172,7 +175,7 @@
 		{#if note.last_verified_at}
 			{@const days = verifiedDaysAgo(note)}
 			{@const stale = days > VERIFY_STALE_DAYS}
-			<div class="flex items-center gap-2 p-3 rounded-xl text-sm" style="background: {stale ? 'rgba(255,180,50,0.06)' : 'rgba(50,220,130,0.06)'}; border-left: 2px solid {stale ? 'hsl(35, 90%, 55%)' : 'hsl(150, 70%, 50%)'}; color: {stale ? 'hsl(35, 90%, 60%)' : 'hsl(150, 70%, 55%)'};">
+			<div class="flex items-center gap-2 p-3 rounded-xl text-sm" style="background: {stale ? 'color-mix(in srgb, var(--color-warning) 6%, transparent)' : 'color-mix(in srgb, var(--color-success) 6%, transparent)'}; border-left: 2px solid {stale ? 'var(--color-warning)' : 'var(--color-success)'}; color: {stale ? 'var(--color-warning)' : 'var(--color-success)'};">
 				{#if stale}
 					<ShieldAlert class="w-4 h-4 shrink-0" />
 				{:else}
@@ -195,9 +198,9 @@
 
 		<!-- Hub: Inhaltsverzeichnis -->
 		{#if note.kind === 'hub' && containsOut.length > 0}
-			<div class="rounded-xl p-5" style="background: linear-gradient(135deg, hsla(45, 90%, 60%, 0.06), var(--card-bg)); box-shadow: 0 0 0 1px hsla(45, 90%, 60%, 0.25), var(--highlight-top);" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
+			<div class="rounded-xl p-5" style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--card-bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-warning) 25%, transparent), var(--highlight-top);" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
 				<div class="flex items-center gap-2 mb-3">
-					<ListTree class="w-4 h-4" style="color: hsl(45, 90%, 60%);" />
+					<ListTree class="w-4 h-4" style="color: var(--color-warning);" />
 					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Inhaltsverzeichnis</h2>
 				</div>
 				<div class="space-y-2">
@@ -276,7 +279,7 @@
 						onclick={() => goto(`/tickets/${tl.ticket_id}`)}
 						class="flex items-center gap-2 px-3 py-2 rounded-lg text-left w-full card"
 					>
-						<span class="text-xs font-semibold px-2 py-0.5 rounded-md shrink-0" style="background: rgba(0,217,255,0.1); color: var(--primary); border: 1px solid rgba(0,217,255,0.25);">{relationLabels[tl.relation] ?? tl.relation}</span>
+						<span class="text-xs font-semibold px-2 py-0.5 rounded-md shrink-0" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--primary); border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);">{relationLabels[tl.relation] ?? tl.relation}</span>
 						<span class="text-sm truncate" style="color: var(--text);">#{tl.ticket_id} {tl.ticket_title}</span>
 					</button>
 				{/each}

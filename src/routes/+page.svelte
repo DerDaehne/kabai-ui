@@ -41,7 +41,7 @@
 <div class="w-full space-y-8">
 	<!-- Header -->
 	<div class="flex items-center gap-3" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
-		<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
+		<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 			<Home class="w-5 h-5" style="color: var(--primary);" />
 		</div>
 		<h1 class="text-3xl font-bold tracking-tight" style="color: var(--text);">Dashboard</h1>
@@ -63,7 +63,7 @@
 
 	{:else if data && data.projects.length === 0}
 		<div class="flex flex-col items-center justify-center py-24 rounded-2xl card" in:fade={{ duration: 300 }}>
-			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
+			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: color-mix(in srgb, var(--color-primary) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);">
 				<Folder class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
 			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Noch keine Projekte</h3>
@@ -119,7 +119,7 @@
 							<div class="flex items-center gap-2 shrink-0">
 								{#if project.inbox_count > 0}
 									<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
-										style="background: rgba(0,217,255,0.12); color: var(--primary); border: 1px solid rgba(0,217,255,0.3);">
+										style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--primary); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 										<Inbox class="w-3 h-3" />{project.inbox_count}
 									</span>
 								{/if}

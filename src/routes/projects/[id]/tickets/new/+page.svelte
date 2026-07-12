@@ -122,7 +122,7 @@
 	<div in:fly={{ y: 20, duration: 400, easing: quintOut }}>
 		<div class="flex items-center gap-3 mb-8">
 			<div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-				style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
+				style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 				<Plus class="w-5 h-5" style="color: var(--primary);" />
 			</div>
 			<div>

@@ -44,7 +44,7 @@
 	<div class="flex items-end justify-between gap-4" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
 		<div>
 			<div class="flex items-center gap-3 mb-1">
-				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
+				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 					<Layers class="w-5 h-5" style="color: var(--primary);" />
 				</div>
 				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Projekte</h1>
@@ -75,7 +75,7 @@
 
 	{:else if projects.length === 0}
 		<div class="flex flex-col items-center justify-center py-24 rounded-2xl card" in:fade={{ duration: 300 }}>
-			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
+			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: color-mix(in srgb, var(--color-primary) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);">
 				<Layers class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
 			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Noch keine Projekte</h3>
@@ -88,16 +88,14 @@
 	{:else}
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 			{#each projects as project, i (project.id)}
-				{@const hue = [195, 270, 150, 45, 345][i % 5]}
 				<div
 					in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }}
 					class="group rounded-xl p-5 card cursor-pointer"
 					onclick={() => goto(`/projects/${project.id}`)}
 				>
-					<!-- Color accent dot -->
 					<div class="flex items-start justify-between mb-3">
 						<div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold"
-							style="background: hsla({hue}, 70%, 55%, 0.15); color: hsl({hue}, 70%, 65%); border: 1px solid hsla({hue}, 70%, 55%, 0.3);">
+							style="background: var(--color-surface-hover); color: var(--color-text-secondary); border: 1px solid var(--color-border);">
 							{project.name.charAt(0).toUpperCase()}
 						</div>
 						<!-- Actions (shown on hover) -->
@@ -136,7 +134,7 @@
 						<span class="text-xs" style="color: var(--text-muted);">
 							{new Date(project.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
 						</span>
-						<div class="flex items-center gap-1 text-xs" style="color: hsl({hue}, 70%, 65%);">
+						<div class="flex items-center gap-1 text-xs" style="color: var(--text-muted);">
 							<ExternalLink class="w-3 h-3" />
 							Board
 						</div>
