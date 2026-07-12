@@ -149,8 +149,9 @@ The runner uses `KABAI_DB_USER`/`KABAI_DB_PASSWORD` from the environment.
 If they are missing, the app starts with a warning and skips migrations; if
 a migration fails, the app does not start.
 
-**Existing database that predates the runner** (no `schema_migrations`
-table): handled automatically. The runner probes which migrations are
+**Existing databases** (set up before the runner existed, or with an
+incomplete `schema_migrations` ledger from an interrupted run): handled
+automatically on every start. The runner probes which migrations are
 already present (tables/columns/triggers), records those without re-running
 them, and applies only what is genuinely missing. Manual override if ever
 needed:

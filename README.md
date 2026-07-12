@@ -111,8 +111,9 @@ set -a; . ./.env; set +a     # load KABAI_DB_*
 npm run migrate
 ```
 
-**Existing database that predates the runner** (no `schema_migrations`
-table): detected automatically. Each migration has a feature probe
+**Existing databases** (set up before the runner existed, or with an
+incomplete `schema_migrations` ledger from an interrupted run): detected
+automatically on every start. Each migration has a feature probe
 (table/column/trigger marker); whatever is verifiably present is recorded
 as applied without being re-run — only genuinely missing migrations
 execute. An existing database is never modified beyond what a fresh
