@@ -6,7 +6,7 @@
 	import { quintOut } from 'svelte/easing';
 	import { Settings, Layers, Network, Inbox } from 'lucide-svelte';
 	import KanbanBoard from '$components/board/KanbanBoard.svelte';
-	import Modal from '$components/ui/Modal.svelte';
+	import SidePanel from '$components/ui/SidePanel.svelte';
 	import TicketModal from '$components/tickets/TicketModal.svelte';
 	import StatusesModal from '$components/statuses/StatusesModal.svelte';
 	import WorkflowModal from '$components/workflow/WorkflowModal.svelte';
@@ -231,30 +231,30 @@
 	{/if}
 </div>
 
-<!-- Inbox Modal -->
-<Modal open={showInbox} onClose={() => showInbox = false} size="md">
+<!-- Inbox Panel -->
+<SidePanel open={showInbox} onClose={() => showInbox = false} size="md" ariaLabel="Inbox">
 	{#if showInbox}
 		<InboxModal tickets={inboxTickets} onTicketClick={(id) => { showInbox = false; onTicketClick(id); }} onClose={() => showInbox = false} {movedTicketIds} />
 	{/if}
-</Modal>
+</SidePanel>
 
-<!-- Ticket Detail Modal -->
-<Modal open={openTicketId !== null} onClose={() => openTicketId = null} size="lg">
+<!-- Ticket Detail Panel -->
+<SidePanel open={openTicketId !== null} onClose={() => openTicketId = null} size="md" ariaLabel="Ticket-Details">
 	{#if openTicketId !== null}
 		<TicketModal ticketId={openTicketId} onClose={() => openTicketId = null} onDeleted={onTicketDeleted} {liveUpdateSignal} />
 	{/if}
-</Modal>
+</SidePanel>
 
-<!-- Statuses Modal -->
-<Modal open={showStatuses} onClose={onStatusesClose} size="lg">
+<!-- Statuses Panel -->
+<SidePanel open={showStatuses} onClose={onStatusesClose} size="md" ariaLabel="Spalten verwalten">
 	{#if showStatuses && project}
 		<StatusesModal projectId={project.id} onClose={onStatusesClose} />
 	{/if}
-</Modal>
+</SidePanel>
 
-<!-- Workflow Modal -->
-<Modal open={showWorkflow} onClose={() => showWorkflow = false} size="xl">
+<!-- Workflow Panel -->
+<SidePanel open={showWorkflow} onClose={() => showWorkflow = false} size="xl" ariaLabel="Workflow-Editor">
 	{#if showWorkflow && project}
 		<WorkflowModal projectId={project.id} onClose={() => showWorkflow = false} />
 	{/if}
-</Modal>
+</SidePanel>

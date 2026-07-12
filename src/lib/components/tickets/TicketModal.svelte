@@ -4,7 +4,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus, BookOpen, Compass, AlertTriangle, Archive } from 'lucide-svelte';
+	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal } from 'lucide-svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
 
 	export let ticketId: number;
@@ -171,6 +171,28 @@
 		finally { isReturning = false; }
 	}
 
+	// Overflow-Menü ("Weitere Aktionen") im Kopfbereich
+	let showActionsMenu = false;
+	let actionsMenuEl: HTMLDivElement | null = null;
+
+	function toggleActionsMenu() {
+		showActionsMenu = !showActionsMenu;
+	}
+
+	function handleMenuWindowKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && showActionsMenu) {
+			// Escape schließt nur das Menü, nicht das Panel dahinter
+			e.stopPropagation();
+			showActionsMenu = false;
+		}
+	}
+
+	function handleMenuOutsideClick(e: MouseEvent) {
+		if (showActionsMenu && actionsMenuEl && !actionsMenuEl.contains(e.target as Node)) {
+			showActionsMenu = false;
+		}
+	}
+
 	async function handleDelete() {
 		if (!ticket || !confirm(`Ticket "${ticket.title}" löschen?`)) return;
 		isDeleting = true;
@@ -298,6 +320,8 @@
 	onMount(fetchTicket);
 </script>
 
+<svelte:window on:keydown|capture={handleMenuWindowKeydown} on:click={handleMenuOutsideClick} />
+
 <div class="p-6 pr-14">
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-20 gap-4">
@@ -342,21 +366,35 @@
 				<div class="flex items-center gap-2 shrink-0">
 					{#if !isEditing}
 						<button onclick={startEdit}
-							class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-							style="color: var(--primary); background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+							class="btn btn-primary flex items-center gap-1.5 !px-3 !py-1.5 text-xs">
 							<Pencil class="w-3.5 h-3.5" /> Bearbeiten
 						</button>
 					{/if}
-					<button onclick={handleDelete} disabled={isDeleting}
-						class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-						style="color: var(--danger); background: rgba(255,34,85,0.1); border: 1px solid rgba(255,34,85,0.3);">
-						{#if isDeleting}
-							<div class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
-						{:else}
-							<Trash2 class="w-3.5 h-3.5" />
+					<div class="relative" bind:this={actionsMenuEl}>
+						<button onclick={toggleActionsMenu}
+							aria-label="Weitere Aktionen" aria-haspopup="menu" aria-expanded={showActionsMenu}
+							class="btn btn-ghost flex items-center justify-center !p-1.5 rounded-lg">
+							<MoreHorizontal class="w-4 h-4" />
+						</button>
+						{#if showActionsMenu}
+							<div role="menu" aria-label="Weitere Aktionen"
+								class="absolute right-0 top-full mt-1 z-20 min-w-[140px] rounded-lg py-1 shadow-lg"
+								style="background: var(--color-surface); border: 1px solid var(--color-border);">
+								<button role="menuitem" onclick={() => { showActionsMenu = false; handleDelete(); }} disabled={isDeleting}
+									class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors"
+									style="color: var(--danger);"
+									onmouseenter={(e) => e.currentTarget.style.background = 'rgba(255,34,85,0.1)'}
+									onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}>
+									{#if isDeleting}
+										<div class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+									{:else}
+										<Trash2 class="w-3.5 h-3.5" />
+									{/if}
+									Löschen
+								</button>
+							</div>
 						{/if}
-						Löschen
-					</button>
+					</div>
 				</div>
 			</div>
 
