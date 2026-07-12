@@ -24,7 +24,8 @@
 
 {#if visible}
 	<div
-		class="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg shadow-lg p-4 max-w-sm animate-in fade-in slide-in-from-bottom-2"
+		class="bg-[var(--card-bg)] rounded-lg p-4 max-w-sm animate-in fade-in slide-in-from-bottom-2"
+		style="box-shadow: var(--elevation-2), var(--highlight-top);"
 		class:toast-success={type === 'success'}
 		class:toast-error={type === 'error'}
 		class:toast-warning={type === 'warning'}
@@ -53,9 +54,10 @@
 			</div>
 			
 			<!-- Close Button -->
-			<button 
+			<button
 				onclick={() => visible = false}
-				class="flex-shrink-0 p-1 rounded-md hover:bg-[var(--border)] transition-colors"
+				class="flex-shrink-0 p-1 rounded-md hover:bg-[var(--color-surface-hover)] transition-colors"
+				style="transition-duration: var(--duration-fast); transition-timing-function: var(--ease-soft);"
 				aria-label="Schließen"
 			>
 				<svg class="w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

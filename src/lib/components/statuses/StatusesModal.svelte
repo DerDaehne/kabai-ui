@@ -126,14 +126,14 @@
 	</div>
 
 	{#if error}
-		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: var(--danger);">{error}</div>
+		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
 	{/if}
 
 	<!-- New Status Form -->
 	{#if showNewForm}
 		<div transition:slide={{ duration: 260, easing: cubicOut }}
 			class="mb-4 p-4 rounded-xl space-y-3"
-			style="border: 1px solid rgba(0,217,255,0.3); background: rgba(0,217,255,0.04);">
+			style="background: rgba(0,217,255,0.04); box-shadow: 0 0 0 1px rgba(0,217,255,0.25), var(--highlight-top);">
 			<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Neuer Status</p>
 			<div class="grid grid-cols-2 gap-3">
 				<div>
@@ -185,8 +185,8 @@
 			{#each statuses as status, i (status.id)}
 				{@const ac = accent(i)}
 				<div in:fly={{ y: 16, duration: 300, delay: i * 40, easing: quintOut }}
-					class="rounded-xl overflow-hidden transition-all duration-200"
-					style="border: 1px solid {editingId === status.id ? ac.border : 'var(--border)'}; background: var(--card-bg);">
+					class="rounded-xl overflow-hidden"
+					style="background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 0 1px ${ac.border}66, var(--elevation-1), var(--highlight-top)` : 'var(--elevation-1), var(--highlight-top)'}; transition: box-shadow var(--duration-base) var(--ease-soft);">
 					<div class="flex items-center gap-3 p-3">
 						<div class="w-1 self-stretch rounded-full shrink-0" style="background: {ac.border};"></div>
 						<div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
@@ -224,9 +224,9 @@
 						</div>
 					</div>
 					{#if editingId === status.id}
+						<div class="hairline"></div>
 						<div transition:slide={{ duration: 260, easing: cubicOut }}
-							class="px-4 pb-4 pt-1 space-y-3"
-							style="border-top: 1px solid {ac.border}30;">
+							class="px-4 pb-4 pt-4 space-y-3">
 							<div class="grid grid-cols-2 gap-3">
 								<div>
 									<label class="block text-xs font-medium mb-1" style="color: var(--text-muted);">Anzeigename</label>

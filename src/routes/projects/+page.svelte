@@ -60,7 +60,7 @@
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+		<div class="p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
 	{/if}
@@ -74,7 +74,7 @@
 		</div>
 
 	{:else if projects.length === 0}
-		<div class="flex flex-col items-center justify-center py-24 rounded-2xl border" style="border-color: var(--border); background: var(--card-bg);" in:fade={{ duration: 300 }}>
+		<div class="flex flex-col items-center justify-center py-24 rounded-2xl card" in:fade={{ duration: 300 }}>
 			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
 				<Layers class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
@@ -91,11 +91,8 @@
 				{@const hue = [195, 270, 150, 45, 345][i % 5]}
 				<div
 					in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }}
-					class="group rounded-xl p-5 border cursor-pointer transition-all duration-200"
-					style="background: var(--card-bg); border-color: var(--border);"
+					class="group rounded-xl p-5 card cursor-pointer"
 					onclick={() => goto(`/projects/${project.id}`)}
-					onmouseenter={(e) => { e.currentTarget.style.borderColor = `hsl(${hue}, 70%, 55%)`; }}
-					onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
 				>
 					<!-- Color accent dot -->
 					<div class="flex items-start justify-between mb-3">
@@ -134,7 +131,8 @@
 						<p class="text-xs mt-2 truncate-2" style="color: var(--text-muted);">{project.description}</p>
 					{/if}
 
-					<div class="mt-4 pt-3 flex items-center justify-between" style="border-top: 1px solid var(--border);">
+					<div class="mt-4 mb-3 hairline"></div>
+					<div class="flex items-center justify-between">
 						<span class="text-xs" style="color: var(--text-muted);">
 							{new Date(project.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
 						</span>

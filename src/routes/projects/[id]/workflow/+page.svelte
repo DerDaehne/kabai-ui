@@ -21,7 +21,7 @@
 		Zurück zum Board
 	</button>
 
-	<div class="rounded-2xl overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+	<div class="rounded-2xl overflow-hidden card">
 		<WorkflowModal projectId={parseInt(id)} />
 	</div>
 </div>

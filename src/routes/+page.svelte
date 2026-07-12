@@ -48,7 +48,7 @@
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+		<div class="p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
 	{/if}
@@ -62,7 +62,7 @@
 		</div>
 
 	{:else if data && data.projects.length === 0}
-		<div class="flex flex-col items-center justify-center py-24 rounded-2xl border" style="border-color: var(--border); background: var(--card-bg);" in:fade={{ duration: 300 }}>
+		<div class="flex flex-col items-center justify-center py-24 rounded-2xl card" in:fade={{ duration: 300 }}>
 			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
 				<Folder class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
@@ -74,25 +74,25 @@
 	{:else if data}
 		<!-- Totals -->
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4" in:fly={{ y: 16, duration: 350, easing: quintOut }}>
-			<div class="rounded-xl p-4 border" style="background: var(--card-bg); border-color: var(--border);">
+			<div class="rounded-xl p-4 card">
 				<div class="flex items-center gap-2 mb-1" style="color: var(--primary);">
 					<Folder class="w-4 h-4" /><span class="text-xs font-medium">Projekte</span>
 				</div>
 				<p class="text-2xl font-bold" style="color: var(--text);">{data.totals.projects}</p>
 			</div>
-			<div class="rounded-xl p-4 border" style="background: var(--card-bg); border-color: var(--border);">
+			<div class="rounded-xl p-4 card">
 				<div class="flex items-center gap-2 mb-1" style="color: var(--accent);">
 					<Ticket class="w-4 h-4" /><span class="text-xs font-medium">Tickets</span>
 				</div>
 				<p class="text-2xl font-bold" style="color: var(--text);">{data.totals.tickets}</p>
 			</div>
-			<div class="rounded-xl p-4 border" style="background: var(--card-bg); border-color: var(--border);">
+			<div class="rounded-xl p-4 card">
 				<div class="flex items-center gap-2 mb-1" style="color: var(--success);">
 					<CheckCircle2 class="w-4 h-4" /><span class="text-xs font-medium">Erledigt</span>
 				</div>
 				<p class="text-2xl font-bold" style="color: var(--text);">{data.totals.done}</p>
 			</div>
-			<div class="rounded-xl p-4 border" style="background: var(--card-bg); border-color: var(--border);">
+			<div class="rounded-xl p-4 card">
 				<div class="flex items-center gap-2 mb-1" style="color: var(--primary);">
 					<Inbox class="w-4 h-4" /><span class="text-xs font-medium">Wartet auf dich</span>
 				</div>
@@ -109,10 +109,7 @@
 					<button
 						onclick={() => goto(`/projects/${project.id}`)}
 						in:fly={{ y: 12, duration: 300, delay: i * 40, easing: quintOut }}
-						class="w-full text-left rounded-xl p-4 border transition-all duration-200"
-						style="background: var(--card-bg); border-color: var(--border);"
-						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
-						onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+						class="w-full text-left rounded-xl p-4 card"
 					>
 						<div class="flex items-center justify-between gap-3 mb-2">
 							<div class="min-w-0">
@@ -129,7 +126,7 @@
 								<ArrowRight class="w-4 h-4" style="color: var(--text-muted);" />
 							</div>
 						</div>
-						<div class="h-1.5 rounded-full overflow-hidden" style="background: var(--border);">
+						<div class="h-1.5 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.06);">
 							<div class="h-full rounded-full transition-all duration-500"
 								style="width: {progress}%; background: var(--success);"></div>
 						</div>
@@ -143,14 +140,12 @@
 				{#if data.recentTickets.length === 0}
 					<p class="text-sm" style="color: var(--text-muted);">Noch keine Aktivität.</p>
 				{:else}
-					<div class="rounded-xl border overflow-hidden" style="border-color: var(--border); background: var(--card-bg);">
+					<div class="rounded-xl overflow-hidden card">
 						{#each data.recentTickets as ticket, i (ticket.id)}
+							{#if i > 0}<div class="hairline"></div>{/if}
 							<button
 								onclick={() => goto(`/tickets/${ticket.id}`)}
-								class="w-full text-left px-4 py-3 flex items-start gap-2 transition-colors"
-								style="border-top: {i > 0 ? '1px solid var(--border)' : 'none'};"
-								onmouseenter={(e) => e.currentTarget.style.background = 'var(--border)'}
-								onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}
+								class="w-full text-left px-4 py-3 flex items-start gap-2 transition-colors hover:bg-[var(--color-surface-hover)]"
 							>
 								<Clock class="w-3.5 h-3.5 shrink-0 mt-0.5" style="color: var(--text-muted);" />
 								<div class="min-w-0 flex-1">

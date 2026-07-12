@@ -148,8 +148,8 @@
 	<!-- Error -->
 	{#if error}
 		<div
-			class="mb-6 p-4 rounded-xl border flex items-start gap-3"
-			style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4);"
+			class="mb-6 p-4 rounded-xl flex items-start gap-3"
+			style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger);"
 			in:fly={{ y: 8, duration: 300 }}
 		>
 			<X class="w-5 h-5 shrink-0 mt-0.5" style="color: var(--danger);" />
@@ -169,8 +169,7 @@
 
 	{:else if statuses.length === 0}
 		<div
-			class="flex flex-col items-center justify-center py-24 rounded-2xl border"
-			style="border-color: var(--border); background: var(--card-bg);"
+			class="flex flex-col items-center justify-center py-24 rounded-2xl card"
 			in:fade={{ duration: 300 }}
 		>
 			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
@@ -192,8 +191,8 @@
 				{@const accent = accentFor(i)}
 				<div
 					in:fly={{ y: 24, duration: 400, delay: i * 60, easing: quintOut }}
-					class="rounded-xl overflow-hidden transition-all duration-300"
-					style="border: 1px solid {editingId === status.id ? accent.border : 'var(--border)'}; background: var(--card-bg);"
+					class="rounded-xl overflow-hidden"
+					style="background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 0 1px ${accent.border}66, var(--elevation-1), var(--highlight-top)` : 'var(--elevation-1), var(--highlight-top)'}; transition: box-shadow var(--duration-base) var(--ease-soft);"
 				>
 					<!-- Status Row -->
 					<div class="flex items-center gap-4 p-4">
@@ -259,10 +258,10 @@
 
 					<!-- Inline Edit Form -->
 					{#if editingId === status.id}
+						<div class="hairline"></div>
 						<div
 							transition:slide={{ duration: 300, easing: cubicOut }}
-							class="px-5 pb-5 pt-1"
-							style="border-top: 1px solid {accent.border}30;"
+							class="px-5 pb-5 pt-4"
 						>
 							<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 								<!-- Display Name -->

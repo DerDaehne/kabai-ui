@@ -126,7 +126,7 @@
 	</div>
 
 	{#if error}
-		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: var(--danger);">{error}</div>
+		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
 	{/if}
 
 	{#if isLoading}
@@ -139,7 +139,7 @@
 		<p class="text-center py-12 text-sm" style="color: var(--text-muted);">Keine Statuses gefunden.</p>
 	{:else}
 		<!-- Graph -->
-		<div class="rounded-xl overflow-hidden mb-5" style="height: 360px; border: 1px solid var(--border);">
+		<div class="rounded-xl overflow-hidden mb-5" style="height: 360px; box-shadow: var(--elevation-1), var(--highlight-top);">
 			<SvelteFlow
 				{nodes}
 				{edges}
@@ -166,10 +166,8 @@
 					{#each transitionMeta as t, i (t.fromId + '-' + t.toId)}
 						{@const key = `${t.fromId}-${t.toId}`}
 						<div in:fly={{ x: -12, duration: 200, delay: i * 30, easing: quintOut }}
-							class="flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-150"
-							style="background: var(--border);"
-							onmouseenter={(e) => e.currentTarget.style.background = 'var(--border-bright)'}
-							onmouseleave={(e) => e.currentTarget.style.background = 'var(--border)'}>
+							class="flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-150 hover:bg-[var(--color-surface-hover)]"
+							style="background: rgba(255,255,255,0.04);">
 							<div class="flex items-center gap-2 text-sm">
 								<span class="font-medium" style="color: var(--primary);">{t.fromName}</span>
 								<ArrowRight class="w-3.5 h-3.5 shrink-0" style="color: var(--text-muted);" />

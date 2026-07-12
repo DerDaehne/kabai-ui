@@ -154,13 +154,13 @@
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+		<div class="p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
 	{/if}
 
 	{#if fuzzyFallback && query.trim()}
-		<div class="p-3 rounded-xl border text-sm" style="background: rgba(255,200,50,0.06); border-color: rgba(255,200,50,0.3); color: var(--text-muted);" in:fade={{ duration: 200 }}>
+		<div class="p-3 rounded-xl text-sm" style="background: rgba(255,200,50,0.06); border-left: 2px solid hsl(35, 90%, 55%); color: var(--text-muted);" in:fade={{ duration: 200 }}>
 			Keine exakten Treffer — ähnliche Titel gefunden (Tippfehler-Suche).
 		</div>
 	{/if}
@@ -174,7 +174,7 @@
 		</div>
 
 	{:else if notes.length === 0}
-		<div class="flex flex-col items-center justify-center py-24 rounded-2xl border" style="border-color: var(--border); background: var(--card-bg);" in:fade={{ duration: 300 }}>
+		<div class="flex flex-col items-center justify-center py-24 rounded-2xl card" in:fade={{ duration: 300 }}>
 			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
 				<BookOpen class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
@@ -226,19 +226,17 @@
 				{@const vs = verifyState(note)}
 				<div
 					in:fly={{ y: 16, duration: 300, delay: Math.min(i * 30, 300), easing: quintOut }}
-					class="rounded-xl p-4 border cursor-pointer transition-all duration-200"
-					style="background: var(--card-bg); border-color: var(--border); {note.archived ? 'opacity: 0.55;' : ''}"
+					class="rounded-xl p-4 card cursor-pointer"
+					style="{note.archived ? 'opacity: 0.55;' : ''}"
 					onclick={() => goto(`/notes/${note.slug}`)}
 					onkeydown={(e) => e.key === 'Enter' && goto(`/notes/${note.slug}`)}
 					role="link"
 					tabindex="0"
-					onmouseenter={(e) => { e.currentTarget.style.borderColor = ks.color; }}
-					onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
 				>
 					<div class="flex items-start justify-between gap-3">
 						<div class="min-w-0">
 							<div class="flex items-center gap-2 flex-wrap">
-								<span class="text-xs font-semibold px-2 py-0.5 rounded-md uppercase tracking-wide" style="background: {ks.bg}; color: {ks.color}; border: 1px solid {ks.bg};">{ks.label}</span>
+								<span class="status-chip uppercase tracking-wide" style="--chip-color: {ks.color};">{ks.label}</span>
 								<h3 class="font-semibold truncate" style="color: var(--text);">{note.title}</h3>
 								{#if note.archived}
 									<span class="text-xs px-1.5 py-0.5 rounded flex items-center gap-1" style="background: var(--border); color: var(--text-muted);"><Archive class="w-3 h-3" /> archiviert</span>
@@ -262,7 +260,7 @@
 									{/each}
 								{/if}
 								{#each note.projects as p}
-									<span class="text-xs px-1.5 py-0.5 rounded-md" style="border: 1px solid var(--border-bright, var(--border)); color: var(--text-muted);">{p.name}</span>
+									<span class="text-xs px-1.5 py-0.5 rounded-md" style="background: rgba(255,255,255,0.05); color: var(--text-muted);">{p.name}</span>
 								{/each}
 								{#if note.projects.length === 0}
 									<span class="text-xs italic" style="color: var(--text-muted);">global</span>

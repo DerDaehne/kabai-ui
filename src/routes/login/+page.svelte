@@ -120,7 +120,7 @@
 					
 					<!-- Error -->
 					{#if error}
-						<div class="p-3 bg-[var(--danger)/10] border border-[var(--danger)] rounded-md">
+						<div class="p-3 bg-[var(--danger)/10] rounded-md" style="border-left: 2px solid var(--color-danger);">
 							<p class="text-sm text-[var(--danger)]">{error}</p>
 						</div>
 					{/if}

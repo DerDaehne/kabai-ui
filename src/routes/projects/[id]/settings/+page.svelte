@@ -100,7 +100,7 @@
 			</div>
 
 			<!-- Form -->
-			<div class="rounded-2xl p-6 mb-6" style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+			<div class="rounded-2xl p-6 mb-6 card">
 				<h2 class="text-base font-semibold mb-5" style="color: var(--text);">Grundinformationen</h2>
 				<div class="space-y-4">
 					<div>
@@ -120,7 +120,7 @@
 				</div>
 
 				{#if error}
-					<div class="mt-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: var(--danger);">{error}</div>
+					<div class="mt-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
 				{/if}
 
 				<div class="flex gap-3 mt-6">
@@ -140,7 +140,7 @@
 			</div>
 
 			<!-- Danger Zone -->
-			<div class="rounded-2xl p-6" style="background: var(--card-bg); border: 1px solid rgba(239,68,68,0.25);">
+			<div class="rounded-2xl p-6" style="background: var(--card-bg); box-shadow: var(--elevation-1), inset 0 0 0 1px rgba(239,68,68,0.15);">
 				<h2 class="text-base font-semibold mb-1" style="color: var(--danger);">Gefahrenbereich</h2>
 				<p class="text-sm mb-5" style="color: var(--text-muted);">
 					Alle Statuses, Tickets, Tasks und Kommentare werden unwiderruflich gelöscht.

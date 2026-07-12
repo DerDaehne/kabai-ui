@@ -75,10 +75,8 @@
 	{@const ks = kindStyles[l.kind] ?? kindStyles.note}
 	<button
 		onclick={() => goto(`/notes/${l.slug}`)}
-		class="flex items-center gap-2 px-3 py-2 rounded-lg border text-left w-full transition-all duration-150"
-		style="background: var(--card-bg); border-color: var(--border); {l.archived ? 'opacity: 0.55;' : ''}"
-		onmouseenter={(e) => { e.currentTarget.style.borderColor = ks.color; }}
-		onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+		class="flex items-center gap-2 px-3 py-2 rounded-lg text-left w-full card"
+		style="{l.archived ? 'opacity: 0.55;' : ''}"
 	>
 		{#if l.kind === 'hub'}
 			<Compass class="w-3.5 h-3.5 shrink-0" style="color: {ks.color};" />
@@ -115,7 +113,7 @@
 		</div>
 
 	{:else if error}
-		<div class="p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+		<div class="p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
 
@@ -124,13 +122,13 @@
 
 		<!-- Warnbanner: archiviert / abgelöst -->
 		{#if note.archived}
-			<div class="flex items-center gap-3 p-4 rounded-xl border" style="background: rgba(120,120,140,0.1); border-color: var(--border-bright, var(--border)); color: var(--text-muted);" in:fade={{ duration: 200 }}>
+			<div class="flex items-center gap-3 p-4 rounded-xl" style="background: rgba(120,120,140,0.1); border-left: 2px solid var(--text-muted); color: var(--text-muted);" in:fade={{ duration: 200 }}>
 				<Archive class="w-5 h-5 shrink-0" />
 				<span class="text-sm">Diese Note ist <strong>archiviert</strong> und taucht in der Übersicht nur mit aktiviertem Archiv-Toggle auf.</span>
 			</div>
 		{/if}
 		{#if supersededBy.length > 0}
-			<div class="p-4 rounded-xl border" style="background: rgba(255,150,50,0.08); border-color: rgba(255,150,50,0.45);" in:fade={{ duration: 200 }}>
+			<div class="p-4 rounded-xl" style="background: rgba(255,150,50,0.08); border-left: 2px solid hsl(30, 90%, 55%);" in:fade={{ duration: 200 }}>
 				<div class="flex items-center gap-2 mb-2" style="color: hsl(30, 90%, 60%);">
 					<AlertTriangle class="w-5 h-5 shrink-0" />
 					<span class="text-sm font-semibold">Veraltet — abgelöst durch:</span>
@@ -146,7 +144,7 @@
 		<!-- Kopf -->
 		<div in:fly={{ y: -12, duration: 350, easing: quintOut }}>
 			<div class="flex items-center gap-2 flex-wrap mb-2">
-				<span class="text-xs font-semibold px-2 py-0.5 rounded-md uppercase tracking-wide" style="background: {ks.bg}; color: {ks.color}; border: 1px solid {ks.bg};">{ks.label}</span>
+				<span class="status-chip uppercase tracking-wide" style="--chip-color: {ks.color};">{ks.label}</span>
 				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">{note.title}</h1>
 			</div>
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" style="color: var(--text-muted);">
@@ -154,7 +152,7 @@
 				<span>erstellt {formatDate(note.created_at)}</span>
 				<span>aktualisiert {formatDate(note.updated_at)}</span>
 				{#each note.projects as p}
-					<button class="px-1.5 py-0.5 rounded-md border transition-colors" style="border-color: var(--border); color: var(--text-muted);" onclick={() => goto(`/projects/${p.id}`)}>{p.name}</button>
+					<button class="px-1.5 py-0.5 rounded-md transition-colors hover:bg-[var(--color-surface-hover)]" style="background: rgba(255,255,255,0.05); color: var(--text-muted);" onclick={() => goto(`/projects/${p.id}`)}>{p.name}</button>
 				{/each}
 				{#if note.projects.length === 0}
 					<span class="italic">global (kein Projekt)</span>
@@ -174,7 +172,7 @@
 		{#if note.last_verified_at}
 			{@const days = verifiedDaysAgo(note)}
 			{@const stale = days > VERIFY_STALE_DAYS}
-			<div class="flex items-center gap-2 p-3 rounded-xl border text-sm" style="background: {stale ? 'rgba(255,180,50,0.06)' : 'rgba(50,220,130,0.06)'}; border-color: {stale ? 'rgba(255,180,50,0.35)' : 'rgba(50,220,130,0.3)'}; color: {stale ? 'hsl(35, 90%, 60%)' : 'hsl(150, 70%, 55%)'};">
+			<div class="flex items-center gap-2 p-3 rounded-xl text-sm" style="background: {stale ? 'rgba(255,180,50,0.06)' : 'rgba(50,220,130,0.06)'}; border-left: 2px solid {stale ? 'hsl(35, 90%, 55%)' : 'hsl(150, 70%, 50%)'}; color: {stale ? 'hsl(35, 90%, 60%)' : 'hsl(150, 70%, 55%)'};">
 				{#if stale}
 					<ShieldAlert class="w-4 h-4 shrink-0" />
 				{:else}
@@ -189,7 +187,7 @@
 				</span>
 			</div>
 		{:else}
-			<div class="flex items-center gap-2 p-3 rounded-xl border text-sm" style="background: var(--card-bg); border-color: var(--border); color: var(--text-muted);">
+			<div class="flex items-center gap-2 p-3 rounded-xl text-sm card" style="color: var(--text-muted);">
 				<ShieldQuestion class="w-4 h-4 shrink-0" />
 				<span>Diese Note wurde <strong>nie geprüft</strong> — Inhalt ohne Verifikation.</span>
 			</div>
@@ -197,7 +195,7 @@
 
 		<!-- Hub: Inhaltsverzeichnis -->
 		{#if note.kind === 'hub' && containsOut.length > 0}
-			<div class="rounded-xl p-5 border" style="background: linear-gradient(135deg, hsla(45, 90%, 60%, 0.06), var(--card-bg)); border-color: hsla(45, 90%, 60%, 0.35);" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
+			<div class="rounded-xl p-5" style="background: linear-gradient(135deg, hsla(45, 90%, 60%, 0.06), var(--card-bg)); box-shadow: 0 0 0 1px hsla(45, 90%, 60%, 0.25), var(--highlight-top);" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
 				<div class="flex items-center gap-2 mb-3">
 					<ListTree class="w-4 h-4" style="color: hsl(45, 90%, 60%);" />
 					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Inhaltsverzeichnis</h2>
@@ -211,7 +209,7 @@
 		{/if}
 
 		<!-- Body -->
-		<div class="rounded-xl p-6 border" style="background: var(--card-bg); border-color: var(--border);" in:fly={{ y: 12, duration: 300, delay: 60, easing: quintOut }}>
+		<div class="rounded-xl p-6 card" in:fly={{ y: 12, duration: 300, delay: 60, easing: quintOut }}>
 			{#if note.body.trim()}
 				<div class="markdown-body text-sm leading-relaxed" style="color: var(--text);">{@html renderMarkdown(note.body)}</div>
 			{:else}
@@ -221,7 +219,7 @@
 
 		<!-- Konflikte -->
 		{#if contradictions.length > 0}
-			<div class="p-4 rounded-xl border" style="background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.35);">
+			<div class="p-4 rounded-xl" style="background: rgba(239,68,68,0.06); border-left: 2px solid var(--color-danger);">
 				<div class="flex items-center gap-2 mb-2" style="color: var(--danger);">
 					<Zap class="w-4 h-4 shrink-0" />
 					<span class="text-sm font-semibold">Widersprüche</span>
@@ -239,7 +237,7 @@
 
 		<!-- Link-Nachbarschaft -->
 		{#if supersedes.length > 0 || (note.kind !== 'hub' && containsOut.length > 0) || containedIn.length > 0 || referencesOut.length > 0 || referencedBy.length > 0}
-			<div class="rounded-xl p-5 border space-y-4" style="background: var(--card-bg); border-color: var(--border);" in:fly={{ y: 12, duration: 300, delay: 120, easing: quintOut }}>
+			<div class="rounded-xl p-5 space-y-4 card" in:fly={{ y: 12, duration: 300, delay: 120, easing: quintOut }}>
 				<div class="flex items-center gap-2">
 					<Link2 class="w-4 h-4" style="color: var(--primary);" />
 					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Verknüpfte Notes</h2>
@@ -268,7 +266,7 @@
 
 		<!-- Ticket-Links -->
 		{#if note.ticket_links.length > 0}
-			<div class="rounded-xl p-5 border space-y-2" style="background: var(--card-bg); border-color: var(--border);" in:fly={{ y: 12, duration: 300, delay: 160, easing: quintOut }}>
+			<div class="rounded-xl p-5 space-y-2 card" in:fly={{ y: 12, duration: 300, delay: 160, easing: quintOut }}>
 				<div class="flex items-center gap-2 mb-2">
 					<TicketIcon class="w-4 h-4" style="color: var(--primary);" />
 					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Verknüpfte Tickets</h2>
@@ -276,10 +274,7 @@
 				{#each note.ticket_links as tl (`${tl.ticket_id}-${tl.relation}`)}
 					<button
 						onclick={() => goto(`/tickets/${tl.ticket_id}`)}
-						class="flex items-center gap-2 px-3 py-2 rounded-lg border text-left w-full transition-all duration-150"
-						style="background: var(--card-bg); border-color: var(--border);"
-						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
-						onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+						class="flex items-center gap-2 px-3 py-2 rounded-lg text-left w-full card"
 					>
 						<span class="text-xs font-semibold px-2 py-0.5 rounded-md shrink-0" style="background: rgba(0,217,255,0.1); color: var(--primary); border: 1px solid rgba(0,217,255,0.25);">{relationLabels[tl.relation] ?? tl.relation}</span>
 						<span class="text-sm truncate" style="color: var(--text);">#{tl.ticket_id} {tl.ticket_title}</span>

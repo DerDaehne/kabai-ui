@@ -259,7 +259,7 @@
 	</button>
 
 	{#if error && !isEditing}
-		<div class="mb-4 p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+		<div class="mb-4 p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
 	{/if}
@@ -279,16 +279,16 @@
 
 			<!-- Main Card -->
 			<div class="relative rounded-2xl overflow-hidden"
-				style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+				style="background: var(--card-bg); box-shadow: var(--elevation-2), var(--highlight-top);">
 				<OrbitHighlight signal={orbitSignal || null} radius="1rem" />
 
 				<!-- Header Bar -->
-				<div class="px-6 py-4 flex items-start justify-between gap-4" style="border-bottom: 1px solid var(--border);">
+				<div class="px-6 py-4 flex items-start justify-between gap-4">
 					<div class="flex-1 min-w-0">
 						<div class="flex items-center gap-3 flex-wrap mb-1">
 							<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: rgba(0,217,255,0.1); color: var(--primary);">#{ticket.id}</span>
 							{#if ticket.status}
-								<span class="badge badge-primary">{ticket.status.display_name}</span>
+								<span class="status-chip" style="--chip-color: var(--color-primary);">{ticket.status.display_name}</span>
 							{/if}
 							{#if ticket.docs_required}
 								<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
@@ -327,10 +327,11 @@
 						</button>
 					</div>
 				</div>
+				<div class="hairline"></div>
 
 				<!-- Inline Edit Form -->
 				{#if isEditing}
-					<div transition:slide={{ duration: 300, easing: cubicOut }} class="px-6 py-5 space-y-4" style="border-bottom: 1px solid rgba(0,217,255,0.2); background: rgba(0,217,255,0.03);">
+					<div transition:slide={{ duration: 300, easing: cubicOut }} class="px-6 py-5 space-y-4" style="background: rgba(0,217,255,0.03);">
 						<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Ticket bearbeiten</p>
 
 						<!-- Title -->
@@ -375,7 +376,7 @@
 						</div>
 
 						{#if error}
-							<div class="p-3 rounded-lg border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);">{error}</div>
+							<div class="p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
 						{/if}
 
 						<div class="flex justify-end gap-2 pt-1">
@@ -399,10 +400,11 @@
 							</button>
 						</div>
 					</div>
+					<div class="hairline"></div>
 				{/if}
 
 				<!-- Metadata Row -->
-				<div class="px-6 py-4 flex flex-wrap items-center gap-6" style="border-bottom: 1px solid var(--border);">
+				<div class="px-6 py-4 flex flex-wrap items-center gap-6">
 					<div class="flex items-center gap-2">
 						<User class="w-4 h-4 shrink-0" style="color: var(--text-muted);" />
 						<span class="text-sm" style="color: {ticket.assignee ? 'var(--text)' : 'var(--text-muted)'};">
@@ -431,6 +433,7 @@
 
 				<!-- Description -->
 				{#if ticket.description}
+					<div class="hairline"></div>
 					<div class="px-6 py-5">
 						<div class="markdown-body text-sm leading-relaxed" style="color: var(--text);">{@html renderMarkdown(ticket.description)}</div>
 					</div>
@@ -438,19 +441,20 @@
 			</div>
 
 			<!-- Tasks -->
-			<div class="rounded-2xl overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--border);">
-				<div class="px-6 py-4 flex items-center justify-between" style="border-bottom: 1px solid var(--border);">
+			<div class="rounded-2xl overflow-hidden card">
+				<div class="px-6 py-4 flex items-center justify-between">
 					<h3 class="flex items-center gap-2 font-semibold" style="color: var(--text);">
 						<CheckSquare class="w-4 h-4" style="color: var(--accent);" />
 						Tasks
 					</h3>
 					<span class="text-sm" style="color: var(--text-muted);">{tasksCompleted}/{tasksTotal}</span>
 				</div>
+				<div class="hairline"></div>
 
 				{#if tasksTotal > 0}
 					<!-- Progress bar -->
 					<div class="px-6 pt-4 pb-2">
-						<div class="h-1.5 rounded-full overflow-hidden" style="background: var(--border);">
+						<div class="h-1.5 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.06);">
 							<div
 								class="h-full rounded-full transition-all duration-500"
 								style="width: {taskProgress}%; background: {taskProgress === 100 ? 'var(--success)' : 'var(--primary)'};"
@@ -461,10 +465,8 @@
 
 				<div class="px-6 pb-4 space-y-1 mt-2">
 					{#each ticket.tasks as task (task.id)}
-						<div class="group flex items-center gap-3 py-2 px-3 rounded-lg transition-all duration-150"
+						<div class="group flex items-center gap-3 py-2 px-3 rounded-lg transition-all duration-150 hover:bg-[var(--color-surface-hover)]"
 							style="color: {task.is_completed ? 'var(--text-muted)' : 'var(--text)'};"
-							onmouseenter={(e) => e.currentTarget.style.background = 'var(--border)'}
-							onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}
 						>
 							<label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
 								<input
@@ -489,7 +491,8 @@
 					{/if}
 				</div>
 
-				<div class="px-6 py-4 flex gap-2" style="border-top: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+				<div class="hairline"></div>
+				<div class="px-6 py-4 flex gap-2" style="background: rgba(255,255,255,0.02);">
 					<input type="text" bind:value={newTaskTitle} placeholder="Neue Task…"
 						class="input text-sm flex-1"
 						onkeydown={(e) => e.key === 'Enter' && addTask()} />
@@ -504,17 +507,18 @@
 
 			<!-- Knowledge-Base-Notes -->
 			{#if ticket.docs_required || ticket.linked_notes.length > 0}
-				<div class="rounded-2xl overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--border);">
-					<div class="px-6 py-4" style="border-bottom: 1px solid var(--border);">
+				<div class="rounded-2xl overflow-hidden card">
+					<div class="px-6 py-4">
 						<h3 class="flex items-center gap-2 font-semibold" style="color: var(--text);">
 							<BookOpen class="w-4 h-4" style="color: var(--accent);" />
 							Knowledge Base
 							{#if ticket.linked_notes.length > 0}<span class="text-sm font-normal" style="color: var(--text-muted);">({ticket.linked_notes.length})</span>{/if}
 						</h3>
 					</div>
+					<div class="hairline"></div>
 					{#if ticket.docs_required && ticket.linked_notes.length === 0}
 						<div class="mx-6 my-4 flex items-start gap-2.5 p-3 rounded-lg text-sm"
-							style="background: rgba(255,180,50,0.07); border: 1px solid rgba(255,180,50,0.35); color: hsl(35, 90%, 60%);">
+							style="background: rgba(255,180,50,0.07); border-left: 2px solid hsl(35, 90%, 60%); color: hsl(35, 90%, 60%);">
 							<AlertTriangle class="w-4 h-4 shrink-0 mt-0.5" />
 							<span>Dieses Ticket hat <strong>Doku-Pflicht</strong>, aber noch keine verlinkte Note — es kann erst geschlossen werden, wenn eine Knowledge-Base-Note verlinkt ist (via <code>kabai_docs_link_ticket</code>) oder die Pflicht mit Begründung entfernt wird.</span>
 						</div>
@@ -523,10 +527,8 @@
 						<div class="px-6 py-3 space-y-1">
 							{#each ticket.linked_notes as ln (`${ln.note_id}-${ln.relation}`)}
 								<a href="/notes/{ln.slug}"
-									class="flex items-center gap-2.5 py-2 px-3 rounded-lg text-sm transition-all"
-									style="{ln.archived ? 'opacity: 0.55;' : ''}"
-									onmouseenter={(e) => e.currentTarget.style.background = 'var(--border)'}
-									onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}>
+									class="flex items-center gap-2.5 py-2 px-3 rounded-lg text-sm transition-all hover:bg-[var(--color-surface-hover)]"
+									style="{ln.archived ? 'opacity: 0.55;' : ''}">
 									{#if ln.kind === 'hub'}
 										<Compass class="w-4 h-4 shrink-0" style="color: hsl(45, 90%, 60%);" />
 									{:else}
@@ -544,14 +546,15 @@
 			{/if}
 
 			<!-- Comments -->
-			<div class="rounded-2xl overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--border);">
-				<div class="px-6 py-4" style="border-bottom: 1px solid var(--border);">
+			<div class="rounded-2xl overflow-hidden card">
+				<div class="px-6 py-4">
 					<h3 class="flex items-center gap-2 font-semibold" style="color: var(--text);">
 						<MessageSquare class="w-4 h-4" style="color: var(--accent);" />
 						Kommentare
 						<span class="text-sm font-normal" style="color: var(--text-muted);">({ticket.comments.length})</span>
 					</h3>
 				</div>
+				<div class="hairline"></div>
 
 				<div class="px-6 py-4 space-y-4">
 					{#each ticket.comments as comment (comment.id)}
@@ -565,7 +568,7 @@
 								{initials}
 							</div>
 							<div class="flex-1 min-w-0">
-								<div class="rounded-xl px-4 py-3" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
+								<div class="rounded-xl px-4 py-3" style="background: rgba(255,255,255,0.03); box-shadow: var(--highlight-top);">
 									<div class="flex items-center gap-2 mb-1.5">
 										<span class="text-sm font-medium" style="color: var(--text);">{comment.author}</span>
 										<span class="text-xs" style="color: var(--text-muted);">
@@ -583,7 +586,8 @@
 					{/if}
 				</div>
 
-				<div class="px-6 py-4 space-y-2" style="border-top: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+				<div class="hairline"></div>
+				<div class="px-6 py-4 space-y-2" style="background: rgba(255,255,255,0.02);">
 					<textarea bind:value={newCommentText} class="input resize-none text-sm" rows="2" placeholder="Kommentar hinzufügen…"></textarea>
 					<div class="flex justify-end">
 						<button onclick={addComment} disabled={!newCommentText.trim() || isAddingComment}

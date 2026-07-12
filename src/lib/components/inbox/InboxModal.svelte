@@ -39,10 +39,7 @@
 				<div animate:flip={{ duration: 250 }} in:fly={{ y: 8, duration: 250, delay: i * 30, easing: quintOut }}>
 					<button
 						onclick={() => onTicketClick(ticket.id)}
-						class="relative w-full text-left p-3 rounded-xl border transition-all duration-200 flex items-center justify-between gap-3"
-						style="border-color: var(--border); background: var(--card-bg);"
-						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
-						onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+						class="relative w-full text-left p-3 rounded-xl card flex items-center justify-between gap-3"
 					>
 						<OrbitHighlight signal={orbitSignals.get(ticket.id) ?? null} radius="0.75rem" />
 						<div class="min-w-0 flex-1">

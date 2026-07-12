@@ -64,7 +64,7 @@
 			</div>
 		</div>
 
-		<div class="rounded-2xl p-6" style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+		<div class="rounded-2xl p-6 card">
 			<form onsubmit={handleSubmit} class="space-y-5">
 				<div>
 					<label class="block text-sm font-medium mb-2" style="color: var(--text);">Name *</label>
@@ -83,7 +83,7 @@
 				</div>
 
 				{#if error}
-					<div class="p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: var(--danger);">{error}</div>
+					<div class="p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
 				{/if}
 
 				<div class="flex gap-3 pt-2">

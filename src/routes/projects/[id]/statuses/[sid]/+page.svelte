@@ -91,7 +91,7 @@
 		</div>
 
 	{:else if !status}
-		<div class="p-6 rounded-xl border text-center" style="border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06);">
+		<div class="p-6 rounded-xl text-center" style="border-left: 2px solid var(--color-danger); background: rgba(239,68,68,0.06);">
 			<p style="color: var(--danger);">{error || 'Status nicht gefunden'}</p>
 			<button onclick={() => goto(`/projects/${id}/statuses`)} class="btn btn-ghost mt-4">Zurück</button>
 		</div>
@@ -111,7 +111,7 @@
 			</div>
 
 			<!-- Form Card -->
-			<div class="rounded-2xl p-6 space-y-5" style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 0 40px rgba(0,0,0,0.3);">
+			<div class="rounded-2xl p-6 space-y-5 card">
 				<form onsubmit={handleSubmit} class="space-y-5">
 					<!-- Display Name -->
 					<div>
@@ -172,7 +172,7 @@
 
 					<!-- Error -->
 					{#if error}
-						<div class="p-3 rounded-lg border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 6, duration: 200 }}>
+						<div class="p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 6, duration: 200 }}>
 							{error}
 						</div>
 					{/if}
