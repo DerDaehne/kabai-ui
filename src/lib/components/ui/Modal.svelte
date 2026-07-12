@@ -41,7 +41,7 @@
 		<div class="flex min-h-full items-start justify-center p-4 pt-10 pb-16">
 			<div
 				class="relative w-full {widths[size]} rounded-2xl"
-				style="background: var(--card-bg); border: 1px solid var(--border-bright); box-shadow: 0 0 80px rgba(0,212,255,0.07), 0 30px 60px rgba(0,0,0,0.6);"
+				style="background: var(--card-bg); border: 1px solid var(--border-bright); box-shadow: 0 30px 60px rgba(0,0,0,0.6);"
 				onclick={(e) => e.stopPropagation()}
 				in:fly={{ y: 28, duration: 280, easing: quintOut }}
 			>

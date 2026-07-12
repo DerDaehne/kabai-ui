@@ -57,7 +57,7 @@
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
 			<div class="relative w-10 h-10">
 				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
+					style="border-top-color: var(--primary);"></div>
 			</div>
 		</div>
 
@@ -111,8 +111,8 @@
 						in:fly={{ y: 12, duration: 300, delay: i * 40, easing: quintOut }}
 						class="w-full text-left rounded-xl p-4 border transition-all duration-200"
 						style="background: var(--card-bg); border-color: var(--border);"
-						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 16px rgba(0,212,255,0.12)'; }}
-						onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
+						onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
 					>
 						<div class="flex items-center justify-between gap-3 mb-2">
 							<div class="min-w-0">
@@ -131,7 +131,7 @@
 						</div>
 						<div class="h-1.5 rounded-full overflow-hidden" style="background: var(--border);">
 							<div class="h-full rounded-full transition-all duration-500"
-								style="width: {progress}%; background: var(--success); box-shadow: 0 0 6px var(--success-glow);"></div>
+								style="width: {progress}%; background: var(--success);"></div>
 						</div>
 					</button>
 				{/each}

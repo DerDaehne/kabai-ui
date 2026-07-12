@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter';
 
 @theme {
   --color-primary-50: #e0faff;
@@ -28,28 +29,55 @@
 
 @layer base {
   :root {
-    --bg: #05050e;
-    --card-bg: #0d0d1a;
-    --card-bg-hover: #12122a;
-    --border: #1e1e3a;
-    --border-bright: #2e2e5a;
-    --text: #e2e8ff;
-    --text-muted: #6b7db3;
+    /* Design tokens — source of truth */
+    --color-bg: #070912;
+    --color-surface: #101526;
+    --color-surface-hover: #151c30;
+    --color-border: rgba(255, 255, 255, 0.06);
+    --color-primary: #00d9ff;
+    --color-secondary: #8b5cf6;
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+    --color-text: #e2e8f0;
+    --color-text-secondary: #94a3b8;
 
-    --primary: #00d4ff;
-    --primary-dark: #0099cc;
-    --primary-glow: rgba(0, 212, 255, 0.2);
+    --radius-card: 16px;
+    --radius-panel: 20px;
 
-    --accent: #8b5cf6;
+    /* 8pt grid spacing */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    /* Legacy variable aliases — kept so existing components keep working
+       without a full rewrite. New code should use --color-* tokens above. */
+    --bg: var(--color-bg);
+    --card-bg: var(--color-surface);
+    --card-bg-hover: var(--color-surface-hover);
+    --border: var(--color-border);
+    --border-bright: var(--color-border);
+    --text: var(--color-text);
+    --text-muted: var(--color-text-secondary);
+
+    --primary: var(--color-primary);
+    --primary-dark: #00aecc;
+    --primary-glow: transparent;
+
+    --accent: var(--color-secondary);
     --accent-dark: #6d28d9;
-    --accent-glow: rgba(139, 92, 246, 0.2);
+    --accent-glow: transparent;
 
-    --success: #00ff87;
-    --success-glow: rgba(0, 255, 135, 0.2);
-    --danger: #ff2255;
-    --danger-glow: rgba(255, 34, 85, 0.2);
-    --warning: #ffd000;
-    --warning-glow: rgba(255, 208, 0, 0.2);
+    --success: var(--color-success);
+    --success-glow: transparent;
+    --danger: var(--color-danger);
+    --danger-glow: transparent;
+    --warning: var(--color-warning);
+    --warning-glow: transparent;
   }
 
   html {
@@ -58,9 +86,26 @@
   }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: 'Inter Variable', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
   }
 
   ::-webkit-scrollbar {
@@ -68,26 +113,63 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--bg);
+    background: var(--color-bg);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--border-bright);
+    background: var(--color-border);
     border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--primary);
-    box-shadow: 0 0 8px var(--primary-glow);
+    background: var(--color-primary);
   }
 }
 
 @layer components {
+  /* Typography scale */
+  .h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .text-body {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .text-small {
+    font-size: 12px;
+  }
+
+  .text-caption {
+    font-size: 11px;
+  }
+
   .card {
     @apply rounded-xl border;
-    background: var(--card-bg);
-    border-color: var(--border);
-    box-shadow: 0 0 0 1px var(--border), 0 4px 24px rgba(0, 0, 0, 0.4);
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: none;
+    transition: background-color 0.2s ease;
+  }
+
+  .card:hover {
+    background: var(--color-surface-hover);
   }
 
   .btn {
@@ -96,14 +178,13 @@
 
   .btn-primary {
     @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
-    background: var(--primary);
-    color: #000;
-    box-shadow: 0 0 12px var(--primary-glow);
+    background: var(--color-primary);
+    color: #04121a;
+    box-shadow: none;
   }
 
   .btn-primary:hover {
     background: var(--primary-dark);
-    box-shadow: 0 0 20px var(--primary-glow);
   }
 
   .btn-primary:disabled {
@@ -114,58 +195,57 @@
 
   .btn-secondary {
     @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
-    background: var(--accent);
-    color: #fff;
-    box-shadow: 0 0 12px var(--accent-glow);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
   }
 
   .btn-secondary:hover {
-    background: var(--accent-dark);
-    box-shadow: 0 0 20px var(--accent-glow);
+    background: var(--color-surface-hover);
   }
 
   .btn-danger {
     @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
-    background: var(--danger);
+    background: var(--color-danger);
     color: #fff;
-    box-shadow: 0 0 12px var(--danger-glow);
+    box-shadow: none;
   }
 
   .btn-danger:hover {
-    box-shadow: 0 0 20px var(--danger-glow);
+    background: #d32f2f;
   }
 
   .btn-ghost {
     @apply px-4 py-2 rounded-md font-medium transition-all duration-200 cursor-pointer;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--color-text-secondary);
   }
 
   .btn-ghost:hover {
-    background: var(--border);
-    color: var(--text);
+    background: var(--color-surface-hover);
+    color: var(--color-text);
   }
 
   .input {
     @apply w-full px-3 py-2 rounded-md transition-colors duration-200;
-    background: var(--bg);
-    border: 1px solid var(--border-bright);
-    color: var(--text);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
   }
 
   .input::placeholder {
-    color: var(--text-muted);
+    color: var(--color-text-secondary);
   }
 
   .input:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--primary-glow);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.15);
   }
 
   .label {
     @apply block text-sm font-medium mb-1;
-    color: var(--text);
+    color: var(--color-text);
   }
 
   .badge {
@@ -174,30 +254,30 @@
 
   .badge-primary {
     @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
-    background: rgba(0, 212, 255, 0.15);
-    color: var(--primary);
-    border: 1px solid rgba(0, 212, 255, 0.3);
+    background: rgba(0, 217, 255, 0.15);
+    color: var(--color-primary);
+    border: 1px solid rgba(0, 217, 255, 0.3);
   }
 
   .badge-success {
     @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
-    background: rgba(0, 255, 135, 0.15);
-    color: var(--success);
-    border: 1px solid rgba(0, 255, 135, 0.3);
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--color-success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
   }
 
   .badge-warning {
     @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
-    background: rgba(255, 208, 0, 0.15);
-    color: var(--warning);
-    border: 1px solid rgba(255, 208, 0, 0.3);
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--color-warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
   }
 
   .badge-danger {
     @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
-    background: rgba(255, 34, 85, 0.15);
-    color: var(--danger);
-    border: 1px solid rgba(255, 34, 85, 0.3);
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--color-danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
   }
 
   .toast-success {

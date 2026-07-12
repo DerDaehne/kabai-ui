@@ -264,18 +264,19 @@
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
 			<div class="relative w-10 h-10">
 				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
+					style="border-top-color: var(--primary);"></div>
 			</div>
 		</div>
 
 	{:else if ticket}
 		<div class="space-y-4" in:fly={{ y: 20, duration: 400, easing: quintOut }}>
-			<!-- Live-Update wird nur über den Rahmen-Glow der Karte visualisiert —
-			     kein einschiebender Hinweistext, der das Layout verschiebt (#309) -->
+			<!-- Live-Update wird nur über den Rahmen-Farbwechsel der Karte visualisiert (1px Border,
+			     kein Glow) — kein einschiebender Hinweistext, der das Layout verschiebt (#309).
+			     TODO(Folge-Ticket): Orbit-Animation statt Border-Highlight. -->
 
 			<!-- Main Card -->
 			<div class="rounded-2xl overflow-hidden transition-shadow duration-500"
-				style="background: var(--card-bg); border: 1px solid var(--border); box-shadow: {justUpdatedLive ? '0 0 0 1px var(--primary), 0 0 20px rgba(0,212,255,0.25)' : '0 0 40px rgba(0,0,0,0.3)'};">
+				style="background: var(--card-bg); border: 1px solid {justUpdatedLive ? 'var(--primary)' : 'var(--border)'}; box-shadow: 0 0 40px rgba(0,0,0,0.3);">
 
 				<!-- Header Bar -->
 				<div class="px-6 py-4 flex items-start justify-between gap-4" style="border-bottom: 1px solid var(--border);">
@@ -382,7 +383,7 @@
 								onclick={saveEdit}
 								disabled={isSaving || !editTitle.trim()}
 								class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-								style="background: var(--primary); color: #000; box-shadow: 0 0 12px var(--primary-glow); opacity: {isSaving || !editTitle.trim() ? 0.5 : 1};"
+								style="background: var(--primary); color: #000; opacity: {isSaving || !editTitle.trim() ? 0.5 : 1};"
 							>
 								{#if isSaving}
 									<div class="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
@@ -448,7 +449,7 @@
 						<div class="h-1.5 rounded-full overflow-hidden" style="background: var(--border);">
 							<div
 								class="h-full rounded-full transition-all duration-500"
-								style="width: {taskProgress}%; background: {taskProgress === 100 ? 'var(--success)' : 'var(--primary)'}; box-shadow: 0 0 8px {taskProgress === 100 ? 'var(--success-glow)' : 'var(--primary-glow)'};"
+								style="width: {taskProgress}%; background: {taskProgress === 100 ? 'var(--success)' : 'var(--primary)'};"
 							></div>
 						</div>
 					</div>

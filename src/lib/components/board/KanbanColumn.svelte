@@ -71,7 +71,7 @@
      längsten Spalte gezogen — die Karte muss ihn füllen, damit kurze/leere
      Spalten gleich hoch sind und ihre Drop-Zone (flex-1) mitwächst (#18) -->
 <div class="flex flex-col h-full rounded-xl overflow-hidden transition-all duration-200"
-	style="border: 1px solid {isDragOver ? accent.border : 'var(--border)'}; background: var(--card-bg); box-shadow: {isDragOver ? `0 0 20px ${accent.glow}` : '0 2px 12px rgba(0,0,0,0.2)'};"
+	style="border: 1px solid {isDragOver ? accent.border : 'var(--border)'}; background: var(--card-bg);"
 >
 	<!-- Column Header -->
 	<div
@@ -79,7 +79,7 @@
 		style="background: {accent.bg}; border-bottom: 1px solid {accent.border}40;"
 	>
 		<div class="flex items-center gap-2 min-w-0">
-			<div class="w-2 h-2 rounded-full shrink-0" style="background: {accent.border}; box-shadow: 0 0 6px {accent.border};"></div>
+			<div class="w-2 h-2 rounded-full shrink-0" style="background: {accent.border};"></div>
 			<span class="font-semibold truncate text-sm" style="color: var(--text);">{status.display_name}</span>
 			<span
 				class="shrink-0 text-xs px-1.5 py-0.5 rounded-full font-medium"

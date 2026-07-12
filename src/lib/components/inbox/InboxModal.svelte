@@ -39,9 +39,9 @@
 					<button
 						onclick={() => onTicketClick(ticket.id)}
 						class="w-full text-left p-3 rounded-xl border transition-all duration-200 flex items-center justify-between gap-3"
-						style="border-color: {highlight ? 'var(--primary)' : 'var(--border)'}; background: var(--card-bg); box-shadow: {highlight ? '0 0 12px rgba(0,212,255,0.35)' : 'none'};"
-						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 12px rgba(0,212,255,0.15)'; }}
-						onmouseleave={(e) => { e.currentTarget.style.borderColor = highlight ? 'var(--primary)' : 'var(--border)'; e.currentTarget.style.boxShadow = highlight ? '0 0 12px rgba(0,212,255,0.35)' : 'none'; }}
+						style="border-color: {highlight ? 'var(--primary)' : 'var(--border)'}; background: var(--card-bg);"
+						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
+						onmouseleave={(e) => { e.currentTarget.style.borderColor = highlight ? 'var(--primary)' : 'var(--border)'; }}
 					>
 						<div class="min-w-0 flex-1">
 							<div class="flex items-center gap-2 mb-1">

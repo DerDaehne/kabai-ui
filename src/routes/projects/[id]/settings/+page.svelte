@@ -82,7 +82,7 @@
 		<div class="flex justify-center py-24">
 			<div class="relative w-10 h-10">
 				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
+					style="border-top-color: var(--primary);"></div>
 			</div>
 		</div>
 	{:else if project}

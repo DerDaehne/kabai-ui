@@ -102,7 +102,7 @@
 				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
 					<BookOpen class="w-5 h-5" style="color: var(--primary);" />
 				</div>
-				<h1 class="text-3xl font-bold tracking-tight" style="color: var(--text);">Knowledge Base</h1>
+				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Knowledge Base</h1>
 			</div>
 			<p class="ml-12 text-sm" style="color: var(--text-muted);">
 				{notes.length} Note{notes.length !== 1 ? 's' : ''} · Zettelkasten aller Projekte
@@ -169,7 +169,7 @@
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
 			<div class="relative w-10 h-10">
 				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
+					style="border-top-color: var(--primary);"></div>
 			</div>
 		</div>
 
@@ -198,8 +198,8 @@
 							onclick={() => goto(`/notes/${note.slug}`)}
 							class="text-left rounded-xl p-5 border cursor-pointer transition-all duration-200"
 							style="background: linear-gradient(135deg, hsla(45, 90%, 60%, 0.06), var(--card-bg)); border-color: hsla(45, 90%, 60%, 0.35);"
-							onmouseenter={(e) => { e.currentTarget.style.boxShadow = '0 0 20px hsla(45, 90%, 60%, 0.18)'; }}
-							onmouseleave={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
+							onmouseenter={(e) => { e.currentTarget.style.borderColor = 'hsl(45, 90%, 60%)'; }}
+							onmouseleave={(e) => { e.currentTarget.style.borderColor = 'hsla(45, 90%, 60%, 0.35)'; }}
 						>
 							<div class="flex items-center gap-2 mb-2">
 								<Compass class="w-4 h-4 shrink-0" style="color: hsl(45, 90%, 60%);" />
@@ -232,8 +232,8 @@
 					onkeydown={(e) => e.key === 'Enter' && goto(`/notes/${note.slug}`)}
 					role="link"
 					tabindex="0"
-					onmouseenter={(e) => { e.currentTarget.style.borderColor = ks.color; e.currentTarget.style.boxShadow = `0 0 16px ${ks.bg}`; }}
-					onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+					onmouseenter={(e) => { e.currentTarget.style.borderColor = ks.color; }}
+					onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
 				>
 					<div class="flex items-start justify-between gap-3">
 						<div class="min-w-0">

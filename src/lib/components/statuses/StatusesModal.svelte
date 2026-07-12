@@ -160,7 +160,7 @@
 				<button onclick={() => showNewForm = false} class="px-3 py-1.5 rounded-lg text-xs transition-all" style="color: var(--text-muted); background: var(--border);">Abbrechen</button>
 				<button onclick={createStatus} disabled={isCreating || !newDisplayName || !newName}
 					class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
-					style="background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary-glow); opacity: {isCreating || !newDisplayName || !newName ? 0.5 : 1};">
+					style="background: var(--primary); color: #000; opacity: {isCreating || !newDisplayName || !newName ? 0.5 : 1};">
 					{#if isCreating}<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-3.5 h-3.5" />{/if}
 					Erstellen
 				</button>
@@ -186,9 +186,9 @@
 				{@const ac = accent(i)}
 				<div in:fly={{ y: 16, duration: 300, delay: i * 40, easing: quintOut }}
 					class="rounded-xl overflow-hidden transition-all duration-200"
-					style="border: 1px solid {editingId === status.id ? ac.border : 'var(--border)'}; background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 16px ${ac.glow}` : 'none'};">
+					style="border: 1px solid {editingId === status.id ? ac.border : 'var(--border)'}; background: var(--card-bg);">
 					<div class="flex items-center gap-3 p-3">
-						<div class="w-1 self-stretch rounded-full shrink-0" style="background: {ac.border}; box-shadow: 0 0 6px {ac.border};"></div>
+						<div class="w-1 self-stretch rounded-full shrink-0" style="background: {ac.border};"></div>
 						<div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
 							style="background: {ac.glow}; color: {ac.border}; border: 1px solid {ac.border}40;">{status.position}</div>
 						<div class="flex-1 min-w-0">
@@ -246,7 +246,7 @@
 							<div class="flex justify-end">
 								<button onclick={() => saveEdit(status.id)} disabled={savingId === status.id || !editValues.display_name}
 									class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
-									style="background: {ac.border}; color: #000; box-shadow: 0 0 10px {ac.glow}; opacity: {savingId === status.id || !editValues.display_name ? 0.5 : 1};">
+									style="background: {ac.border}; color: #000; opacity: {savingId === status.id || !editValues.display_name ? 0.5 : 1};">
 									{#if savingId === status.id}<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>{:else}<Check class="w-3.5 h-3.5" />{/if}
 									Speichern
 								</button>

@@ -162,7 +162,7 @@
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
 			<div class="relative w-12 h-12">
 				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
+					style="border-top-color: var(--primary);"></div>
 			</div>
 			<p class="text-sm" style="color: var(--text-muted);">Lade Statuses…</p>
 		</div>
@@ -193,12 +193,12 @@
 				<div
 					in:fly={{ y: 24, duration: 400, delay: i * 60, easing: quintOut }}
 					class="rounded-xl overflow-hidden transition-all duration-300"
-					style="border: 1px solid {editingId === status.id ? accent.border : 'var(--border)'}; background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 20px ${accent.glow}, 0 4px 24px rgba(0,0,0,0.3)` : '0 2px 12px rgba(0,0,0,0.2)'};"
+					style="border: 1px solid {editingId === status.id ? accent.border : 'var(--border)'}; background: var(--card-bg);"
 				>
 					<!-- Status Row -->
 					<div class="flex items-center gap-4 p-4">
 						<!-- Left accent bar -->
-						<div class="w-1 self-stretch rounded-full shrink-0" style="background: {accent.border}; box-shadow: 0 0 8px {accent.border};"></div>
+						<div class="w-1 self-stretch rounded-full shrink-0" style="background: {accent.border};"></div>
 
 						<!-- Position badge -->
 						<div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold"
@@ -314,7 +314,7 @@
 									onclick={() => saveEdit(status.id)}
 									disabled={savingId === status.id || !editValues.display_name}
 									class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
-									style="background: {accent.border}; color: #000; box-shadow: 0 0 16px {accent.glow}; opacity: {(savingId === status.id || !editValues.display_name) ? 0.5 : 1}; cursor: {(savingId === status.id || !editValues.display_name) ? 'not-allowed' : 'pointer'};"
+									style="background: {accent.border}; color: #000; opacity: {(savingId === status.id || !editValues.display_name) ? 0.5 : 1}; cursor: {(savingId === status.id || !editValues.display_name) ? 'not-allowed' : 'pointer'};"
 								>
 									{#if savingId === status.id}
 										<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>

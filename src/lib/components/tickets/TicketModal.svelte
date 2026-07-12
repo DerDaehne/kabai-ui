@@ -303,17 +303,18 @@
 		<div class="flex flex-col items-center justify-center py-20 gap-4">
 			<div class="relative w-10 h-10">
 				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
+					style="border-top-color: var(--primary);"></div>
 			</div>
 		</div>
 	{:else if error && !ticket}
 		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);">{error}</div>
 	{:else if ticket}
 		<div class="space-y-4 rounded-2xl transition-shadow duration-500"
-			style="box-shadow: {justUpdatedLive ? '0 0 0 1px var(--primary), 0 0 20px rgba(0,212,255,0.25)' : 'none'};"
+			style="box-shadow: {justUpdatedLive ? '0 0 0 1px var(--primary)' : 'none'};"
 			in:fly={{ y: 12, duration: 300, easing: quintOut }}>
-			<!-- Live-Update wird nur über den Rahmen-Glow visualisiert (box-shadow
-			     oben) — kein einschiebender Hinweistext, der das Layout verschiebt (#309) -->
+			<!-- Live-Update wird nur über den Rahmen-Farbwechsel visualisiert (box-shadow
+			     oben, 1px Border ohne Glow) — kein einschiebender Hinweistext, der das Layout verschiebt (#309).
+			     TODO(Folge-Ticket): Orbit-Animation statt Border-Highlight. -->
 			<!-- Title + badges + actions -->
 			<div class="flex items-start justify-between gap-4">
 				<div class="flex-1 min-w-0">
@@ -369,7 +370,7 @@
 					</p>
 					<button onclick={returnToAI} disabled={isReturning || !humanAnsweredStatus}
 						class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all"
-						style="background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary-glow); opacity: {isReturning || !humanAnsweredStatus ? 0.5 : 1};">
+						style="background: var(--primary); color: #000; opacity: {isReturning || !humanAnsweredStatus ? 0.5 : 1};">
 						{#if isReturning}
 							<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
 						{:else}
@@ -433,7 +434,7 @@
 							style="color: var(--text-muted); background: var(--border);"><X class="w-3.5 h-3.5" /> Abbrechen</button>
 						<button onclick={saveEdit} disabled={isSaving || !editTitle.trim()}
 							class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
-							style="background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary-glow); opacity: {isSaving || !editTitle.trim() ? 0.5 : 1};">
+							style="background: var(--primary); color: #000; opacity: {isSaving || !editTitle.trim() ? 0.5 : 1};">
 							{#if isSaving}<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>{:else}<Check class="w-3.5 h-3.5" />{/if}
 							Speichern
 						</button>
@@ -477,7 +478,7 @@
 				{#if tasksTotal > 0}
 					<div class="px-4 pt-3 pb-1">
 						<div class="h-1 rounded-full mb-3" style="background: var(--border);">
-							<div class="h-full rounded-full transition-all duration-500" style="width: {taskProgress}%; background: {taskProgress === 100 ? 'var(--success)' : 'var(--primary)'}; box-shadow: 0 0 6px {taskProgress === 100 ? 'var(--success-glow)' : 'var(--primary-glow)'};"></div>
+							<div class="h-full rounded-full transition-all duration-500" style="width: {taskProgress}%; background: {taskProgress === 100 ? 'var(--success)' : 'var(--primary)'}; "></div>
 						</div>
 					</div>
 					<div class="px-4 pb-2 space-y-0.5">

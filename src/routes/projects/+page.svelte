@@ -47,7 +47,7 @@
 				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
 					<Layers class="w-5 h-5" style="color: var(--primary);" />
 				</div>
-				<h1 class="text-3xl font-bold tracking-tight" style="color: var(--text);">Projekte</h1>
+				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Projekte</h1>
 			</div>
 			<p class="ml-12 text-sm" style="color: var(--text-muted);">
 				{projects.length} Projekt{projects.length !== 1 ? 'e' : ''} · Kanban-Boards
@@ -69,7 +69,7 @@
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
 			<div class="relative w-10 h-10">
 				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);"></div>
+					style="border-top-color: var(--primary);"></div>
 			</div>
 		</div>
 
@@ -94,8 +94,8 @@
 					class="group rounded-xl p-5 border cursor-pointer transition-all duration-200"
 					style="background: var(--card-bg); border-color: var(--border);"
 					onclick={() => goto(`/projects/${project.id}`)}
-					onmouseenter={(e) => { e.currentTarget.style.borderColor = `hsl(${hue}, 70%, 55%)`; e.currentTarget.style.boxShadow = `0 0 20px hsla(${hue}, 70%, 55%, 0.15)`; }}
-					onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+					onmouseenter={(e) => { e.currentTarget.style.borderColor = `hsl(${hue}, 70%, 55%)`; }}
+					onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
 				>
 					<!-- Color accent dot -->
 					<div class="flex items-start justify-between mb-3">
