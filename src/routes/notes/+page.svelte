@@ -99,7 +99,7 @@
 	<div class="flex items-end justify-between gap-4" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
 		<div>
 			<div class="flex items-center gap-3 mb-1">
-				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
+				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
 					<BookOpen class="w-5 h-5" style="color: var(--primary);" />
 				</div>
 				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Knowledge Base</h1>
@@ -154,7 +154,7 @@
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+		<div class="p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
 	{/if}
@@ -175,7 +175,7 @@
 
 	{:else if notes.length === 0}
 		<div class="flex flex-col items-center justify-center py-24 rounded-2xl border" style="border-color: var(--border); background: var(--card-bg);" in:fade={{ duration: 300 }}>
-			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2);">
+			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
 				<BookOpen class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
 			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Keine Notes gefunden</h3>
@@ -295,7 +295,7 @@
 
 <style>
 	.snippet :global(mark) {
-		background: rgba(0, 212, 255, 0.2);
+		background: rgba(0, 217, 255, 0.2);
 		color: var(--text);
 		border-radius: 2px;
 		padding: 0 2px;

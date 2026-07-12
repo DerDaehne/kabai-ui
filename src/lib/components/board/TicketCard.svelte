@@ -48,7 +48,7 @@
 	onclick={() => onTicketClick(ticket.id)}
 	class="ticket-card relative min-h-[92px] flex flex-col p-3 rounded-lg border cursor-pointer select-none transition-all duration-200"
 	class:is-dragging={isDragging}
-	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(255,208,0,0.35)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1};{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
+	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : ticket.type === 'epic' ? 'rgba(245,158,11,0.35)' : 'var(--border)'}; opacity: {isDragging ? 0.5 : 1};{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
 >
 	<OrbitHighlight signal={orbitSignal} radius="0.5rem" />
 	{#if showAiBadge}
@@ -60,7 +60,7 @@
 		</div>
 	{/if}
 	{#if ticket.type === 'epic'}
-		<div class="flex items-center gap-1 mb-1.5 text-xs font-semibold" style="color: #ffd000;">
+		<div class="flex items-center gap-1 mb-1.5 text-xs font-semibold" style="color: #f59e0b;">
 			<Flag class="w-3 h-3" /> Epic
 		</div>
 	{/if}

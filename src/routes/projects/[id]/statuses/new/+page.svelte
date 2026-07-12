@@ -73,7 +73,7 @@
 		<!-- Header -->
 		<div class="flex items-center gap-3 mb-8">
 			<div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-				style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
+				style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
 				<Plus class="w-5 h-5" style="color: var(--primary);" />
 			</div>
 			<div>
@@ -145,7 +145,7 @@
 				</div>
 
 				{#if error}
-					<div class="p-3 rounded-lg border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);">
+					<div class="p-3 rounded-lg border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);">
 						{error}
 					</div>
 				{/if}

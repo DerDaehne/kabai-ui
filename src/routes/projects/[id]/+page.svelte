@@ -185,7 +185,7 @@
 			<button onclick={() => showInbox = true}
 				class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
 				style="color: var(--text-muted); background: var(--border);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(0,212,255,0.1)'; e.currentTarget.style.color = 'var(--primary)'; }}
+				onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(0,217,255,0.1)'; e.currentTarget.style.color = 'var(--primary)'; }}
 				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
 				<Inbox class="w-4 h-4" />
 				<span class="hidden sm:inline">Inbox</span>
@@ -199,7 +199,7 @@
 			<button onclick={() => showStatuses = true}
 				class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
 				style="color: var(--text-muted); background: var(--border);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(0,212,255,0.1)'; e.currentTarget.style.color = 'var(--primary)'; }}
+				onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(0,217,255,0.1)'; e.currentTarget.style.color = 'var(--primary)'; }}
 				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
 				<Layers class="w-4 h-4" />
 				<span class="hidden sm:inline">Statuses</span>
@@ -224,7 +224,7 @@
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>{error}</div>
+		<div class="p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>{error}</div>
 	{/if}
 
 	{#if isLoading}
@@ -243,7 +243,7 @@
 
 	{:else if project}
 		<div class="flex flex-col items-center justify-center py-24 rounded-2xl border" style="border-color: var(--border); background: var(--card-bg);" in:fade={{ duration: 300 }}>
-			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2);">
+			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
 				<Layers class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
 			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Keine Board-Statuses</h3>

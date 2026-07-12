@@ -122,7 +122,7 @@
 	<div in:fly={{ y: 20, duration: 400, easing: quintOut }}>
 		<div class="flex items-center gap-3 mb-8">
 			<div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-				style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
+				style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
 				<Plus class="w-5 h-5" style="color: var(--primary);" />
 			</div>
 			<div>
@@ -196,7 +196,7 @@
 				<div class="grid grid-cols-2 gap-4">
 					<div>
 						<label class="block text-sm font-medium mb-2 flex items-center gap-2" style="color: var(--text);">
-							<Flag class="w-4 h-4" style="color: #ffd000;" />
+							<Flag class="w-4 h-4" style="color: #f59e0b;" />
 							Typ
 						</label>
 						<select bind:value={type} class="input">
@@ -216,7 +216,7 @@
 				</div>
 
 				{#if error}
-					<div class="p-3 rounded-lg border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);">
+					<div class="p-3 rounded-lg border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);">
 						{error}
 					</div>
 				{/if}

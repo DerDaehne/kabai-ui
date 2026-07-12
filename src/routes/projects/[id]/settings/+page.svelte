@@ -120,7 +120,7 @@
 				</div>
 
 				{#if error}
-					<div class="mt-4 p-3 rounded-lg text-sm" style="background: rgba(255,34,85,0.08); border: 1px solid rgba(255,34,85,0.3); color: var(--danger);">{error}</div>
+					<div class="mt-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: var(--danger);">{error}</div>
 				{/if}
 
 				<div class="flex gap-3 mt-6">
@@ -140,7 +140,7 @@
 			</div>
 
 			<!-- Danger Zone -->
-			<div class="rounded-2xl p-6" style="background: var(--card-bg); border: 1px solid rgba(255,34,85,0.25);">
+			<div class="rounded-2xl p-6" style="background: var(--card-bg); border: 1px solid rgba(239,68,68,0.25);">
 				<h2 class="text-base font-semibold mb-1" style="color: var(--danger);">Gefahrenbereich</h2>
 				<p class="text-sm mb-5" style="color: var(--text-muted);">
 					Alle Statuses, Tickets, Tasks und Kommentare werden unwiderruflich gelöscht.

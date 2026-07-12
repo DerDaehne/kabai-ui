@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-	import { Plus, Pencil, Layers } from 'lucide-svelte';
+	import { Plus, Pencil } from 'lucide-svelte';
 	import TicketCard from './TicketCard.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
 
@@ -27,18 +27,25 @@
 	export let orbitSignals: Map<number, number> = new Map();
 
 	const accentColors = [
-		{ border: '#00d4ff', glow: 'rgba(0,212,255,0.2)', bg: 'rgba(0,212,255,0.08)' },
+		{ border: '#00d9ff', glow: 'rgba(0,217,255,0.2)', bg: 'rgba(0,217,255,0.08)' },
 		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.2)', bg: 'rgba(139,92,246,0.08)' },
-		{ border: '#00ff87', glow: 'rgba(0,255,135,0.2)', bg: 'rgba(0,255,135,0.08)' },
-		{ border: '#ffd000', glow: 'rgba(255,208,0,0.2)', bg: 'rgba(255,208,0,0.08)' },
-		{ border: '#ff2255', glow: 'rgba(255,34,85,0.2)', bg: 'rgba(255,34,85,0.08)' },
+		{ border: '#22c55e', glow: 'rgba(34,197,94,0.2)', bg: 'rgba(34,197,94,0.08)' },
+		{ border: '#f59e0b', glow: 'rgba(245,158,11,0.2)', bg: 'rgba(245,158,11,0.08)' },
+		{ border: '#ef4444', glow: 'rgba(239,68,68,0.2)', bg: 'rgba(239,68,68,0.08)' },
 	];
 	$: accent = accentColors[colorIndex % accentColors.length];
 
 	let isDragOver = false;
 
-	const PAGE_SIZE = 25;
-	let visibleCount = PAGE_SIZE;
+	// Gerendert wird höhenbasiert statt mit fester Seitengröße: initial so
+	// viele Tickets, wie in die (auf Viewport-Höhe gedeckelte) Spalte passen,
+	// beim Scrollen ans Listenende lädt die Spalte automatisch nach.
+	const CARD_ESTIMATE = 96; // min-h 92px + gap
+	const LOAD_CHUNK = 25;
+	let zoneHeight = 0;
+	let extraCount = 0;
+
+	$: visibleCount = Math.max(10, Math.ceil((zoneHeight || 600) / CARD_ESTIMATE) + 3) + extraCount;
 
 	$: sortedTickets = [...tickets].sort((a, b) =>
 		new Date(b.updated_at || b.created_at).getTime() -
@@ -47,7 +54,12 @@
 	$: displayedTickets = sortedTickets.slice(0, visibleCount);
 	$: hiddenCount = sortedTickets.length - displayedTickets.length;
 
-	function loadMore() { visibleCount += PAGE_SIZE; }
+	function handleZoneScroll(e: Event) {
+		const el = e.currentTarget as HTMLElement;
+		if (hiddenCount > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
+			extraCount += LOAD_CHUNK;
+		}
+	}
 
 	function handleDragOver(e: DragEvent) {
 		e.preventDefault();
@@ -71,8 +83,11 @@
 
 <!-- h-full: der Wrapper im Board wird per Flex-Stretch auf die Höhe der
      längsten Spalte gezogen — die Karte muss ihn füllen, damit kurze/leere
-     Spalten gleich hoch sind und ihre Drop-Zone (flex-1) mitwächst (#18) -->
-<div class="flex flex-col h-full rounded-xl overflow-hidden transition-all duration-200"
+     Spalten gleich hoch sind und ihre Drop-Zone (flex-1) mitwächst (#18).
+     max-h koppelt die Spalte an die Viewport-Höhe (Abzug für Nav-/Header-
+     Bereich); längere Listen scrollen in der Drop-Zone statt die Seite zu
+     verlängern. -->
+<div class="flex flex-col h-full max-h-[calc(100vh-14rem)] rounded-xl overflow-hidden transition-all duration-200"
 	style="border: 1px solid {isDragOver ? accent.border : 'var(--border)'}; background: var(--card-bg);"
 >
 	<!-- Column Header -->
@@ -112,10 +127,13 @@
 		</div>
 	</div>
 
-	<!-- Drop Zone Body -->
+	<!-- Drop Zone Body: scrollt innerhalb der (viewport-gedeckelten) Spalte;
+	     Scroll ans Ende lädt automatisch weitere Tickets nach -->
 	<div
-		class="flex-1 p-2 space-y-2 min-h-[160px] transition-all duration-200"
+		class="flex-1 p-2 space-y-2 min-h-[160px] overflow-y-auto transition-all duration-200"
 		style="background: {isDragOver ? accent.bg : 'transparent'};"
+		bind:clientHeight={zoneHeight}
+		onscroll={handleZoneScroll}
 		ondragover={handleDragOver}
 		ondragleave={handleDragLeave}
 		ondrop={handleDrop}
@@ -144,17 +162,9 @@
 				</div>
 			{/each}
 			{#if hiddenCount > 0}
-				<button
-					onclick={loadMore}
-					in:fly={{ y: -8, duration: 200 }}
-					class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 border-dashed text-xs font-medium transition-all duration-200"
-					style="border-color: {accent.border}40; color: {accent.border};"
-					onmouseenter={(e) => { e.currentTarget.style.background = accent.bg; e.currentTarget.style.borderColor = accent.border; }}
-					onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = `${accent.border}40`; }}
-				>
-					<Layers class="w-3.5 h-3.5" />
-					+{Math.min(hiddenCount, PAGE_SIZE)} weitere laden ({hiddenCount} verbleiben)
-				</button>
+				<div class="py-2 text-center text-xs" style="color: var(--text-muted);">
+					{hiddenCount} weitere — scrollen lädt nach
+				</div>
 			{/if}
 		{/if}
 	</div>

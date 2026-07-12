@@ -62,9 +62,9 @@
 			from var(--orbit-angle),
 			transparent 0%,
 			transparent 88%,
-			var(--primary, #00d4ff) 92%,
+			var(--primary, #00d9ff) 92%,
 			#ffffff 94%,
-			var(--primary, #00d4ff) 96%,
+			var(--primary, #00d9ff) 96%,
 			transparent 100%
 		);
 		animation: orbit-spin 900ms ease-out forwards;
@@ -88,7 +88,7 @@
 		.orbit-highlight {
 			/* Keine Bewegung: stattdessen ein kurzes, dezentes Aufleuchten der
 			   kompletten Border-Farbe (~600ms, dann zurück auf transparent). */
-			background: var(--primary, #00d4ff);
+			background: var(--primary, #00d9ff);
 			animation: orbit-fade 600ms ease-out forwards;
 		}
 

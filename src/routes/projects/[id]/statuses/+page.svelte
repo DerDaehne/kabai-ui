@@ -20,11 +20,11 @@
 	$: id = $page.params.id;
 
 	const accentColors = [
-		{ border: '#00d4ff', glow: 'rgba(0,212,255,0.15)' },
+		{ border: '#00d9ff', glow: 'rgba(0,217,255,0.15)' },
 		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.15)' },
-		{ border: '#00ff87', glow: 'rgba(0,255,135,0.15)' },
-		{ border: '#ffd000', glow: 'rgba(255,208,0,0.15)' },
-		{ border: '#ff2255', glow: 'rgba(255,34,85,0.15)' },
+		{ border: '#22c55e', glow: 'rgba(34,197,94,0.15)' },
+		{ border: '#f59e0b', glow: 'rgba(245,158,11,0.15)' },
+		{ border: '#ef4444', glow: 'rgba(239,68,68,0.15)' },
 	];
 
 	function accentFor(i: number) {
@@ -125,7 +125,7 @@
 		<div class="flex items-end justify-between gap-4">
 			<div>
 				<div class="flex items-center gap-3 mb-1">
-					<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
+					<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
 						<Layers class="w-5 h-5" style="color: var(--primary);" />
 					</div>
 					<h1 class="text-3xl font-bold tracking-tight" style="color: var(--text);">Board-Statuses</h1>
@@ -149,7 +149,7 @@
 	{#if error}
 		<div
 			class="mb-6 p-4 rounded-xl border flex items-start gap-3"
-			style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4);"
+			style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4);"
 			in:fly={{ y: 8, duration: 300 }}
 		>
 			<X class="w-5 h-5 shrink-0 mt-0.5" style="color: var(--danger);" />
@@ -174,7 +174,7 @@
 			in:fade={{ duration: 300 }}
 		>
 			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-				style="background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2);">
+				style="background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2);">
 				<Layers class="w-8 h-8" style="color: var(--text-muted);" />
 			</div>
 			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Noch keine Statuses</h3>
@@ -244,7 +244,7 @@
 								disabled={deletingId === status.id}
 								class="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
 								style="color: var(--text-muted);"
-								onmouseenter={(e) => e.currentTarget.style.cssText += 'color: var(--danger); background: rgba(255,34,85,0.12);'}
+								onmouseenter={(e) => e.currentTarget.style.cssText += 'color: var(--danger); background: rgba(239,68,68,0.12);'}
 								onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
 								title="Löschen"
 							>

@@ -32,7 +32,7 @@
 			data: { label: s.display_name },
 			position: { x: 200 * (i % cols), y: 120 * Math.floor(i / cols) },
 			type: 'default',
-			style: 'background: #0d0d1a; border: 1px solid #00d4ff40; color: #e2e8ff; border-radius: 8px; font-weight: 600; font-size: 13px;'
+			style: 'background: #0d0d1a; border: 1px solid #00d9ff40; color: #e2e8ff; border-radius: 8px; font-weight: 600; font-size: 13px;'
 		}));
 	}
 
@@ -41,8 +41,8 @@
 			id: `${fromId}-${toId}`,
 			source: String(fromId),
 			target: String(toId),
-			markerEnd: { type: MarkerType.ArrowClosed, color: '#00d4ff' },
-			style: 'stroke: #00d4ff; stroke-width: 2;'
+			markerEnd: { type: MarkerType.ArrowClosed, color: '#00d9ff' },
+			style: 'stroke: #00d9ff; stroke-width: 2;'
 		};
 	}
 
@@ -126,7 +126,7 @@
 	</div>
 
 	{#if error}
-		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(255,34,85,0.08); border: 1px solid rgba(255,34,85,0.3); color: var(--danger);">{error}</div>
+		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: var(--danger);">{error}</div>
 	{/if}
 
 	{#if isLoading}
@@ -180,7 +180,7 @@
 								disabled={deletingKey === key}
 								class="w-6 h-6 rounded-md flex items-center justify-center transition-all"
 								style="color: var(--text-muted);"
-								onmouseenter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(255,34,85,0.12)'; }}
+								onmouseenter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; }}
 								onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
 								title="Transition löschen">
 								{#if deletingKey === key}

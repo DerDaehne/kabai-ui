@@ -12,10 +12,65 @@
 	export let size: 'md' | 'xl' = 'md';
 	export let ariaLabel = '';
 
-	const widths: Record<string, string> = {
-		md: '520px',
-		xl: '720px'
+	const defaultWidths: Record<string, number> = {
+		md: 520,
+		xl: 720
 	};
+
+	// Manuell anpassbare Panelbreite (Drag-Griff an der linken Kante bzw.
+	// Pfeiltasten auf dem Separator); pro Größe in sessionStorage gemerkt.
+	const MIN_WIDTH = 380;
+	const widthKey = () => `kabai:panelWidth:${size}`;
+
+	let width = defaultWidths.md;
+	$: {
+		let stored: number = NaN;
+		if (typeof sessionStorage !== 'undefined') {
+			stored = parseInt(sessionStorage.getItem(widthKey()) || '');
+		}
+		width = clampWidth(Number.isFinite(stored) ? stored : defaultWidths[size]);
+	}
+
+	function maxWidth() {
+		return typeof window !== 'undefined' ? Math.round(window.innerWidth * 0.9) : 1200;
+	}
+
+	function clampWidth(w: number) {
+		return Math.min(Math.max(w, MIN_WIDTH), maxWidth());
+	}
+
+	function persistWidth() {
+		if (typeof sessionStorage !== 'undefined') {
+			sessionStorage.setItem(widthKey(), String(width));
+		}
+	}
+
+	let isResizing = false;
+
+	function startResize(e: PointerEvent) {
+		isResizing = true;
+		(e.target as HTMLElement).setPointerCapture(e.pointerId);
+	}
+
+	function onResizeMove(e: PointerEvent) {
+		if (!isResizing) return;
+		width = clampWidth(Math.round(window.innerWidth - e.clientX));
+	}
+
+	function endResize() {
+		if (!isResizing) return;
+		isResizing = false;
+		persistWidth();
+	}
+
+	function onResizeKeydown(e: KeyboardEvent) {
+		if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+			e.preventDefault();
+			// Griff sitzt links: Pfeil links = breiter, Pfeil rechts = schmaler
+			width = clampWidth(width + (e.key === 'ArrowLeft' ? 24 : -24));
+			persistWidth();
+		}
+	}
 
 	let panelEl: HTMLDivElement | null = null;
 	let previouslyFocused: HTMLElement | null = null;
@@ -108,7 +163,7 @@
 		<div
 			bind:this={panelEl}
 			class="fixed top-0 right-0 h-screen w-full overflow-y-auto outline-none"
-			style="max-width: {widths[size]}; background: var(--color-surface); border-left: 1px solid var(--color-border); border-top-left-radius: var(--radius-panel); border-bottom-left-radius: var(--radius-panel);"
+			style="max-width: {width}px; background: var(--color-surface); border-left: 1px solid var(--color-border); border-top-left-radius: var(--radius-panel); border-bottom-left-radius: var(--radius-panel);"
 			role="dialog"
 			aria-modal="true"
 			aria-label={ariaLabel}
@@ -116,6 +171,21 @@
 			onclick={(e) => e.stopPropagation()}
 			transition:slideIn
 		>
+			<!-- Resize-Griff an der linken Kante (Drag oder Pfeiltasten) -->
+			<div
+				class="resize-handle"
+				class:active={isResizing}
+				role="separator"
+				aria-orientation="vertical"
+				aria-label="Panelbreite anpassen (Pfeiltasten links/rechts)"
+				tabindex="0"
+				onpointerdown={startResize}
+				onpointermove={onResizeMove}
+				onpointerup={endResize}
+				onpointercancel={endResize}
+				onkeydown={onResizeKeydown}
+			></div>
+
 			<button
 				onclick={onClose}
 				aria-label="Schließen"
@@ -130,11 +200,34 @@
 {/if}
 
 <style>
+	.resize-handle {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 6px;
+		cursor: col-resize;
+		touch-action: none;
+		z-index: 20;
+	}
+
+	.resize-handle:hover,
+	.resize-handle:focus-visible,
+	.resize-handle.active {
+		background: var(--color-primary);
+		opacity: 0.5;
+		outline: none;
+	}
+
 	@media (max-width: 640px) {
 		div[role='dialog'] {
 			max-width: 100% !important;
 			border-top-left-radius: 0 !important;
 			border-bottom-left-radius: 0 !important;
+		}
+
+		.resize-handle {
+			display: none;
 		}
 	}
 </style>

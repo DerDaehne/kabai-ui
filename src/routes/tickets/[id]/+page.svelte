@@ -259,7 +259,7 @@
 	</button>
 
 	{#if error && !isEditing}
-		<div class="mb-4 p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+		<div class="mb-4 p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
 	{/if}
@@ -286,7 +286,7 @@
 				<div class="px-6 py-4 flex items-start justify-between gap-4" style="border-bottom: 1px solid var(--border);">
 					<div class="flex-1 min-w-0">
 						<div class="flex items-center gap-3 flex-wrap mb-1">
-							<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: rgba(0,212,255,0.1); color: var(--primary);">#{ticket.id}</span>
+							<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: rgba(0,217,255,0.1); color: var(--primary);">#{ticket.id}</span>
 							{#if ticket.status}
 								<span class="badge badge-primary">{ticket.status.display_name}</span>
 							{/if}
@@ -306,7 +306,7 @@
 							<button
 								onclick={startEdit}
 								class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200"
-								style="color: var(--primary); background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);"
+								style="color: var(--primary); background: rgba(0,217,255,0.1); border: 1px solid rgba(0,217,255,0.3);"
 							>
 								<Pencil class="w-3.5 h-3.5" />
 								Bearbeiten
@@ -316,7 +316,7 @@
 							onclick={handleDelete}
 							disabled={isDeleting}
 							class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200"
-							style="color: var(--danger); background: rgba(255,34,85,0.1); border: 1px solid rgba(255,34,85,0.3);"
+							style="color: var(--danger); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);"
 						>
 							{#if isDeleting}
 								<div class="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin"></div>
@@ -330,7 +330,7 @@
 
 				<!-- Inline Edit Form -->
 				{#if isEditing}
-					<div transition:slide={{ duration: 300, easing: cubicOut }} class="px-6 py-5 space-y-4" style="border-bottom: 1px solid rgba(0,212,255,0.2); background: rgba(0,212,255,0.03);">
+					<div transition:slide={{ duration: 300, easing: cubicOut }} class="px-6 py-5 space-y-4" style="border-bottom: 1px solid rgba(0,217,255,0.2); background: rgba(0,217,255,0.03);">
 						<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Ticket bearbeiten</p>
 
 						<!-- Title -->
@@ -375,7 +375,7 @@
 						</div>
 
 						{#if error}
-							<div class="p-3 rounded-lg border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);">{error}</div>
+							<div class="p-3 rounded-lg border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);">{error}</div>
 						{/if}
 
 						<div class="flex justify-end gap-2 pt-1">

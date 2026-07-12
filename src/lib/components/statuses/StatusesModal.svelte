@@ -30,11 +30,11 @@
 	}
 
 	const accentColors = [
-		{ border: '#00d4ff', glow: 'rgba(0,212,255,0.15)' },
+		{ border: '#00d9ff', glow: 'rgba(0,217,255,0.15)' },
 		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.15)' },
-		{ border: '#00ff87', glow: 'rgba(0,255,135,0.15)' },
-		{ border: '#ffd000', glow: 'rgba(255,208,0,0.15)' },
-		{ border: '#ff2255', glow: 'rgba(255,34,85,0.15)' },
+		{ border: '#22c55e', glow: 'rgba(34,197,94,0.15)' },
+		{ border: '#f59e0b', glow: 'rgba(245,158,11,0.15)' },
+		{ border: '#ef4444', glow: 'rgba(239,68,68,0.15)' },
 	];
 	function accent(i: number) { return accentColors[i % accentColors.length]; }
 
@@ -110,7 +110,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-6">
 		<div class="flex items-center gap-3">
-			<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.3);">
+			<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: rgba(0,217,255,0.12); border: 1px solid rgba(0,217,255,0.3);">
 				<Layers class="w-5 h-5" style="color: var(--primary);" />
 			</div>
 			<div>
@@ -120,20 +120,20 @@
 		</div>
 		<button onclick={() => { showNewForm = !showNewForm; }}
 			class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-			style="background: {showNewForm ? 'rgba(0,212,255,0.15)' : 'var(--border)'}; color: {showNewForm ? 'var(--primary)' : 'var(--text-muted)'}; border: 1px solid {showNewForm ? 'rgba(0,212,255,0.3)' : 'transparent'};">
+			style="background: {showNewForm ? 'rgba(0,217,255,0.15)' : 'var(--border)'}; color: {showNewForm ? 'var(--primary)' : 'var(--text-muted)'}; border: 1px solid {showNewForm ? 'rgba(0,217,255,0.3)' : 'transparent'};">
 			<Plus class="w-4 h-4" /> Neu
 		</button>
 	</div>
 
 	{#if error}
-		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(255,34,85,0.08); border: 1px solid rgba(255,34,85,0.3); color: var(--danger);">{error}</div>
+		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: var(--danger);">{error}</div>
 	{/if}
 
 	<!-- New Status Form -->
 	{#if showNewForm}
 		<div transition:slide={{ duration: 260, easing: cubicOut }}
 			class="mb-4 p-4 rounded-xl space-y-3"
-			style="border: 1px solid rgba(0,212,255,0.3); background: rgba(0,212,255,0.04);">
+			style="border: 1px solid rgba(0,217,255,0.3); background: rgba(0,217,255,0.04);">
 			<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Neuer Status</p>
 			<div class="grid grid-cols-2 gap-3">
 				<div>
@@ -215,7 +215,7 @@
 							<button onclick={() => handleDelete(status.id, status.display_name)} disabled={deletingId === status.id}
 								class="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
 								style="color: var(--text-muted);"
-								onmouseenter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(255,34,85,0.1)'; }}
+								onmouseenter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
 								onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}>
 								{#if deletingId === status.id}
 									<div class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>

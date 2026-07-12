@@ -115,7 +115,7 @@
 		</div>
 
 	{:else if error}
-		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
+		<div class="p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
 
@@ -221,7 +221,7 @@
 
 		<!-- Konflikte -->
 		{#if contradictions.length > 0}
-			<div class="p-4 rounded-xl border" style="background: rgba(255,34,85,0.06); border-color: rgba(255,34,85,0.35);">
+			<div class="p-4 rounded-xl border" style="background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.35);">
 				<div class="flex items-center gap-2 mb-2" style="color: var(--danger);">
 					<Zap class="w-4 h-4 shrink-0" />
 					<span class="text-sm font-semibold">Widersprüche</span>
@@ -281,7 +281,7 @@
 						onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
 						onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
 					>
-						<span class="text-xs font-semibold px-2 py-0.5 rounded-md shrink-0" style="background: rgba(0,212,255,0.1); color: var(--primary); border: 1px solid rgba(0,212,255,0.25);">{relationLabels[tl.relation] ?? tl.relation}</span>
+						<span class="text-xs font-semibold px-2 py-0.5 rounded-md shrink-0" style="background: rgba(0,217,255,0.1); color: var(--primary); border: 1px solid rgba(0,217,255,0.25);">{relationLabels[tl.relation] ?? tl.relation}</span>
 						<span class="text-sm truncate" style="color: var(--text);">#{tl.ticket_id} {tl.ticket_title}</span>
 					</button>
 				{/each}

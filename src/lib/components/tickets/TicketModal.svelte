@@ -333,7 +333,7 @@
 			</div>
 		</div>
 	{:else if error && !ticket}
-		<div class="p-4 rounded-xl border text-sm" style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);">{error}</div>
+		<div class="p-4 rounded-xl border text-sm" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);">{error}</div>
 	{:else if ticket}
 		<div class="relative space-y-4 rounded-2xl"
 			in:fly={{ y: 12, duration: 300, easing: quintOut }}>
@@ -344,13 +344,13 @@
 			<div class="flex items-start justify-between gap-4">
 				<div class="flex-1 min-w-0">
 					<div class="flex items-center gap-2 flex-wrap mb-2">
-						<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: rgba(0,212,255,0.1); color: var(--primary);">#{ticket.id}</span>
+						<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: rgba(0,217,255,0.1); color: var(--primary);">#{ticket.id}</span>
 						{#if ticket.status}
 							<span class="badge badge-primary">{ticket.status.display_name}</span>
 						{/if}
 						{#if ticket.type === 'epic'}
 							<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
-								style="background: rgba(255,208,0,0.12); color: #ffd000; border: 1px solid rgba(255,208,0,0.3);">
+								style="background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
 								<Flag class="w-3 h-3" /> Epic
 							</span>
 						{/if}
@@ -384,7 +384,7 @@
 								<button role="menuitem" onclick={() => { showActionsMenu = false; handleDelete(); }} disabled={isDeleting}
 									class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors"
 									style="color: var(--danger);"
-									onmouseenter={(e) => e.currentTarget.style.background = 'rgba(255,34,85,0.1)'}
+									onmouseenter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
 									onmouseleave={(e) => e.currentTarget.style.background = 'transparent'}>
 									{#if isDeleting}
 										<div class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
@@ -402,7 +402,7 @@
 			<!-- Human Intervention Banner -->
 			{#if isAwaitingHuman}
 				<div class="rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap"
-					style="border: 1px solid rgba(0,212,255,0.3); background: rgba(0,212,255,0.06);"
+					style="border: 1px solid rgba(0,217,255,0.3); background: rgba(0,217,255,0.06);"
 					in:fly={{ y: -8, duration: 250 }}>
 					<p class="text-sm" style="color: var(--text);">
 						Dieses Ticket wartet auf deine Antwort. Beantworte die Frage der KI (z.B. per Kommentar) und gib es dann zurück.
@@ -424,7 +424,7 @@
 			{#if isEditing}
 				<div transition:slide={{ duration: 280, easing: cubicOut }}
 					class="rounded-xl p-4 space-y-3"
-					style="border: 1px solid rgba(0,212,255,0.25); background: rgba(0,212,255,0.03);">
+					style="border: 1px solid rgba(0,217,255,0.25); background: rgba(0,217,255,0.03);">
 					<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Bearbeiten</p>
 					<div>
 						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Titel *</label>
@@ -466,7 +466,7 @@
 						<textarea bind:value={editDescription} class="input resize-y" rows="6" placeholder="Details…"></textarea>
 					</div>
 					{#if error}
-						<div class="p-2 rounded text-xs" style="background: rgba(255,34,85,0.1); color: var(--danger);">{error}</div>
+						<div class="p-2 rounded text-xs" style="background: rgba(239,68,68,0.1); color: var(--danger);">{error}</div>
 					{/if}
 					<div class="flex justify-end gap-2">
 						<button onclick={cancelEdit} class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"

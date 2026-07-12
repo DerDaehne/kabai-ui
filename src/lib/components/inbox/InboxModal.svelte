@@ -20,7 +20,7 @@
 		<Inbox class="w-5 h-5" style="color: var(--primary);" />
 		<h2 class="text-lg font-bold" style="color: var(--text);">Inbox</h2>
 		<span class="text-xs px-2 py-0.5 rounded-full font-medium"
-			style="background: rgba(0,212,255,0.12); color: var(--primary); border: 1px solid rgba(0,212,255,0.3);">
+			style="background: rgba(0,217,255,0.12); color: var(--primary); border: 1px solid rgba(0,217,255,0.3);">
 			{tickets.length}
 		</span>
 	</div>

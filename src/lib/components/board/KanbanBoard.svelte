@@ -57,7 +57,7 @@
 <div class="w-full">
 	{#if dragError}
 		<div class="mb-4 px-4 py-3 rounded-xl border text-sm"
-			style="background: rgba(255,34,85,0.08); border-color: rgba(255,34,85,0.4); color: var(--danger);"
+			style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.4); color: var(--danger);"
 			in:fly={{ y: -8, duration: 200 }} out:fade={{ duration: 200 }}>
 			{dragError}
 		</div>
