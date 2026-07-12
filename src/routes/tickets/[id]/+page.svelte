@@ -366,7 +366,7 @@
 						<!-- Description -->
 						<div>
 							<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Beschreibung</label>
-							<textarea bind:value={editDescription} class="input resize-none" rows="3" placeholder="Details…"></textarea>
+							<textarea bind:value={editDescription} class="input resize-y" rows="6" placeholder="Details…"></textarea>
 						</div>
 
 						{#if error}

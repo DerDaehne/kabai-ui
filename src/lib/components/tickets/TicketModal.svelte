@@ -423,7 +423,7 @@
 					</div>
 					<div>
 						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Beschreibung</label>
-						<textarea bind:value={editDescription} class="input resize-none" rows="3" placeholder="Details…"></textarea>
+						<textarea bind:value={editDescription} class="input resize-y" rows="6" placeholder="Details…"></textarea>
 					</div>
 					{#if error}
 						<div class="p-2 rounded text-xs" style="background: rgba(255,34,85,0.1); color: var(--danger);">{error}</div>

@@ -155,8 +155,8 @@
 					</label>
 					<textarea
 						bind:value={description}
-						class="input resize-none"
-						rows="4"
+						class="input resize-y"
+						rows="8"
 						placeholder="Details zum Ticket…"
 					></textarea>
 				</div>
