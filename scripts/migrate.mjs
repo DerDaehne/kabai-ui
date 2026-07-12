@@ -25,10 +25,16 @@
 // migration exits non-zero so the app does not start against a broken
 // or half-migrated schema.
 //
+// Existing databases (no schema_migrations table yet) are detected
+// automatically: each known migration has a feature probe (table/column/
+// trigger/function marker). Versions whose features are already present
+// are recorded as applied WITHOUT executing anything — only genuinely
+// missing migrations run. An existing database is therefore never touched
+// beyond what a fresh migration would add.
+//
 // Options:
-//   --baseline VN   For an existing database that predates this runner
-//                   (no schema_migrations table): marks V1..VN as applied
-//                   WITHOUT executing them. Run once, then use normal runs.
+//   --baseline VN   Manual override of the automatic detection: marks
+//                   V1..VN as applied WITHOUT executing them.
 import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -74,6 +80,33 @@ const files = readdirSync(MIGRATIONS_DIR)
 	.filter((f) => /^V\d+__.*\.sql$/.test(f))
 	.sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
 
+// Feature probes: "is this migration's effect already present?" Used to
+// auto-baseline databases that were set up before the runner existed.
+// New migrations (V10+) without a probe are simply applied when missing.
+const tableExists = async (name) =>
+	(await sql`SELECT to_regclass(${name}) IS NOT NULL AS x`)[0].x;
+const columnExists = async (table, column) =>
+	(await sql`SELECT EXISTS (SELECT 1 FROM information_schema.columns
+		WHERE table_name = ${table} AND column_name = ${column}) AS x`)[0].x;
+const triggerExists = async (name) =>
+	(await sql`SELECT EXISTS (SELECT 1 FROM pg_trigger
+		WHERE tgname = ${name} AND NOT tgisinternal) AS x`)[0].x;
+const functionContains = async (name, needle) =>
+	(await sql`SELECT EXISTS (SELECT 1 FROM pg_proc
+		WHERE proname = ${name} AND prosrc LIKE ${'%' + needle + '%'}) AS x`)[0].x;
+
+const featureProbes = {
+	V1: () => tableExists('tickets'),
+	V2: () => columnExists('tickets', 'model'),
+	V3: () => triggerExists('tickets_notify'),
+	V4: () => tableExists('ticket_relations'),
+	V5: () => triggerExists('ticket_comments_notify'),
+	V6: () => triggerExists('projects_create_human_statuses'),
+	V7: () => tableExists('notes'),
+	V8: () => columnExists('tickets', 'docs_required'),
+	V9: () => functionContains('verify_kanban_rules_and_transitions', 'kabai_docs_link_ticket')
+};
+
 try {
 	await sql`CREATE TABLE IF NOT EXISTS schema_migrations (
 		version    TEXT PRIMARY KEY,
@@ -82,6 +115,20 @@ try {
 
 	const appliedRows = await sql`SELECT version FROM schema_migrations`;
 	const alreadyApplied = new Set(appliedRows.map((r) => r.version));
+
+	// Auto-baseline: empty ledger, but the database already carries schema —
+	// record everything that is verifiably present instead of re-running it.
+	// Stop at the first version whose feature is missing (strict ordering).
+	if (alreadyApplied.size === 0 && !baseline) {
+		for (const file of files) {
+			const version = file.split('__')[0];
+			const probe = featureProbes[version];
+			if (!probe || !(await probe())) break;
+			await sql`INSERT INTO schema_migrations (version) VALUES (${version})`;
+			alreadyApplied.add(version);
+			console.log(`[migrate] detected  ${version} already present (${file}) — recorded, not re-run`);
+		}
+	}
 
 	let applied = 0;
 	let skipped = 0;

@@ -150,12 +150,14 @@ If they are missing, the app starts with a warning and skips migrations; if
 a migration fails, the app does not start.
 
 **Existing database that predates the runner** (no `schema_migrations`
-table): mark the existing state once, without re-executing the migrations —
-then normal updates as above:
+table): handled automatically. The runner probes which migrations are
+already present (tables/columns/triggers), records those without re-running
+them, and applies only what is genuinely missing. Manual override if ever
+needed:
 
 ```bash
 docker compose run --rm kabai-ui node scripts/migrate.mjs --baseline V6
-# V6 is an example; state the actual migration level of your database
+# marks V1..V6 as applied without executing them
 ```
 
 ---
@@ -211,12 +213,14 @@ PostgreSQL is not ready yet. Wait a moment and try again. Check the logs:
 docker compose logs postgres
 ```
 
-**App does not start / migration failure in the logs on an old database**
+**App does not start / migration failure in the logs**
 
-A database created before the migration runner existed has no
-`schema_migrations` table, so the startup runner tries to apply everything
-from V1 and fails. Baseline it once to the actual state of your schema
-(see section 7), then start again.
+The startup runner refuses to start the app when a migration fails, to
+avoid running against a half-migrated schema. Check
+`docker compose logs kabai-ui` for the `[migrate] FAILED:` line. Existing
+databases are baselined automatically (see section 7); if the automatic
+detection ever misjudges your schema, override it once with
+`--baseline VN`, then start again.
 
 **Port 3000 is already in use**
 

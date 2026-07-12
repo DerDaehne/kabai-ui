@@ -112,13 +112,12 @@ npm run migrate
 ```
 
 **Existing database that predates the runner** (no `schema_migrations`
-table): mark the current state once, without re-executing the migrations —
-
-```bash
-docker compose run --rm kabai-ui node scripts/migrate.mjs --baseline V6
-# or without Docker: npm run migrate -- --baseline V6
-# (V6 is an example; state the actual migration level of your DB)
-```
+table): detected automatically. Each migration has a feature probe
+(table/column/trigger marker); whatever is verifiably present is recorded
+as applied without being re-run — only genuinely missing migrations
+execute. An existing database is never modified beyond what a fresh
+migration would add. To override the detection manually:
+`npm run migrate -- --baseline V6` (marks V1..V6 as applied).
 
 ### Syncing with the backend repo
 
