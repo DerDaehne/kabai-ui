@@ -22,9 +22,17 @@ COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
+# Migrationen + Runner ins Image: ein frisch gestartetes Image hebt die
+# konfigurierte DB selbst auf den aktuellen Migrationsstand (kein Repo-
+# Checkout, kein separater Migrationsschritt nötig).
+COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/scripts/migrate.mjs ./scripts/migrate.mjs
+
 ENV NODE_ENV=production \
     PORT=3000
 
 EXPOSE 3000
 
-CMD ["node", "build/index.js"]
+# Erst migrieren (No-op wenn aktuell; Abbruch bei Migrationsfehler,
+# Warnung+Start ohne KABAI_DB_USER/PASSWORD), dann Server starten.
+CMD ["sh", "-c", "node scripts/migrate.mjs && exec node build/index.js"]

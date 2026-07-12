@@ -19,31 +19,12 @@ services:
       timeout: 5s
       retries: 10
 
-  # ── migrations ───────────────────────────────────────────────────────────────
-  # Short-lived runner: applies pending migrations/V*.sql on EVERY
-  # `docker compose up` before the app starts (schema_migrations tracking
-  # makes re-runs no-ops). Baseline for pre-runner databases:
-  #   docker compose run --rm migrate --baseline V6
-  migrate:
-    image: postgres:16-alpine
-    container_name: kabai-migrate
-    restart: "no"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      KABAI_DB_HOST: postgres
-      KABAI_DB_PORT: 5432
-      KABAI_DB_NAME: ${KABAI_DB_NAME:-kabai}
-      KABAI_DB_USER: ${KABAI_DB_USER:-kb_user}
-      KABAI_DB_PASSWORD: ${KABAI_DB_PASSWORD:?KABAI_DB_PASSWORD is required}
-      MIGRATIONS_DIR: /migrations
-    volumes:
-      - ./migrations:/migrations:ro
-      - ./scripts/migrate.sh:/migrate.sh:ro
-    entrypoint: ["sh", "/migrate.sh"]
-
   # ── kabai-ui ──────────────────────────────────────────────────────────────────
+  # The image applies pending schema migrations itself on startup (baked-in
+  # migrations/ + Node runner, tracked in schema_migrations) — starting a
+  # new image is all it takes to bring the database up to date. Baseline
+  # for databases that predate the runner:
+  #   docker compose run --rm kabai-ui node scripts/migrate.mjs --baseline V6
   kabai-ui:
     build:
       context: .
@@ -53,8 +34,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -62,6 +41,10 @@ services:
       KABAI_DB_PORT: 5432
       KABAI_DB_NAME: ${KABAI_DB_NAME:-kabai}
       KABAI_DB_SSL: "false"
+      # Für die automatischen Migrationen beim Start; ohne beide Werte
+      # startet die App mit Warnung, ohne zu migrieren.
+      KABAI_DB_USER: ${KABAI_DB_USER:-kb_user}
+      KABAI_DB_PASSWORD: ${KABAI_DB_PASSWORD:?KABAI_DB_PASSWORD is required}
       KABAI_SESSION_SECRET: ${KABAI_SESSION_SECRET:?KABAI_SESSION_SECRET is required}
       KABAI_SESSION_TTL_MINUTES: ${KABAI_SESSION_TTL_MINUTES:-480}
     ports:

@@ -91,29 +91,33 @@ SvelteKit Server (Node.js)      kabai MCP server
 
 Kabai UI sets up the kabai database and keeps it up to date — **no manual
 migration steps required**. Migrations live in `migrations/` (currently
-**V1–V9**, including the zettelkasten schema and the docs_required guard) and
-are applied by `scripts/migrate.sh` in version order — each exactly once,
-recorded in the `schema_migrations` table. Re-runs are always safe.
+**V1–V9**, including the zettelkasten schema and the docs_required guard),
+are baked into the Docker image, and are applied by the app itself **on
+every startup** (`scripts/migrate.mjs`) — each exactly once, recorded in the
+`schema_migrations` table. Re-runs are always safe.
 
-**Docker:** the `migrate` compose service runs automatically on **every**
-`docker compose up` — it applies pending migrations before the app starts.
-Fresh setups and updates (new `V*.sql` arriving via `git pull`) are both
-covered; there is nothing to run by hand.
+**Starting a new image is all it takes:** pull/build the new version, start
+it, and the configured database is brought up to the migration level that
+version ships with. The runner needs `KABAI_DB_USER`/`KABAI_DB_PASSWORD`
+(set in the compose file); without them the app starts with a warning and
+skips migrations (for externally managed schemas). If a migration fails,
+the app refuses to start rather than run against a broken schema.
 
 **Without Docker / external database:**
 
 ```bash
 createdb kabai
 set -a; . ./.env; set +a     # load KABAI_DB_*
-scripts/migrate.sh
+npm run migrate
 ```
 
 **Existing database that predates the runner** (no `schema_migrations`
 table): mark the current state once, without re-executing the migrations —
 
 ```bash
-docker compose run --rm migrate --baseline V6   # use the actual state of your DB
-# or without Docker: scripts/migrate.sh --baseline V6
+docker compose run --rm kabai-ui node scripts/migrate.mjs --baseline V6
+# or without Docker: npm run migrate -- --baseline V6
+# (V6 is an example; state the actual migration level of your DB)
 ```
 
 ### Syncing with the backend repo
@@ -126,7 +130,7 @@ migrations:
 1. Copy new `V*.sql` from the backend repo unchanged into `migrations/`
    (existing files must remain byte-identical — `diff -r` against the
    backend `migrations/` must be empty).
-2. Verify: fresh database + run `scripts/migrate.sh` twice
+2. Verify: fresh database + run `npm run migrate` twice
    (the second run must report "0 applied").
 3. Update the V1–V*N* range in README/INSTALL, commit.
 
