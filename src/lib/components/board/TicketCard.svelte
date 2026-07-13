@@ -43,7 +43,7 @@
 	ondragstart={handleDragStart}
 	ondragend={handleDragEnd}
 	onclick={() => onTicketClick(ticket.id)}
-	class="ticket-card relative min-h-[92px] flex flex-col p-3 rounded-lg border cursor-pointer select-none"
+	class="ticket-card relative min-h-[64px] flex flex-col px-3 py-2.5 rounded-lg border cursor-pointer select-none"
 	class:is-dragging={isDragging}
 	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : 'var(--edge)'}; box-shadow: {isDragging ? 'var(--elevation-2)' : 'none'}; opacity: {isDragging ? 0.5 : 1}; transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft), background-color var(--duration-fast) var(--ease-soft), transform var(--duration-fast) var(--ease-soft), opacity var(--duration-fast) var(--ease-soft);{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
 >
@@ -56,12 +56,9 @@
 			<Sparkles class="w-3 h-3" />
 		</div>
 	{/if}
-	{#if ticket.type === 'epic'}
-		<div class="flex items-center gap-1 mb-1.5 text-xs font-semibold" style="color: var(--color-warning);">
-			<Flag class="w-3 h-3" /> Epic
-		</div>
-	{/if}
-	<p class="text-sm font-medium leading-snug mb-2" style="color: var(--text);">{ticket.title}</p>
+	<p class="text-sm font-medium leading-snug mb-1.5" style="color: var(--text);">
+		{#if ticket.type === 'epic'}<span class="inline-flex items-center gap-1 mr-1.5 text-xs font-semibold align-middle" style="color: var(--color-warning);"><Flag class="w-3 h-3" /> Epic</span>{/if}{ticket.title}
+	</p>
 	<div class="mt-auto flex items-center justify-between gap-2">
 		<div class="flex items-center gap-1.5 min-w-0">
 			<span class="text-xs font-mono shrink-0" style="color: var(--text-muted);">#{ticket.id}</span>

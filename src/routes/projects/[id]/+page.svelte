@@ -174,9 +174,9 @@
 	<div class="flex items-center justify-between gap-4" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
 		<div class="min-w-0">
 			{#if project}
-				<h1 class="text-2xl font-semibold tracking-tight truncate" style="color: var(--text);">{project.name}</h1>
+				<h1 class="text-xl font-semibold tracking-tight truncate" style="color: var(--text);">{project.name}</h1>
 				{#if project.description}
-					<p class="text-sm truncate mt-0.5" style="color: var(--text-muted);">{project.description}</p>
+					<p class="text-xs truncate mt-0.5" style="color: var(--text-muted);" title={project.description}>{project.description}</p>
 				{/if}
 			{/if}
 		</div>

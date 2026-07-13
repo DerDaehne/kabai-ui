@@ -43,7 +43,7 @@
 	// Gerendert wird höhenbasiert statt mit fester Seitengröße: initial so
 	// viele Tickets, wie in die (auf Viewport-Höhe gedeckelte) Spalte passen,
 	// beim Scrollen ans Listenende lädt die Spalte automatisch nach.
-	const CARD_ESTIMATE = 96; // min-h 92px + gap
+	const CARD_ESTIMATE = 72; // min-h 64px + gap
 	const LOAD_CHUNK = 25;
 	let zoneHeight = 0;
 	let extraCount = 0;
@@ -95,14 +95,16 @@
 >
 	<!-- Column Header -->
 	<div
-		class="px-4 py-2.5 flex items-center justify-between gap-2"
+		class="column-header px-3 py-2 flex items-center justify-between gap-2"
 	>
 		<div class="flex items-center gap-2 min-w-0">
-			<div class="w-2 h-2 rounded-full shrink-0" style="background: {accent.border};"></div>
+			<div class="w-1.5 h-1.5 rounded-full shrink-0" style="background: {accent.border};"></div>
 			<span class="font-semibold truncate text-sm" style="color: var(--text);">{status.display_name}</span>
 			<span class="font-mono text-xs shrink-0" style="color: var(--color-text-secondary);">{tickets.length}</span>
 		</div>
-		<div class="flex items-center gap-1 shrink-0">
+		<!-- Aktionen erst bei Hover/Fokus der Spalte sichtbar (focus-within hält
+		     sie für Tastaturnutzer erreichbar) -->
+		<div class="column-actions flex items-center gap-1 shrink-0">
 			<button
 				onclick={onOpenStatuses}
 				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
@@ -130,7 +132,7 @@
 	<!-- Drop Zone Body: scrollt innerhalb der (viewport-gedeckelten) Spalte;
 	     Scroll ans Ende lädt automatisch weitere Tickets nach -->
 	<div
-		class="flex-1 p-2 space-y-2 min-h-[160px] overflow-y-auto transition-all duration-200"
+		class="flex-1 p-1.5 space-y-1.5 min-h-[160px] overflow-y-auto transition-all duration-200"
 		style="background: {isDragOver ? 'color-mix(in srgb, var(--color-primary) 8%, transparent)' : 'transparent'};"
 		bind:clientHeight={zoneHeight}
 		onscroll={handleZoneScroll}
@@ -182,3 +184,21 @@
 		Neues Ticket
 	</button>
 </div>
+
+<style>
+	.column-actions {
+		opacity: 0;
+		transition: opacity var(--duration-fast) var(--ease-soft);
+	}
+
+	.column-header:hover .column-actions,
+	.column-header:focus-within .column-actions {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.column-actions {
+			transition: none;
+		}
+	}
+</style>
