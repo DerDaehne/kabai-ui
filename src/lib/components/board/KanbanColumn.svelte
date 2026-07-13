@@ -43,7 +43,7 @@
 	// Gerendert wird höhenbasiert statt mit fester Seitengröße: initial so
 	// viele Tickets, wie in die (auf Viewport-Höhe gedeckelte) Spalte passen,
 	// beim Scrollen ans Listenende lädt die Spalte automatisch nach.
-	const CARD_ESTIMATE = 72; // min-h 64px + gap
+	const CARD_ESTIMATE = 78; // min-h 72px + gap
 	const LOAD_CHUNK = 25;
 	let zoneHeight = 0;
 	let extraCount = 0;

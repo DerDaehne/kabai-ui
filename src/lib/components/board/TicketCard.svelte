@@ -43,7 +43,7 @@
 	ondragstart={handleDragStart}
 	ondragend={handleDragEnd}
 	onclick={() => onTicketClick(ticket.id)}
-	class="ticket-card relative min-h-[64px] flex flex-col px-3 py-2.5 rounded-lg border cursor-pointer select-none"
+	class="ticket-card relative min-h-[72px] flex flex-col px-3 py-2.5 rounded-lg border cursor-pointer select-none"
 	class:is-dragging={isDragging}
 	style="background: {isDragging ? 'var(--card-bg-hover)' : 'var(--card-bg)'}; border-color: {isDragging ? 'var(--primary)' : 'var(--edge)'}; box-shadow: {isDragging ? 'var(--elevation-2)' : 'none'}; opacity: {isDragging ? 0.5 : 1}; transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft), background-color var(--duration-fast) var(--ease-soft), transform var(--duration-fast) var(--ease-soft), opacity var(--duration-fast) var(--ease-soft);{isDragging ? ' transform: rotate(1.5deg) scale(1.02);' : ''}"
 >
