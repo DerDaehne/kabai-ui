@@ -380,7 +380,7 @@
 						{#if showActionsMenu}
 							<div role="menu" aria-label="Weitere Aktionen"
 								class="absolute right-0 top-full mt-1 z-20 min-w-[140px] rounded-lg py-1"
-								style="background: var(--color-surface); box-shadow: var(--elevation-2), var(--highlight-top);">
+								style="background: var(--color-surface); box-shadow: var(--elevation-2);">
 								<button role="menuitem" onclick={() => { showActionsMenu = false; handleDelete(); }} disabled={isDeleting}
 									class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors hover:bg-[rgba(239,68,68,0.1)]"
 									style="color: var(--danger);">
@@ -422,7 +422,7 @@
 			{#if isEditing}
 				<div transition:slide={{ duration: 280, easing: cubicOut }}
 					class="rounded-xl p-4 space-y-3"
-					style="background: color-mix(in srgb, var(--color-primary) 3%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 20%, transparent), var(--highlight-top);">
+					style="background: color-mix(in srgb, var(--color-primary) 3%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 20%, transparent);">
 					<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Bearbeiten</p>
 					<div>
 						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Titel *</label>
@@ -505,23 +505,21 @@
 			{/if}
 
 			<!-- Tasks -->
-			<div class="rounded-xl overflow-hidden card">
-				<div class="px-4 py-3 flex items-center justify-between">
-					<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
-						<CheckSquare class="w-4 h-4" style="color: var(--accent);" /> Tasks
-					</h3>
+			<section>
+				<div class="pb-2 flex items-center justify-between">
+					<h3 class="section-heading">Tasks</h3>
 					{#if tasksTotal > 0}
 						<span class="text-xs font-mono" style="color: var(--text-muted);">{tasksCompleted}/{tasksTotal}</span>
 					{/if}
 				</div>
 				<div class="hairline"></div>
 				{#if tasksTotal > 0}
-					<div class="px-4 pt-3 pb-1">
+					<div class="pt-3 pb-1">
 						<div class="h-1 rounded-full mb-3" style="background: rgba(255,255,255,0.06);">
 							<div class="h-full rounded-full transition-all duration-500" style="width: {taskProgress}%; background: {taskProgress === 100 ? 'var(--success)' : 'var(--primary)'}; "></div>
 						</div>
 					</div>
-					<div class="px-4 pb-2 space-y-0.5">
+					<div class="pb-2 space-y-0.5">
 						{#each ticket.tasks as task (task.id)}
 							<div class="group flex items-center gap-3 py-1.5 px-2 rounded-lg transition-all hover:bg-[var(--color-surface-hover)]">
 								<label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
@@ -539,8 +537,7 @@
 						{/each}
 					</div>
 				{/if}
-				<div class="hairline"></div>
-				<div class="px-4 py-3 flex gap-2" style="background: rgba(255,255,255,0.02);">
+				<div class="pt-2 flex gap-2">
 					<input type="text" bind:value={newTaskTitle} placeholder="Neue Task…"
 						class="input text-sm flex-1"
 						onkeydown={(e) => e.key === 'Enter' && addTask()} />
@@ -551,14 +548,14 @@
 						Hinzufügen
 					</button>
 				</div>
-			</div>
+			</section>
 
 			<!-- Relations -->
-			<div class="rounded-xl overflow-hidden card">
-				<div class="px-4 py-3 flex items-center justify-between">
-					<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
-						<GitBranch class="w-4 h-4" style="color: var(--accent);" /> Verknüpfungen
-						{#if ticket.relations.length > 0}<span class="text-xs font-normal" style="color: var(--text-muted);">({ticket.relations.length})</span>{/if}
+			<section>
+				<div class="pb-2 flex items-center justify-between">
+					<h3 class="section-heading flex items-center gap-2">
+						Verknüpfungen
+						{#if ticket.relations.length > 0}<span class="text-xs font-mono normal-case tracking-normal" style="color: var(--text-muted);">{ticket.relations.length}</span>{/if}
 					</h3>
 					{#if !showAddRelation}
 						<button onclick={openAddRelation}
@@ -571,7 +568,7 @@
 				<div class="hairline"></div>
 
 				{#if showAddRelation}
-					<div class="px-4 py-3 space-y-2" style="background: rgba(139,92,246,0.03);" transition:slide={{ duration: 200 }}>
+					<div class="py-3 space-y-2" transition:slide={{ duration: 200 }}>
 						<div class="grid grid-cols-2 gap-2">
 							<select bind:value={relationType} class="input text-xs">
 								{#each Object.entries(relationLabels) as [value, label]}<option {value}>{label}</option>{/each}
@@ -593,9 +590,9 @@
 				{/if}
 
 				{#if ticket.relations.length === 0 && !showAddRelation}
-					<div class="px-4 py-4 text-xs text-center" style="color: var(--text-muted);">Keine Verknüpfungen</div>
+					<div class="py-3 text-xs" style="color: var(--text-muted);">Keine Verknüpfungen</div>
 				{:else if ticket.relations.length > 0}
-					<div class="px-4 py-2 space-y-1">
+					<div class="py-2 space-y-1">
 						{#each ticket.relations as rel (rel.id)}
 							<div class="flex items-center justify-between gap-2 py-1.5 text-xs">
 								<span style="color: var(--text-muted);">
@@ -611,27 +608,27 @@
 						{/each}
 					</div>
 				{/if}
-			</div>
+			</section>
 
 			<!-- Knowledge-Base-Notes -->
 			{#if ticket.docs_required || ticket.linked_notes.length > 0}
-				<div class="rounded-xl overflow-hidden card">
-					<div class="px-4 py-3">
-						<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
-							<BookOpen class="w-4 h-4" style="color: var(--accent);" />
-							Knowledge Base {#if ticket.linked_notes.length > 0}({ticket.linked_notes.length}){/if}
+				<section>
+					<div class="pb-2">
+						<h3 class="section-heading flex items-center gap-2">
+							Knowledge Base
+							{#if ticket.linked_notes.length > 0}<span class="text-xs font-mono normal-case tracking-normal" style="color: var(--text-muted);">{ticket.linked_notes.length}</span>{/if}
 						</h3>
 					</div>
 					<div class="hairline"></div>
 					{#if ticket.docs_required && ticket.linked_notes.length === 0}
-						<div class="mx-4 my-3 flex items-start gap-2 p-3 rounded-lg text-xs"
+						<div class="my-3 flex items-start gap-2 p-3 rounded-lg text-xs"
 							style="background: color-mix(in srgb, var(--color-warning) 7%, transparent); border-left: 2px solid var(--color-warning); color: var(--color-warning);">
 							<AlertTriangle class="w-4 h-4 shrink-0" />
 							<span>Dieses Ticket hat <strong>Doku-Pflicht</strong>, aber noch keine verlinkte Note — es kann erst geschlossen werden, wenn eine Knowledge-Base-Note verlinkt ist (via <code>kabai_docs_link_ticket</code>) oder die Pflicht mit Begründung entfernt wird.</span>
 						</div>
 					{/if}
 					{#if ticket.linked_notes.length > 0}
-						<div class="px-4 py-2 space-y-1">
+						<div class="py-2 space-y-1">
 							{#each ticket.linked_notes as ln (`${ln.note_id}-${ln.relation}`)}
 								<a href="/notes/{ln.slug}"
 									class="flex items-center gap-2 py-1.5 px-2 rounded-lg text-xs transition-all hover:bg-[var(--color-surface-hover)]"
@@ -646,29 +643,29 @@
 							{/each}
 						</div>
 					{:else if !ticket.docs_required}
-						<div class="px-4 py-4 text-xs text-center" style="color: var(--text-muted);">Keine Notes verlinkt</div>
+						<div class="py-3 text-xs" style="color: var(--text-muted);">Keine Notes verlinkt</div>
 					{/if}
-				</div>
+				</section>
 			{/if}
 
 			<!-- Comments -->
-			<div class="rounded-xl overflow-hidden card">
-				<div class="px-4 py-3">
-					<h3 class="flex items-center gap-2 text-sm font-semibold" style="color: var(--text);">
-						<MessageSquare class="w-4 h-4" style="color: var(--accent);" />
-						Kommentare {#if ticket.comments.length > 0}({ticket.comments.length}){/if}
+			<section>
+				<div class="pb-2">
+					<h3 class="section-heading flex items-center gap-2">
+						Kommentare
+						{#if ticket.comments.length > 0}<span class="text-xs font-mono normal-case tracking-normal" style="color: var(--text-muted);">{ticket.comments.length}</span>{/if}
 					</h3>
 				</div>
 				<div class="hairline"></div>
 				{#if ticket.comments.length > 0}
-					<div class="px-4 py-3 space-y-3">
+					<div class="py-3 space-y-3">
 						{#each ticket.comments as comment (comment.id)}
 							<div class="flex gap-3">
 								<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
 									style="background: var(--color-surface-hover); color: var(--color-text-secondary);">
 									{comment.author.split(' ').map((p: string) => p.charAt(0).toUpperCase()).slice(0,2).join('')}
 								</div>
-								<div class="flex-1 rounded-xl px-3 py-2.5" style="background: rgba(255,255,255,0.03); box-shadow: var(--highlight-top);">
+								<div class="flex-1 rounded-lg px-3 py-2.5" style="background: rgba(255,255,255,0.03);">
 									<div class="flex items-center gap-2 mb-1">
 										<span class="text-xs font-semibold" style="color: var(--text);">{comment.author}</span>
 										<span class="text-xs font-mono" style="color: var(--text-muted);">{new Date(comment.created_at).toLocaleDateString('de-DE')}</span>
@@ -679,8 +676,7 @@
 						{/each}
 					</div>
 				{/if}
-				<div class="hairline"></div>
-				<div class="px-4 py-3 space-y-2" style="background: rgba(255,255,255,0.02);">
+				<div class="pt-2 space-y-2">
 					<textarea bind:value={newCommentText} class="input resize-none text-sm" rows="2" placeholder="Kommentar hinzufügen…"></textarea>
 					<div class="flex justify-end">
 						<button onclick={addComment} disabled={!newCommentText.trim() || isAddingComment}
@@ -691,7 +687,7 @@
 						</button>
 					</div>
 				</div>
-			</div>
+			</section>
 		</div>
 	{/if}
 </div>

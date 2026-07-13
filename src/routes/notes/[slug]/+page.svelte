@@ -198,7 +198,7 @@
 
 		<!-- Hub: Inhaltsverzeichnis -->
 		{#if note.kind === 'hub' && containsOut.length > 0}
-			<div class="rounded-xl p-5" style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--card-bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-warning) 25%, transparent), var(--highlight-top);" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
+			<div class="rounded-xl p-5" style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--card-bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-warning) 25%, transparent);" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
 				<div class="flex items-center gap-2 mb-3">
 					<ListTree class="w-4 h-4" style="color: var(--color-warning);" />
 					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Inhaltsverzeichnis</h2>

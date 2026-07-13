@@ -25,7 +25,7 @@
 {#if visible}
 	<div
 		class="bg-[var(--card-bg)] rounded-lg p-4 max-w-sm animate-in fade-in slide-in-from-bottom-2"
-		style="box-shadow: var(--elevation-2), var(--highlight-top);"
+		style="box-shadow: var(--elevation-2);"
 		class:toast-success={type === 'success'}
 		class:toast-error={type === 'error'}
 		class:toast-warning={type === 'warning'}

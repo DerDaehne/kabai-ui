@@ -135,7 +135,7 @@
 	{#if showNewForm}
 		<div transition:slide={{ duration: 260, easing: cubicOut }}
 			class="mb-4 p-4 rounded-xl space-y-3"
-			style="background: color-mix(in srgb, var(--color-primary) 4%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent), var(--highlight-top);">
+			style="background: color-mix(in srgb, var(--color-primary) 4%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent);">
 			<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Neuer Status</p>
 			<div class="grid grid-cols-2 gap-3">
 				<div>
@@ -188,7 +188,7 @@
 				{@const ac = accent(i)}
 				<div in:fly={{ y: 16, duration: 300, delay: i * 40, easing: quintOut }}
 					class="rounded-xl overflow-hidden"
-					style="background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 0 1px ${ac.border}66, var(--elevation-1), var(--highlight-top)` : 'var(--elevation-1), var(--highlight-top)'}; transition: box-shadow var(--duration-base) var(--ease-soft);">
+					style="background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 0 1px ${ac.border}66` : '0 0 0 1px var(--edge)'}; transition: box-shadow var(--duration-base) var(--ease-soft);">
 					<div class="flex items-center gap-3 p-3">
 						<div class="w-1 self-stretch rounded-full shrink-0" style="background: {ac.border};"></div>
 						<div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"

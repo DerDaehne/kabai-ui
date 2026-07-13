@@ -194,7 +194,7 @@
 				<div
 					in:fly={{ y: 24, duration: 400, delay: i * 60, easing: quintOut }}
 					class="rounded-xl overflow-hidden"
-					style="background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 0 1px ${accent.border}66, var(--elevation-1), var(--highlight-top)` : 'var(--elevation-1), var(--highlight-top)'}; transition: box-shadow var(--duration-base) var(--ease-soft);"
+					style="background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 0 1px ${accent.border}66` : '0 0 0 1px var(--edge)'}; transition: box-shadow var(--duration-base) var(--ease-soft);"
 				>
 					<!-- Status Row -->
 					<div class="flex items-center gap-4 p-4">

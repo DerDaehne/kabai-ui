@@ -91,12 +91,11 @@
      Bereich); längere Listen scrollen in der Drop-Zone statt die Seite zu
      verlängern. -->
 <div class="flex flex-col h-full max-h-[calc(100vh-14rem)] rounded-xl overflow-hidden"
-	style="border: 1px solid {isDragOver ? 'var(--color-primary)' : 'transparent'}; box-shadow: var(--elevation-1), var(--highlight-top); background: var(--card-bg); transition: border-color var(--duration-fast) var(--ease-soft), box-shadow var(--duration-fast) var(--ease-soft);"
+	style="border: 1px solid {isDragOver ? 'var(--color-primary)' : 'var(--edge)'}; background: color-mix(in srgb, var(--color-surface) 45%, var(--color-bg)); transition: border-color var(--duration-fast) var(--ease-soft);"
 >
 	<!-- Column Header -->
 	<div
-		class="px-4 py-3 flex items-center justify-between gap-2"
-		style="background: var(--color-surface-hover);"
+		class="px-4 py-2.5 flex items-center justify-between gap-2"
 	>
 		<div class="flex items-center gap-2 min-w-0">
 			<div class="w-2 h-2 rounded-full shrink-0" style="background: {accent.border};"></div>

@@ -139,7 +139,7 @@
 		<p class="text-center py-12 text-sm" style="color: var(--text-muted);">Keine Statuses gefunden.</p>
 	{:else}
 		<!-- Graph -->
-		<div class="rounded-xl overflow-hidden mb-5" style="height: 360px; box-shadow: var(--elevation-1), var(--highlight-top);">
+		<div class="rounded-xl overflow-hidden mb-5" style="height: 360px; box-shadow: inset 0 0 0 1px var(--edge);">
 			<SvelteFlow
 				{nodes}
 				{edges}
