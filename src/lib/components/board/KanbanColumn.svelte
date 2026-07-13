@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-	import { Plus, Pencil } from 'lucide-svelte';
+	import { Plus, Pencil, ChevronsLeft } from 'lucide-svelte';
 	import TicketCard from './TicketCard.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
 
@@ -22,6 +22,10 @@
 	export let onTicketDrop: (ticketId: number) => void;
 	export let onTicketClick: (ticketId: number) => void = () => {};
 	export let onOpenStatuses: () => void = () => {};
+	// Eingeklappter Zustand (Codeberg #5): Spalte als schmale Leiste, State
+	// liegt im Board (localStorage pro Projekt)
+	export let collapsed: boolean = false;
+	export let onToggleCollapse: () => void = () => {};
 	// Map ticket_id -> Zähler/Timestamp des letzten KI-Events (siehe aiActivity.ts).
 	// Treibt die einmalige Orbit-Animation auf der jeweiligen TicketCard.
 	export let orbitSignals: Map<number, number> = new Map();
@@ -84,6 +88,36 @@
 	}
 </script>
 
+{#if collapsed}
+	<!-- Eingeklappte Spalte: schmale vertikale Leiste — bleibt Drop-Ziel,
+	     damit Tickets auch in ausgeblendete Status verschoben werden können -->
+	<div
+		role="region"
+		aria-label="Spalte {status.display_name} (eingeklappt)"
+		class="flex flex-col h-full max-h-[calc(100vh-14rem)] min-h-[200px] rounded-xl overflow-hidden"
+		style="border: 1px solid {isDragOver ? 'var(--color-primary)' : 'var(--edge)'}; background: {isDragOver ? 'color-mix(in srgb, var(--color-primary) 8%, transparent)' : 'color-mix(in srgb, var(--color-surface) 45%, var(--color-bg))'}; transition: border-color var(--duration-fast) var(--ease-soft), background-color var(--duration-fast) var(--ease-soft);"
+		ondragover={handleDragOver}
+		ondragleave={handleDragLeave}
+		ondrop={handleDrop}
+	>
+		<button
+			onclick={onToggleCollapse}
+			aria-expanded="false"
+			title="Spalte {status.display_name} ausklappen"
+			class="flex-1 w-full flex flex-col items-center gap-2.5 py-3 cursor-pointer focus-visible:outline focus-visible:outline-2"
+			style="color: var(--text-muted); outline-color: var(--color-primary); background: transparent; border: none;"
+			onmouseenter={(e) => { e.currentTarget.style.color = 'var(--color-text)'; }}
+			onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+		>
+			{#if isDragOver}
+				<Plus class="w-3.5 h-3.5 shrink-0" style="color: var(--color-primary);" />
+			{/if}
+			<div class="w-1.5 h-1.5 rounded-full shrink-0" style="background: {accent.border};"></div>
+			<span class="text-sm font-semibold shrink-0" style="writing-mode: vertical-rl; color: var(--text);">{status.display_name}</span>
+			<span class="font-mono text-xs shrink-0" style="color: var(--color-text-secondary);">{tickets.length}</span>
+		</button>
+	</div>
+{:else}
 <!-- h-full: der Wrapper im Board wird per Flex-Stretch auf die Höhe der
      längsten Spalte gezogen — die Karte muss ihn füllen, damit kurze/leere
      Spalten gleich hoch sind und ihre Drop-Zone (flex-1) mitwächst (#18).
@@ -105,6 +139,17 @@
 		<!-- Aktionen erst bei Hover/Fokus der Spalte sichtbar (focus-within hält
 		     sie für Tastaturnutzer erreichbar) -->
 		<div class="column-actions flex items-center gap-1 shrink-0">
+			<button
+				onclick={onToggleCollapse}
+				aria-expanded="true"
+				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
+				style="color: var(--text-muted);"
+				onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
+				onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+				title="Spalte einklappen"
+			>
+				<ChevronsLeft class="w-3.5 h-3.5" />
+			</button>
 			<button
 				onclick={onOpenStatuses}
 				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
@@ -184,6 +229,7 @@
 		Neues Ticket
 	</button>
 </div>
+{/if}
 
 <style>
 	.column-actions {

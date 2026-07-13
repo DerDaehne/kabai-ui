@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
@@ -15,6 +16,28 @@
 
 	let dragError = '';
 	let dragErrorTimer: ReturnType<typeof setTimeout>;
+
+	// Eingeklappte Spalten (Codeberg #5): pro Projekt in localStorage gemerkt,
+	// damit z.B. ein ausgeblendetes Backlog den Reload überlebt.
+	let collapsedIds: number[] = [];
+	$: storageKey = `kabai:collapsedColumns:${projectId}`;
+	$: if (browser && projectId) loadCollapsed(storageKey);
+
+	function loadCollapsed(key: string) {
+		try {
+			const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+			collapsedIds = Array.isArray(parsed) ? parsed.filter((v) => typeof v === 'number') : [];
+		} catch {
+			collapsedIds = [];
+		}
+	}
+
+	function toggleCollapsed(statusId: number) {
+		collapsedIds = collapsedIds.includes(statusId)
+			? collapsedIds.filter((id) => id !== statusId)
+			: [...collapsedIds, statusId];
+		if (browser) localStorage.setItem(storageKey, JSON.stringify(collapsedIds));
+	}
 
 	$: groupedTickets = statuses.map(status => ({
 		status,
@@ -70,12 +93,15 @@
 			     scrollt horizontal (Fallback für sehr viele Spalten). 250er-
 			     Minimum ist so gewählt, dass 6 Spalten bei 1920px inkl. offener
 			     SideNav nebeneinander passen. -->
-			<div in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }} class="flex-1 min-w-[250px] max-w-[420px]">
+			<div in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }}
+				class={collapsedIds.includes(status.id) ? 'flex-none w-11' : 'flex-1 min-w-[250px] max-w-[420px]'}>
 				<KanbanColumn
 					{status}
 					tickets={statusTickets}
 					{projectId}
 					colorIndex={i}
+					collapsed={collapsedIds.includes(status.id)}
+					onToggleCollapse={() => toggleCollapsed(status.id)}
 					onNewTicket={() => handleNewTicket(status.id)}
 					onTicketDrop={(ticketId) => handleTicketDrop(ticketId, status.id)}
 					{onTicketClick}
