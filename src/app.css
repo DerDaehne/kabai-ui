@@ -68,6 +68,7 @@
 
     --radius-card: 10px;
     --radius-panel: 14px;
+    --radius-control: 6px;
 
     /* Theme v2 — Tiefe & Transparenz statt harter Borders */
     --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
@@ -147,6 +148,11 @@
     font-size: 14px;
     font-weight: 600;
     letter-spacing: -0.01em;
+  }
+
+  /* Feinere Icon-Strichstärke im UI-Chrome (lucide default wäre 2) */
+  .lucide {
+    stroke-width: 1.5px;
   }
 
   ::-webkit-scrollbar {
@@ -304,6 +310,29 @@
     background: var(--color-surface-hover);
   }
 
+  /* Sekundäre Aktionen (Hinzufügen, Kommentieren, Bearbeiten …): ruhige
+     Fläche + Kante statt gefülltem Primary — pro View bleibt höchstens
+     EIN gefüllter Primary übrig. */
+  .btn-subtle {
+    background: var(--color-surface-hover);
+    border: 1px solid var(--edge);
+    color: var(--color-text);
+    border-radius: var(--radius-control);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-soft);
+  }
+
+  .btn-subtle:hover {
+    border-color: var(--edge-strong);
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--color-surface-hover) 80%, white 4%);
+  }
+
+  .btn-subtle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .btn-danger {
     @apply px-4 py-2 rounded-md font-medium cursor-pointer;
     background: var(--color-danger);
@@ -394,16 +423,28 @@
     border-left: 4px solid var(--warning);
   }
 
+  /* Theme v4: Dot + Text statt Farbfläche-Pill — die Farbe sitzt nur noch
+     im 6px-Punkt, das Label bleibt ruhig in Textfarbe. */
   .status-chip {
     display: inline-flex;
     align-items: center;
-    padding: 0.125rem 0.5rem;
-    border-radius: 9999px;
+    gap: 6px;
+    padding: 0.125rem 0.25rem;
     font-weight: 500;
-    font-size: 12px;
-    background: color-mix(in srgb, var(--chip-color) 15%, transparent);
-    color: var(--chip-color);
-    border: 1px solid color-mix(in srgb, var(--chip-color) 30%, transparent);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: none;
+  }
+
+  .status-chip::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--chip-color);
+    flex-shrink: 0;
   }
 }
 

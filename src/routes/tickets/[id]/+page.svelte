@@ -5,7 +5,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { ArrowLeft, CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, BookOpen, Compass, AlertTriangle, Archive, Plus } from 'lucide-svelte';
+	import { ArrowLeft, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, BookOpen, Compass, AlertTriangle, Archive, Plus } from 'lucide-svelte';
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import { pushAiEvent } from '$lib/stores/aiActivity';
 	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
@@ -286,14 +286,14 @@
 				<div class="px-6 py-4 flex items-start justify-between gap-4">
 					<div class="flex-1 min-w-0">
 						<div class="flex items-center gap-3 flex-wrap mb-1">
-							<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--primary);">#{ticket.id}</span>
+							<span class="text-xs font-mono" style="color: var(--text-muted);">#{ticket.id}</span>
 							{#if ticket.status}
 								<span class="status-chip" style="--chip-color: var(--color-primary);">{ticket.status.display_name}</span>
 							{/if}
 							{#if ticket.docs_required}
-								<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
+								<span class="flex items-center gap-1 text-xs font-medium"
 									title="Dieses Ticket erfordert eine verlinkte Knowledge-Base-Note, bevor es geschlossen werden kann"
-									style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.3);">
+									style="color: var(--text-muted);">
 									<BookOpen class="w-3 h-3" /> Doku-Pflicht
 								</span>
 							{/if}
@@ -305,8 +305,7 @@
 						{#if !isEditing}
 							<button
 								onclick={startEdit}
-								class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200"
-								style="color: var(--primary); background: color-mix(in srgb, var(--color-primary) 10%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);"
+								class="btn-subtle flex items-center gap-2 px-3 py-1.5 text-sm font-medium"
 							>
 								<Pencil class="w-3.5 h-3.5" />
 								Bearbeiten
@@ -414,7 +413,7 @@
 					{#if ticket.model}
 						<div class="flex items-center gap-2">
 							<Cpu class="w-4 h-4 shrink-0" style="color: var(--accent);" />
-							<span class="font-mono text-xs px-2 py-0.5 rounded" style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.25);">{ticket.model}</span>
+							<span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background: var(--color-surface-hover); color: var(--color-text-secondary);">{ticket.model}</span>
 						</div>
 					{/if}
 					<div class="flex items-center gap-2">
@@ -493,9 +492,8 @@
 						class="input text-sm flex-1"
 						onkeydown={(e) => e.key === 'Enter' && addTask()} />
 					<button onclick={addTask} disabled={!newTaskTitle.trim() || isAddingTask}
-						class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold shrink-0 transition-all"
-						style="background: var(--accent); color: #fff; opacity: {!newTaskTitle.trim() || isAddingTask ? 0.5 : 1};">
-						{#if isAddingTask}<div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-4 h-4" />{/if}
+						class="btn-subtle flex items-center gap-1.5 px-4 py-2 text-sm font-medium shrink-0">
+						{#if isAddingTask}<div class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-4 h-4" />{/if}
 						Hinzufügen
 					</button>
 				</div>
@@ -529,7 +527,7 @@
 									{:else}
 										<BookOpen class="w-4 h-4 shrink-0" style="color: {ln.kind === 'adr' ? 'var(--color-secondary)' : 'var(--primary)'};" />
 									{/if}
-									<span class="text-xs font-semibold px-1.5 py-0.5 rounded shrink-0" style="background: rgba(139,92,246,0.1); color: var(--accent);">{noteRelationLabels[ln.relation] ?? ln.relation}</span>
+									<span class="text-xs font-medium px-1.5 py-0.5 rounded shrink-0" style="background: var(--color-surface-hover); color: var(--color-text-secondary);">{noteRelationLabels[ln.relation] ?? ln.relation}</span>
 									<span class="truncate" style="color: var(--text);">{ln.title}</span>
 									{#if ln.archived}<Archive class="w-3.5 h-3.5 shrink-0" style="color: var(--text-muted);" />{/if}
 									<code class="text-xs ml-auto shrink-0 hidden sm:inline" style="color: var(--text-muted);">{ln.slug}</code>
@@ -583,9 +581,8 @@
 					<textarea bind:value={newCommentText} class="input resize-none text-sm" rows="2" placeholder="Kommentar hinzufügen…"></textarea>
 					<div class="flex justify-end">
 						<button onclick={addComment} disabled={!newCommentText.trim() || isAddingComment}
-							class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-							style="background: var(--accent); color: #fff; opacity: {!newCommentText.trim() || isAddingComment ? 0.5 : 1};">
-							{#if isAddingComment}<div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{:else}<MessageSquare class="w-3.5 h-3.5" />{/if}
+							class="btn-subtle flex items-center gap-1.5 px-4 py-2 text-sm font-medium">
+							{#if isAddingComment}<div class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>{:else}<MessageSquare class="w-3.5 h-3.5" />{/if}
 							Kommentieren
 						</button>
 					</div>

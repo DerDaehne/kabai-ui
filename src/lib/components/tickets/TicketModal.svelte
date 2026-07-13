@@ -4,7 +4,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { CheckSquare, MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, GitBranch, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal } from 'lucide-svelte';
+	import { MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal } from 'lucide-svelte';
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
 
@@ -344,20 +344,19 @@
 			<div class="flex items-start justify-between gap-4">
 				<div class="flex-1 min-w-0">
 					<div class="flex items-center gap-2 flex-wrap mb-2">
-						<span class="text-xs font-mono px-2 py-0.5 rounded" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--primary);">#{ticket.id}</span>
+						<span class="text-xs font-mono" style="color: var(--text-muted);">#{ticket.id}</span>
 						{#if ticket.status}
 							<span class="status-chip" style="--chip-color: var(--color-primary);">{ticket.status.display_name}</span>
 						{/if}
 						{#if ticket.type === 'epic'}
-							<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
-								style="background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+							<span class="flex items-center gap-1 text-xs font-medium" style="color: var(--color-warning);">
 								<Flag class="w-3 h-3" /> Epic
 							</span>
 						{/if}
 						{#if ticket.docs_required}
-							<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
+							<span class="flex items-center gap-1 text-xs font-medium"
 								title="Dieses Ticket erfordert eine verlinkte Knowledge-Base-Note, bevor es geschlossen werden kann"
-								style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.3);">
+								style="color: var(--text-muted);">
 								<BookOpen class="w-3 h-3" /> Doku-Pflicht
 							</span>
 						{/if}
@@ -367,7 +366,7 @@
 				<div class="flex items-center gap-2 shrink-0">
 					{#if !isEditing}
 						<button onclick={startEdit}
-							class="btn btn-primary flex items-center gap-1.5 !px-3 !py-1.5 text-xs">
+							class="btn-subtle flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium">
 							<Pencil class="w-3.5 h-3.5" /> Bearbeiten
 						</button>
 					{/if}
@@ -489,7 +488,7 @@
 				{#if ticket.model}
 					<div class="flex items-center gap-1.5">
 						<Cpu class="w-3.5 h-3.5 shrink-0" style="color: var(--accent);" />
-						<span class="font-mono text-xs px-2 py-0.5 rounded" style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.25);">{ticket.model}</span>
+						<span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background: var(--color-surface-hover); color: var(--color-text-secondary);">{ticket.model}</span>
 					</div>
 				{/if}
 				<div class="flex items-center gap-1.5 font-mono text-xs" style="color: var(--text-muted);">
@@ -542,9 +541,8 @@
 						class="input text-sm flex-1"
 						onkeydown={(e) => e.key === 'Enter' && addTask()} />
 					<button onclick={addTask} disabled={!newTaskTitle.trim() || isAddingTask}
-						class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all"
-						style="background: var(--accent); color: #fff; opacity: {!newTaskTitle.trim() || isAddingTask ? 0.5 : 1};">
-						{#if isAddingTask}<div class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-3.5 h-3.5" />{/if}
+						class="btn-subtle flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium shrink-0">
+						{#if isAddingTask}<div class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-3.5 h-3.5" />{/if}
 						Hinzufügen
 					</button>
 				</div>
@@ -559,8 +557,7 @@
 					</h3>
 					{#if !showAddRelation}
 						<button onclick={openAddRelation}
-							class="flex items-center gap-1 text-xs px-2 py-1 rounded-md transition-all"
-							style="color: var(--accent); background: rgba(139,92,246,0.1);">
+							class="btn-subtle flex items-center gap-1 text-xs px-2 py-1">
 							<Plus class="w-3 h-3" /> Hinzufügen
 						</button>
 					{/if}
@@ -579,9 +576,9 @@
 							</select>
 						</div>
 						<div class="flex justify-end gap-2">
-							<button onclick={() => showAddRelation = false} class="px-3 py-1 rounded-md text-xs" style="color: var(--text-muted); background: var(--border);">Abbrechen</button>
+							<button onclick={() => showAddRelation = false} class="btn-subtle px-3 py-1 text-xs" style="color: var(--text-muted);">Abbrechen</button>
 							<button onclick={addRelation} disabled={!relationTargetId || isAddingRelation}
-								class="px-3 py-1 rounded-md text-xs font-semibold" style="background: var(--accent); color: #fff; opacity: {!relationTargetId || isAddingRelation ? 0.5 : 1};">
+								class="px-3 py-1 rounded-md text-xs font-semibold" style="background: var(--color-primary); color: #0e0f13; opacity: {!relationTargetId || isAddingRelation ? 0.5 : 1};">
 								Verknüpfen
 							</button>
 						</div>
@@ -635,7 +632,7 @@
 									style="{ln.archived ? 'opacity: 0.55;' : ''}">
 									<Compass class="w-3.5 h-3.5 shrink-0 {ln.kind === 'hub' ? '' : 'hidden'}" style="color: var(--color-warning);" />
 									<BookOpen class="w-3.5 h-3.5 shrink-0 {ln.kind === 'hub' ? 'hidden' : ''}" style="color: {ln.kind === 'adr' ? 'var(--color-secondary)' : 'var(--primary)'};" />
-									<span class="font-semibold px-1.5 py-0.5 rounded shrink-0" style="background: rgba(139,92,246,0.1); color: var(--accent);">{noteRelationLabels[ln.relation] ?? ln.relation}</span>
+									<span class="font-medium px-1.5 py-0.5 rounded shrink-0" style="background: var(--color-surface-hover); color: var(--color-text-secondary);">{noteRelationLabels[ln.relation] ?? ln.relation}</span>
 									<span class="truncate" style="color: var(--text);">{ln.title}</span>
 									{#if ln.archived}<Archive class="w-3 h-3 shrink-0" style="color: var(--text-muted);" />{/if}
 									<code class="ml-auto shrink-0 hidden sm:inline" style="color: var(--text-muted);">{ln.slug}</code>
@@ -680,9 +677,8 @@
 					<textarea bind:value={newCommentText} class="input resize-none text-sm" rows="2" placeholder="Kommentar hinzufügen…"></textarea>
 					<div class="flex justify-end">
 						<button onclick={addComment} disabled={!newCommentText.trim() || isAddingComment}
-							class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-							style="background: var(--accent); color: #fff; opacity: {!newCommentText.trim() || isAddingComment ? 0.5 : 1};">
-							{#if isAddingComment}<div class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{:else}<MessageSquare class="w-3.5 h-3.5" />{/if}
+							class="btn-subtle flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium">
+							{#if isAddingComment}<div class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>{:else}<MessageSquare class="w-3.5 h-3.5" />{/if}
 							Kommentieren
 						</button>
 					</div>
