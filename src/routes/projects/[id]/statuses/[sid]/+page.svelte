@@ -105,7 +105,7 @@
 					<Layers class="w-5 h-5" style="color: var(--primary);" />
 				</div>
 				<div>
-					<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Status bearbeiten</h1>
+					<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Status bearbeiten</h1>
 					<code class="text-sm font-mono" style="color: var(--text-muted);">{status.name}</code>
 				</div>
 			</div>

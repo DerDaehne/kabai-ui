@@ -130,7 +130,7 @@
 	<div class="hairline mx-2"></div>
 	<div class="px-2 pb-4 pt-2 flex flex-col gap-2">
 		{#if session}
-			<div class="{infoClass} items-center gap-2 px-2 text-small truncate" style="color: var(--color-text-secondary);">
+			<div class="{infoClass} items-center gap-2 px-2 text-caption font-mono truncate" style="color: var(--color-text-secondary);">
 				<User class="w-4 h-4 shrink-0" />
 				<span class="truncate">{session.username}@{session.db_host}:{session.db_port}</span>
 			</div>

@@ -44,7 +44,7 @@
 		<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 			<Home class="w-5 h-5" style="color: var(--primary);" />
 		</div>
-		<h1 class="text-3xl font-bold tracking-tight" style="color: var(--text);">Dashboard</h1>
+		<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Dashboard</h1>
 	</div>
 
 	{#if error}
@@ -78,25 +78,25 @@
 				<div class="flex items-center gap-2 mb-1" style="color: var(--primary);">
 					<Folder class="w-4 h-4" /><span class="text-xs font-medium">Projekte</span>
 				</div>
-				<p class="text-2xl font-bold" style="color: var(--text);">{data.totals.projects}</p>
+				<p class="text-2xl font-semibold font-mono" style="color: var(--text);">{data.totals.projects}</p>
 			</div>
 			<div class="rounded-xl p-4 card">
 				<div class="flex items-center gap-2 mb-1" style="color: var(--accent);">
 					<Ticket class="w-4 h-4" /><span class="text-xs font-medium">Tickets</span>
 				</div>
-				<p class="text-2xl font-bold" style="color: var(--text);">{data.totals.tickets}</p>
+				<p class="text-2xl font-semibold font-mono" style="color: var(--text);">{data.totals.tickets}</p>
 			</div>
 			<div class="rounded-xl p-4 card">
 				<div class="flex items-center gap-2 mb-1" style="color: var(--success);">
 					<CheckCircle2 class="w-4 h-4" /><span class="text-xs font-medium">Erledigt</span>
 				</div>
-				<p class="text-2xl font-bold" style="color: var(--text);">{data.totals.done}</p>
+				<p class="text-2xl font-semibold font-mono" style="color: var(--text);">{data.totals.done}</p>
 			</div>
 			<div class="rounded-xl p-4 card">
 				<div class="flex items-center gap-2 mb-1" style="color: var(--primary);">
 					<Inbox class="w-4 h-4" /><span class="text-xs font-medium">Wartet auf dich</span>
 				</div>
-				<p class="text-2xl font-bold" style="color: var(--text);">{data.totals.inbox}</p>
+				<p class="text-2xl font-semibold font-mono" style="color: var(--text);">{data.totals.inbox}</p>
 			</div>
 		</div>
 

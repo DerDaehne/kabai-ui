@@ -25,6 +25,23 @@
   --color-secondary-800: #0d0d28;
   --color-secondary-900: #08081a;
   --color-secondary-950: #04040e;
+
+  /* Theme v4: kompaktere Typo-Skala — Tailwind-Textklassen (text-xs …)
+     laufen über diese Tokens, damit die Dichte überall greift. */
+  --text-xs: 11px;
+  --text-xs--line-height: 16px;
+  --text-sm: 12.5px;
+  --text-sm--line-height: 18px;
+  --text-base: 13.5px;
+  --text-base--line-height: 20px;
+  --text-lg: 15px;
+  --text-lg--line-height: 22px;
+  --text-xl: 17px;
+  --text-xl--line-height: 24px;
+  --text-2xl: 20px;
+  --text-2xl--line-height: 27px;
+
+  --font-mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;
 }
 
 @layer base {
@@ -104,23 +121,28 @@
     background: var(--color-bg);
     color: var(--color-text);
     font-family: 'Inter Variable', system-ui, sans-serif;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 400;
+    font-variant-numeric: tabular-nums;
   }
 
+  /* Headings: kleiner, semibold, negatives Tracking — präzise statt plakativ */
   h1 {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 20px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
   }
 
   h2 {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
+    letter-spacing: -0.015em;
   }
 
   h3 {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   ::-webkit-scrollbar {
@@ -144,25 +166,28 @@
 @layer components {
   /* Typography scale */
   .h1 {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 20px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
     color: var(--color-text);
   }
 
   .h2 {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
+    letter-spacing: -0.015em;
     color: var(--color-text);
   }
 
   .h3 {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--color-text);
   }
 
   .text-body {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 400;
   }
 
@@ -172,6 +197,16 @@
 
   .text-caption {
     font-size: 11px;
+  }
+
+  /* Technische Werte (Ticket-IDs, Timestamps, Zähler): Mono + tabular-nums
+     gibt dem UI den präzisen Werkzeug-Charakter. */
+  .text-tech {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 11.5px;
+    letter-spacing: 0;
+    color: var(--color-text-secondary);
   }
 
   /* Elevation statt Border: Tiefe über Schatten + dezenten Top-Highlight

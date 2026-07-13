@@ -148,12 +148,12 @@
 		<div in:fly={{ y: -12, duration: 350, easing: quintOut }}>
 			<div class="flex items-center gap-2 flex-wrap mb-2">
 				<span class="status-chip uppercase tracking-wide" style="--chip-color: {ks.color};">{ks.label}</span>
-				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">{note.title}</h1>
+				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">{note.title}</h1>
 			</div>
 			<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" style="color: var(--text-muted);">
 				<code>{note.slug}</code>
-				<span>erstellt {formatDate(note.created_at)}</span>
-				<span>aktualisiert {formatDate(note.updated_at)}</span>
+				<span class="font-mono">erstellt {formatDate(note.created_at)}</span>
+				<span class="font-mono">aktualisiert {formatDate(note.updated_at)}</span>
 				{#each note.projects as p}
 					<button class="px-1.5 py-0.5 rounded-md transition-colors hover:bg-[var(--color-surface-hover)]" style="background: rgba(255,255,255,0.05); color: var(--text-muted);" onclick={() => goto(`/projects/${p.id}`)}>{p.name}</button>
 				{/each}

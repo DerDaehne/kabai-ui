@@ -77,7 +77,7 @@
 				<Plus class="w-5 h-5" style="color: var(--primary);" />
 			</div>
 			<div>
-				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Neuer Status</h1>
+				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Neuer Status</h1>
 				<p class="text-sm" style="color: var(--text-muted);">Erstellen Sie eine neue Board-Spalte</p>
 			</div>
 		</div>

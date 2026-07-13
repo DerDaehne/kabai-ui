@@ -492,7 +492,7 @@
 						<span class="font-mono text-xs px-2 py-0.5 rounded" style="background: rgba(139,92,246,0.12); color: var(--accent); border: 1px solid rgba(139,92,246,0.25);">{ticket.model}</span>
 					</div>
 				{/if}
-				<div class="flex items-center gap-1.5" style="color: var(--text-muted);">
+				<div class="flex items-center gap-1.5 font-mono text-xs" style="color: var(--text-muted);">
 					<Clock class="w-3.5 h-3.5 shrink-0" />
 					{new Date(ticket.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
 				</div>
@@ -511,7 +511,7 @@
 						<CheckSquare class="w-4 h-4" style="color: var(--accent);" /> Tasks
 					</h3>
 					{#if tasksTotal > 0}
-						<span class="text-xs" style="color: var(--text-muted);">{tasksCompleted}/{tasksTotal}</span>
+						<span class="text-xs font-mono" style="color: var(--text-muted);">{tasksCompleted}/{tasksTotal}</span>
 					{/if}
 				</div>
 				<div class="hairline"></div>
@@ -671,7 +671,7 @@
 								<div class="flex-1 rounded-xl px-3 py-2.5" style="background: rgba(255,255,255,0.03); box-shadow: var(--highlight-top);">
 									<div class="flex items-center gap-2 mb-1">
 										<span class="text-xs font-semibold" style="color: var(--text);">{comment.author}</span>
-										<span class="text-xs" style="color: var(--text-muted);">{new Date(comment.created_at).toLocaleDateString('de-DE')}</span>
+										<span class="text-xs font-mono" style="color: var(--text-muted);">{new Date(comment.created_at).toLocaleDateString('de-DE')}</span>
 									</div>
 									<p class="text-sm whitespace-pre-wrap" style="color: var(--text);">{comment.comment_text}</p>
 								</div>

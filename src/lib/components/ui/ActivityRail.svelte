@@ -86,9 +86,9 @@
 				>
 					<svelte:component this={opIcon(event.op)} class="w-4 h-4 shrink-0" style="color: var(--color-text-secondary);" />
 					<span class="text-small flex-1 min-w-0 truncate" style="color: var(--color-text);">
-						#{event.ticket_id} {opLabel(event.op)}
+						<span class="font-mono" style="color: var(--color-text-secondary);">#{event.ticket_id}</span> {opLabel(event.op)}
 					</span>
-					<span class="text-caption shrink-0" style="color: var(--color-text-secondary);">
+					<span class="text-caption font-mono shrink-0" style="color: var(--color-text-secondary);">
 						{relativeTime(event.timestamp, now)}
 					</span>
 				</button>

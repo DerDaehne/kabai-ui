@@ -59,7 +59,7 @@
 				<Plus class="w-5 h-5" style="color: var(--primary);" />
 			</div>
 			<div>
-				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Neues Projekt</h1>
+				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Neues Projekt</h1>
 				<p class="text-sm" style="color: var(--text-muted);">Kanban-Board erstellen</p>
 			</div>
 		</div>

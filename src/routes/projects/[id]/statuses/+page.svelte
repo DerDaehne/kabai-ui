@@ -130,7 +130,7 @@
 					<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 						<Layers class="w-5 h-5" style="color: var(--primary);" />
 					</div>
-					<h1 class="text-3xl font-bold tracking-tight" style="color: var(--text);">Board-Statuses</h1>
+					<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Board-Statuses</h1>
 				</div>
 				<p class="ml-12 text-sm" style="color: var(--text-muted);">
 					{statuses.length} Status{statuses.length !== 1 ? 'e' : ''} · Klicken zum inline Bearbeiten

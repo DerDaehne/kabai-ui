@@ -105,7 +105,7 @@
 				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 					<BookOpen class="w-5 h-5" style="color: var(--primary);" />
 				</div>
-				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Knowledge Base</h1>
+				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Knowledge Base</h1>
 			</div>
 			<p class="ml-12 text-sm" style="color: var(--text-muted);">
 				{notes.length} Note{notes.length !== 1 ? 's' : ''} · Zettelkasten aller Projekte
@@ -272,7 +272,7 @@
 						</div>
 
 						<div class="shrink-0 flex flex-col items-end gap-1.5 text-xs" style="color: var(--text-muted);">
-							<span>{formatDate(note.updated_at)}</span>
+							<span class="font-mono">{formatDate(note.updated_at)}</span>
 							{#if vs === 'fresh'}
 								<span class="flex items-center gap-1" style="color: var(--color-success);" title="Verifiziert am {formatDate(note.last_verified_at ?? '')}">
 									<ShieldCheck class="w-3.5 h-3.5" /> verifiziert

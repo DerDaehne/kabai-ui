@@ -94,7 +94,7 @@
 					<Settings class="w-5 h-5" style="color: var(--accent);" />
 				</div>
 				<div>
-					<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Projekt-Einstellungen</h1>
+					<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Projekt-Einstellungen</h1>
 					<code class="text-sm" style="color: var(--text-muted);">{project.slug}</code>
 				</div>
 			</div>

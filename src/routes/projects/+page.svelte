@@ -47,7 +47,7 @@
 				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
 					<Layers class="w-5 h-5" style="color: var(--primary);" />
 				</div>
-				<h1 class="text-2xl font-bold tracking-tight" style="color: var(--text);">Projekte</h1>
+				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Projekte</h1>
 			</div>
 			<p class="ml-12 text-sm" style="color: var(--text-muted);">
 				{projects.length} Projekt{projects.length !== 1 ? 'e' : ''} · Kanban-Boards
@@ -131,7 +131,7 @@
 
 					<div class="mt-4 mb-3 hairline"></div>
 					<div class="flex items-center justify-between">
-						<span class="text-xs" style="color: var(--text-muted);">
+						<span class="text-xs font-mono" style="color: var(--text-muted);">
 							{new Date(project.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
 						</span>
 						<div class="flex items-center gap-1 text-xs" style="color: var(--text-muted);">
