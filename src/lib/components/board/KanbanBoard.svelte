@@ -63,9 +63,14 @@
 		</div>
 	{/if}
 
-	<div class="flex gap-4 pb-4 overflow-x-auto">
+	<div class="flex gap-3 pb-4 overflow-x-auto">
 		{#each groupedTickets as { status, tickets: statusTickets }, i (status.id)}
-			<div in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }} class="w-[400px] shrink-0">
+			<!-- Flexible Spaltenbreite (Codeberg #5): Spalten teilen sich die
+			     verfügbare Breite; unter 250px greift min-width und das Board
+			     scrollt horizontal (Fallback für sehr viele Spalten). 250er-
+			     Minimum ist so gewählt, dass 6 Spalten bei 1920px inkl. offener
+			     SideNav nebeneinander passen. -->
+			<div in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }} class="flex-1 min-w-[250px] max-w-[420px]">
 				<KanbanColumn
 					{status}
 					tickets={statusTickets}
@@ -80,15 +85,18 @@
 			</div>
 		{/each}
 
-		<div class="flex-none min-w-[200px] flex items-start pt-1" in:fly={{ y: 24, duration: 350, delay: groupedTickets.length * 50, easing: quintOut }}>
+		<!-- Kompakte schmale Leiste statt breiter Platzhalter-Spalte, damit sie
+		     den echten Spalten keine Breite wegnimmt -->
+		<div class="flex-none w-11 flex items-stretch" in:fly={{ y: 24, duration: 350, delay: groupedTickets.length * 50, easing: quintOut }}>
 			<button
 				onclick={onOpenStatuses}
-				class="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed text-sm transition-all duration-200 group"
+				title="Neue Spalte"
+				aria-label="Neue Spalte"
+				class="w-full min-h-[160px] flex items-center justify-center rounded-xl border-2 border-dashed transition-all duration-200 group"
 				style="border-color: var(--border-bright); color: var(--text-muted);"
 				onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)'; }}
 				onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
 				<Plus class="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
-				Neue Spalte
 			</button>
 		</div>
 	</div>
