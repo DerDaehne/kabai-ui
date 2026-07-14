@@ -1,43 +1,32 @@
-name: Release
-
-# Runs only on a tag push (e.g. v1.2.0). See RELEASING.md for the convention
-# on when a new release is justified.
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 jobs:
-  build-and-publish:
+  docker:
     runs-on: ci
-    # kaniko builds and pushes the OCI image entirely in userspace — the
-    # runner provides neither a Docker daemon/socket nor privileged mode,
-    # which is why the previous buildx-based pipeline failed (ticket #279).
-    # The debug variant ships a busybox shell for the run step below.
-    container:
-      image: gcr.io/kaniko-project/executor:v1.23.2-debug
-    defaults:
-      run:
-        # busybox has sh, not bash
-        shell: sh
+
+    env:
+      DOCKER_HOST: tcp://docker-in-docker:2375
+
     steps:
-      - name: Build and publish image with kaniko
-        env:
-          # Requires the repo/org secret CODEBERG_TOKEN: a Codeberg personal
-          # access token with the "write:package" scope. The Actions token
-          # Forgejo provides automatically has no package-write permission
-          # on the container registry by default.
-          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
-        run: |
-          set -eu
-          version="${GITHUB_REF_NAME#v}"
-          mkdir -p /kaniko/.docker
-          auth="$(printf '%s:%s' "${GITHUB_ACTOR}" "${CODEBERG_TOKEN}" | base64 | tr -d '\n')"
-          printf '{"auths":{"codeberg.org":{"auth":"%s"}}}' "$auth" > /kaniko/.docker/config.json
-          # kaniko fetches the build context itself via git (public repo),
-          # so no checkout action (which would need node) is required.
-          /kaniko/executor \
-            --context "git://codeberg.org/danszek/kbai-ui.git#refs/tags/${GITHUB_REF_NAME}" \
-            --dockerfile Dockerfile \
-            --destination "codeberg.org/danszek/kabai-ui:${version}" \
-            --destination "codeberg.org/danszek/kabai-ui:latest"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Codeberg Registry
+        uses: docker/login-action@v3
+        with:
+          registry: codeberg.org/${{ forgejo.repository_owner }}
+          username: ${{ forgejo.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            codeberg.org/${{ forgejo.repository_owner }}/kabai-ui:latest
+            codeberg.org/${{ forgejo.repository_owner }}/kabai-ui:${{ forgejo.ref_name }}
