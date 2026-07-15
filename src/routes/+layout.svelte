@@ -42,7 +42,10 @@
 <div class="flex h-screen" style="background: var(--color-bg);">
 	<SideNav session={data.session} />
 
-	<main class="flex-1 min-w-0 overflow-y-auto" style="padding: var(--space-6);">
+	<main
+		class="content-panel flex-1 min-w-0 overflow-y-auto"
+		style="padding: var(--space-6);"
+	>
 		<div class="flex justify-end mb-2">
 			<button
 				onclick={toggleRail}

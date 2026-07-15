@@ -72,6 +72,14 @@
     --radius-panel: 14px;
     --radius-control: 6px;
 
+    /* Ticket #500: Content-Fläche der Hauptansichten — leicht heller als der
+       Body, aber deutlich zurückhaltender als Cards, damit Cards auf ihr
+       nicht doppelt gerahmt wirken. 22% statt der von Board-Spalten
+       genutzten 45%-Mischung (KanbanColumn.svelte), sonst wären Spalten und
+       Content-Fläche exakt gleichfarbig und die Spalten-Kante wäre die
+       einzige sichtbare Trennung. */
+    --color-content-panel: color-mix(in srgb, var(--color-surface) 22%, var(--color-bg));
+
     /* Theme v2 — Tiefe & Transparenz statt harter Borders */
     --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
     --elevation-2: 0 4px 8px rgba(0, 0, 0, 0.45), 0 24px 64px rgba(0, 0, 0, 0.4);
@@ -260,6 +268,18 @@
   .card:hover {
     background: var(--color-surface-hover);
     border-color: var(--edge-strong);
+  }
+
+  /* Ticket #500: Content-Fläche der Hauptansichten (Board, Projekte, Notes …).
+     Wächst optisch aus dem aktiven SideNav-Eintrag heraus — deshalb nur an
+     der linken Kante (zur Nav hin) gerundet und ohne Kante dort; oben/rechts/
+     unten sitzt sie flush am Viewport bzw. an der Aktivitäts-Rail. */
+  .content-panel {
+    background: var(--color-content-panel);
+    border-radius: var(--radius-panel) 0 0 var(--radius-panel);
+    border-top: 1px solid var(--edge);
+    border-right: 1px solid var(--edge);
+    border-bottom: 1px solid var(--edge);
   }
 
   .btn {

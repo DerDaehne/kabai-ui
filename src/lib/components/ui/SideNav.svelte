@@ -64,10 +64,10 @@
 				onclick={() => navigate(item.href)}
 				title={item.label}
 				aria-current={active ? 'page' : undefined}
-				class="relative flex items-center gap-3 px-2 md:px-3 py-2 rounded-md transition-colors focus-visible:outline focus-visible:outline-2"
+				class="nav-item relative flex items-center gap-3 pl-2 md:pl-3 py-2 focus-visible:outline focus-visible:outline-2 {active ? 'nav-item-active pr-4 md:pr-5' : 'pr-2 md:pr-3 rounded-md transition-colors'}"
 				style="
 					outline-color: var(--color-primary);
-					background: {active ? 'var(--color-surface-hover)' : 'transparent'};
+					background: {active ? 'var(--color-content-panel)' : 'transparent'};
 					color: {active ? 'var(--color-text)' : 'var(--color-text-secondary)'};
 				"
 				onmouseenter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)'; }}
@@ -75,6 +75,8 @@
 			>
 				{#if active}
 					<span class="absolute left-0 top-1 bottom-1 w-0.5 rounded-full" style="background: var(--color-primary);"></span>
+					<span class="nav-item-notch nav-item-notch-top" aria-hidden="true"></span>
+					<span class="nav-item-notch nav-item-notch-bottom" aria-hidden="true"></span>
 				{/if}
 				<svelte:component this={item.icon} class="w-4 h-4 shrink-0" />
 				<span class="{labelClass} truncate">{item.label}</span>
@@ -159,3 +161,57 @@
 		{/if}
 	</div>
 </nav>
+
+<style>
+	/* Ticket #500: der aktive Nav-Eintrag "verschmilzt" mit der
+	   Content-Fläche (.content-panel, gleicher --color-content-panel-
+	   Hintergrund) statt als eigene Pille daneben zu schweben — links
+	   gerundet wie die anderen Einträge, rechts offen bis zur Nav-Kante,
+	   wo er nahtlos in die Content-Fläche übergeht. */
+	.nav-item-active {
+		--notch-size: 14px;
+		border-radius: var(--radius-control) 0 0 var(--radius-control);
+		margin-right: -8px; /* kompensiert das px-2 des Elternelements — Fläche reicht bis zur Nav-Kante */
+		transition: background-color var(--duration-fast) var(--ease-soft);
+		/* Notch-Quadrate ragen in Nachbar-Einträge hinein (kleiner gap-1)
+		   und müssen über deren Hintergrund liegen, unabhängig von der
+		   DOM-Reihenfolge. */
+		z-index: 1;
+	}
+
+	/* Konkave Übergänge: über/unter dem aktiven Eintrag krümmt sich die
+	   Kante der Nav-Fläche (--color-surface) in den Eintrag hinein. Jedes
+	   Notch ist ein 14×14px-Quadrat direkt an der Ecke des Eintrags, gefüllt
+	   mit der Nav-Hintergrundfarbe; ein radialer Verlauf zentriert auf genau
+	   dieser Ecke stanzt einen Viertelkreis aus, sodass die (bereits darunter
+	   liegende) Eintrags-Hintergrundfarbe durchscheint — kein box-shadow,
+	   kein zusätzliches Overflow-Element, keine Clip-Path-Abhängigkeit. */
+	.nav-item-notch {
+		position: absolute;
+		right: 0;
+		width: var(--notch-size);
+		height: var(--notch-size);
+		pointer-events: none;
+		background: var(--color-surface);
+	}
+
+	.nav-item-notch-top {
+		top: calc(var(--notch-size) * -1);
+		border-radius: 0 0 var(--notch-size) 0;
+		background:
+			radial-gradient(circle at bottom right, transparent var(--notch-size), var(--color-surface) calc(var(--notch-size) + 1px));
+	}
+
+	.nav-item-notch-bottom {
+		bottom: calc(var(--notch-size) * -1);
+		border-radius: 0 var(--notch-size) 0 0;
+		background:
+			radial-gradient(circle at top right, transparent var(--notch-size), var(--color-surface) calc(var(--notch-size) + 1px));
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.nav-item-active {
+			transition: none;
+		}
+	}
+</style>
