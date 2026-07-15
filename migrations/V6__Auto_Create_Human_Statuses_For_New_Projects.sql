@@ -46,6 +46,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS projects_create_human_statuses ON projects;
 CREATE TRIGGER projects_create_human_statuses
     AFTER INSERT ON projects
     FOR EACH ROW EXECUTE FUNCTION create_human_intervention_statuses();

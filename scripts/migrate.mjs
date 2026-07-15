@@ -106,7 +106,8 @@ const featureProbes = {
 	V6: () => triggerExists('projects_create_human_statuses'),
 	V7: () => tableExists('notes'),
 	V8: () => columnExists('tickets', 'docs_required'),
-	V9: () => functionContains('verify_kanban_rules_and_transitions', 'kabai_docs_link_ticket')
+	V9: () => functionContains('verify_kanban_rules_and_transitions', 'kabai_docs_link_ticket'),
+	V10: () => functionContains('verify_kanban_rules_and_transitions', 'Epic documentation duty')
 };
 
 try {

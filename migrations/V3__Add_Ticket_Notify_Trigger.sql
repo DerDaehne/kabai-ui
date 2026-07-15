@@ -20,6 +20,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tickets_notify ON tickets;
 CREATE TRIGGER tickets_notify
     AFTER INSERT OR UPDATE OR DELETE ON tickets
     FOR EACH ROW EXECUTE FUNCTION notify_ticket_change();

@@ -91,7 +91,7 @@ SvelteKit Server (Node.js)      kabai MCP server
 
 Kabai UI sets up the kabai database and keeps it up to date — **no manual
 migration steps required**. Migrations live in `migrations/` (currently
-**V1–V9**, including the zettelkasten schema and the docs_required guard),
+**V1–V10**, including the zettelkasten schema and the docs guards),
 are baked into the Docker image, and are applied by the app itself **on
 every startup** (`scripts/migrate.mjs`) — each exactly once, recorded in the
 `schema_migrations` table. Re-runs are always safe.
