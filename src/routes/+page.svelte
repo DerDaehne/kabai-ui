@@ -6,6 +6,7 @@
 	import { Plus, Layers } from 'lucide-svelte';
 	import ProjectCard from '$components/projects/ProjectCard.svelte';
 	import EmptyState from '$components/ui/EmptyState.svelte';
+	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
 	import type { ProjectOverview } from '$lib/types';
 
 	let projects: ProjectOverview[] = [];
@@ -15,6 +16,11 @@
 	// Menü gleichzeitig — Öffnen einer anderen Card schließt die vorherige.
 	let openMenuProjectId: number | null = null;
 
+	// Ticket #496: Lösch-Flow über das Band-Popup (BannerConfirm).
+	let deleteTargetId: number | null = null;
+	let deleteTargetName = '';
+	let isDeleting = false;
+
 	function handleRequestOpen(id: number) {
 		openMenuProjectId = id;
 	}
@@ -23,8 +29,44 @@
 		openMenuProjectId = null;
 	}
 
-	// No-op-Callbacks — die eigentlichen Lösch-/Archivieren-Flows folgen in #496/#498.
-	function handleDelete(_id: number) {}
+	function handleDelete(id: number) {
+		const project = projects.find((p) => p.id === id);
+		deleteTargetId = id;
+		deleteTargetName = project?.name ?? '';
+	}
+
+	function cancelDelete() {
+		deleteTargetId = null;
+		deleteTargetName = '';
+	}
+
+	async function confirmDelete() {
+		if (deleteTargetId === null || isDeleting) return;
+		const id = deleteTargetId;
+		isDeleting = true;
+		try {
+			const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+			const result = await res.json();
+			if (result.ok) {
+				projects = projects.filter((p) => p.id !== id);
+				openMenuProjectId = null;
+				deleteTargetId = null;
+				deleteTargetName = '';
+			} else {
+				error = result.error || 'Fehler beim Löschen';
+				deleteTargetId = null;
+				deleteTargetName = '';
+			}
+		} catch {
+			error = 'Netzwerkfehler';
+			deleteTargetId = null;
+			deleteTargetName = '';
+		} finally {
+			isDeleting = false;
+		}
+	}
+
+	// No-op-Callback — der Archivieren-Flow folgt in #498.
 	function handleArchive(_id: number) {}
 
 	async function fetchProjects() {
@@ -90,7 +132,10 @@
 	{:else}
 		<div class="flex flex-col gap-3">
 			{#each projects as project, i (project.id)}
-				<div in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }}>
+				<div
+					in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }}
+					out:fade={{ duration: 200 }}
+				>
 					<ProjectCard
 						{project}
 						isMenuOpen={openMenuProjectId === project.id}
@@ -105,3 +150,11 @@
 		</div>
 	{/if}
 </div>
+
+<BannerConfirm
+	open={deleteTargetId !== null}
+	text={`Projekt „${deleteTargetName}" wirklich löschen?`}
+	tone="danger"
+	onConfirm={confirmDelete}
+	onCancel={cancelDelete}
+/>
