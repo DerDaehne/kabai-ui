@@ -9,6 +9,7 @@ jobs:
 
     env:
       DOCKER_HOST: tcp://docker-in-docker:2375
+      IMAGE: codeberg.org/${{ forgejo.repository_owner }}/kabai-ui
 
     steps:
 
@@ -16,17 +17,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Login to Codeberg Registry
-        uses: docker/login-action@v3
-        with:
-          registry: codeberg.org/${{ forgejo.repository_owner }}
-          username: ${{ forgejo.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login codeberg.org \
+            --username "${{ forgejo.repository_owner }}" --password-stdin
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: |
-            codeberg.org/${{ forgejo.repository_owner }}/kabai-ui:latest
-            codeberg.org/${{ forgejo.repository_owner }}/kabai-ui:${{ forgejo.ref_name }}
+      - name: Build Docker image
+        run: |
+          docker build \
+            --tag "$IMAGE:latest" \
+            --tag "$IMAGE:${{ forgejo.ref_name }}" \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push "$IMAGE:latest"
+          docker push "$IMAGE:${{ forgejo.ref_name }}"
