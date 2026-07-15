@@ -31,6 +31,25 @@ export interface DashboardData {
 
 export type SpecialStatusType = 'human_intervention' | 'human_answered' | null;
 
+// Unifizierte Projektübersicht (Ticket #494) — ersetzt Dashboard + Projekte
+export interface ProjectOverviewStatus {
+	id: number;
+	name: string;
+	display_name: string;
+	position: number;
+	special_type: SpecialStatusType;
+	ticket_count: number;
+}
+
+export interface ProjectOverview extends Project {
+	statuses: ProjectOverviewStatus[];
+	last_activity: string;
+	waiting_on_human: number;
+	throughput_7d: number;
+	oldest_open_created_at: string | null;
+	notes_count: number;
+}
+
 export interface BoardStatus {
 	id: number;
 	project_id: number;

@@ -35,7 +35,7 @@
 			});
 			const result = await res.json();
 			if (!result.ok) { error = result.error || 'Fehler beim Erstellen'; return; }
-			goto('/projects?success=Projekt+erstellt');
+			goto('/?success=Projekt+erstellt');
 		} catch { error = 'Netzwerkfehler'; }
 		finally { isLoading = false; }
 	}
@@ -43,7 +43,7 @@
 
 <div class="w-full max-w-2xl">
 	<button
-		onclick={() => goto('/projects')}
+		onclick={() => goto('/')}
 		class="inline-flex items-center gap-2 mb-6 text-sm transition-all duration-200 group"
 		style="color: var(--text-muted);"
 		in:fly={{ y: -12, duration: 300, easing: quintOut }}
@@ -87,7 +87,7 @@
 				{/if}
 
 				<div class="flex gap-3 pt-2">
-					<button type="button" onclick={() => goto('/projects')} class="btn btn-ghost">Abbrechen</button>
+					<button type="button" onclick={() => goto('/')} class="btn btn-ghost">Abbrechen</button>
 					<button type="submit" disabled={isLoading || !name || !slug}
 						class="btn btn-primary flex items-center gap-2 flex-1 justify-center">
 						{#if isLoading}

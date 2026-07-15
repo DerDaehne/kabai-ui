@@ -50,8 +50,8 @@
 				return;
 			}
 			
-			// Erfolgreich - zu Projekte weiterleiten
-			goto('/projects');
+			// Erfolgreich - zur Projektübersicht weiterleiten
+			goto('/');
 		} catch (err) {
 			error = 'Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung.';
 			console.error('Login error:', err);

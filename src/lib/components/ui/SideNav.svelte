@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SessionInfo } from '$lib/types';
-	import { User, LogOut, Home, Folder, BookOpen, Activity, PanelLeftClose, PanelLeftOpen } from 'lucide-svelte';
+	import { User, LogOut, Folder, BookOpen, Activity, PanelLeftClose, PanelLeftOpen } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { navCollapsed, railOpen } from '$lib/stores/ui';
@@ -12,9 +12,9 @@
 
 	export let session: SessionInfo | null;
 
+	// Ticket #494: Dashboard + Projekte zu einer Ansicht zusammengelegt
 	const navItems = [
-		{ href: '/', label: 'Dashboard', icon: Home },
-		{ href: '/projects', label: 'Projekte', icon: Folder },
+		{ href: '/', label: 'Projekte', icon: Folder },
 		{ href: '/notes', label: 'Knowledge Base', icon: BookOpen }
 	];
 

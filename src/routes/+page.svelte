@@ -3,19 +3,21 @@
 	import { goto } from '$app/navigation';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
-	import { Home, Folder, Ticket, CheckCircle2, Inbox, Clock, ArrowRight } from 'lucide-svelte';
-	import type { DashboardData } from '$lib/types';
+	import { Plus, Layers, AlertCircle, Zap, Hourglass, BookOpen } from 'lucide-svelte';
+	import StatusPie from '$components/projects/StatusPie.svelte';
+	import EmptyState from '$components/ui/EmptyState.svelte';
+	import type { ProjectOverview } from '$lib/types';
 
-	let data: DashboardData | null = null;
+	let projects: ProjectOverview[] = [];
 	let isLoading = true;
 	let error = '';
 
-	async function fetchDashboard() {
+	async function fetchProjects() {
 		try {
 			isLoading = true;
-			const res = await fetch('/api/dashboard');
+			const res = await fetch('/api/projects/overview');
 			const result = await res.json();
-			if (result.ok) data = result.data;
+			if (result.ok) projects = result.data;
 			else error = result.error || 'Fehler beim Laden';
 		} catch {
 			error = 'Netzwerkfehler';
@@ -35,16 +37,34 @@
 		return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
 	}
 
-	onMount(fetchDashboard);
+	function ageInDays(iso: string): string {
+		const diffMs = Date.now() - new Date(iso).getTime();
+		const days = Math.floor(diffMs / 86400000);
+		if (days < 1) return '<1 Tag';
+		return `${days} Tag${days !== 1 ? 'en' : ''}`;
+	}
+
+	onMount(fetchProjects);
 </script>
 
 <div class="w-full space-y-8">
 	<!-- Header -->
-	<div class="flex items-center gap-3" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
-		<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
-			<Home class="w-5 h-5" style="color: var(--primary);" />
+	<div class="flex items-end justify-between gap-4" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
+		<div>
+			<div class="flex items-center gap-3 mb-1">
+				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
+					<Layers class="w-5 h-5" style="color: var(--primary);" />
+				</div>
+				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Projekte</h1>
+			</div>
+			<p class="ml-12 text-sm" style="color: var(--text-muted);">
+				{projects.length} Projekt{projects.length !== 1 ? 'e' : ''} · Kanban-Boards
+			</p>
 		</div>
-		<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Dashboard</h1>
+		<button onclick={() => goto('/projects/new')} class="btn btn-primary flex items-center gap-2 shrink-0">
+			<Plus class="w-4 h-4" />
+			Neues Projekt
+		</button>
 	</div>
 
 	{#if error}
@@ -61,104 +81,88 @@
 			</div>
 		</div>
 
-	{:else if data && data.projects.length === 0}
-		<div class="flex flex-col items-center justify-center py-24 rounded-2xl card" in:fade={{ duration: 300 }}>
-			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: color-mix(in srgb, var(--color-primary) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);">
-				<Folder class="w-8 h-8" style="color: var(--text-muted);" />
-			</div>
-			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Noch keine Projekte</h3>
-			<p class="mb-6 text-sm" style="color: var(--text-muted);">Erstellen Sie Ihr erstes Projekt, um loszulegen.</p>
-			<button onclick={() => goto('/projects/new')} class="btn btn-primary">Erstes Projekt erstellen</button>
+	{:else if projects.length === 0}
+		<div in:fade={{ duration: 300 }}>
+			<EmptyState>
+				<button onclick={() => goto('/projects/new')} class="btn btn-primary mt-4">
+					Erstes Projekt erstellen
+				</button>
+			</EmptyState>
 		</div>
 
-	{:else if data}
-		<!-- Totals -->
-		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4" in:fly={{ y: 16, duration: 350, easing: quintOut }}>
-			<div class="rounded-xl p-4 card">
-				<div class="flex items-center gap-2 mb-1" style="color: var(--primary);">
-					<Folder class="w-4 h-4" /><span class="text-xs font-medium">Projekte</span>
-				</div>
-				<p class="text-2xl font-semibold font-mono" style="color: var(--text);">{data.totals.projects}</p>
-			</div>
-			<div class="rounded-xl p-4 card">
-				<div class="flex items-center gap-2 mb-1" style="color: var(--accent);">
-					<Ticket class="w-4 h-4" /><span class="text-xs font-medium">Tickets</span>
-				</div>
-				<p class="text-2xl font-semibold font-mono" style="color: var(--text);">{data.totals.tickets}</p>
-			</div>
-			<div class="rounded-xl p-4 card">
-				<div class="flex items-center gap-2 mb-1" style="color: var(--success);">
-					<CheckCircle2 class="w-4 h-4" /><span class="text-xs font-medium">Erledigt</span>
-				</div>
-				<p class="text-2xl font-semibold font-mono" style="color: var(--text);">{data.totals.done}</p>
-			</div>
-			<div class="rounded-xl p-4 card">
-				<div class="flex items-center gap-2 mb-1" style="color: var(--primary);">
-					<Inbox class="w-4 h-4" /><span class="text-xs font-medium">Wartet auf dich</span>
-				</div>
-				<p class="text-2xl font-semibold font-mono" style="color: var(--text);">{data.totals.inbox}</p>
-			</div>
-		</div>
-
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-			<!-- Project stats -->
-			<div class="lg:col-span-2 space-y-3" in:fly={{ y: 16, duration: 350, delay: 80, easing: quintOut }}>
-				<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Projekte</h2>
-				{#each data.projects as project, i (project.id)}
-					{@const progress = project.ticket_count > 0 ? (project.done_count / project.ticket_count) * 100 : 0}
-					<button
-						onclick={() => goto(`/projects/${project.id}`)}
-						in:fly={{ y: 12, duration: 300, delay: i * 40, easing: quintOut }}
-						class="w-full text-left rounded-xl p-4 card"
-					>
-						<div class="flex items-center justify-between gap-3 mb-2">
-							<div class="min-w-0">
-								<p class="font-semibold truncate" style="color: var(--text);">{project.name}</p>
-								<p class="text-xs" style="color: var(--text-muted);">{project.ticket_count} Ticket{project.ticket_count !== 1 ? 's' : ''} · {project.done_count} erledigt</p>
-							</div>
-							<div class="flex items-center gap-2 shrink-0">
-								{#if project.inbox_count > 0}
-									<span class="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
-										style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--primary); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
-										<Inbox class="w-3 h-3" />{project.inbox_count}
-									</span>
-								{/if}
-								<ArrowRight class="w-4 h-4" style="color: var(--text-muted);" />
-							</div>
-						</div>
-						<div class="h-1.5 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.06);">
-							<div class="h-full rounded-full transition-all duration-500"
-								style="width: {progress}%; background: var(--success);"></div>
-						</div>
-					</button>
-				{/each}
-			</div>
-
-			<!-- Recent activity -->
-			<div class="space-y-3" in:fly={{ y: 16, duration: 350, delay: 120, easing: quintOut }}>
-				<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Zuletzt aktualisiert</h2>
-				{#if data.recentTickets.length === 0}
-					<p class="text-sm" style="color: var(--text-muted);">Noch keine Aktivität.</p>
-				{:else}
-					<div class="rounded-xl overflow-hidden card">
-						{#each data.recentTickets as ticket, i (ticket.id)}
-							{#if i > 0}<div class="hairline"></div>{/if}
-							<button
-								onclick={() => goto(`/tickets/${ticket.id}`)}
-								class="w-full text-left px-4 py-3 flex items-start gap-2 transition-colors hover:bg-[var(--color-surface-hover)]"
-							>
-								<Clock class="w-3.5 h-3.5 shrink-0 mt-0.5" style="color: var(--text-muted);" />
-								<div class="min-w-0 flex-1">
-									<p class="text-sm truncate" style="color: var(--text);">{ticket.title}</p>
-									<p class="text-xs truncate" style="color: var(--text-muted);">
-										{ticket.project_name}{#if ticket.status_name} · {ticket.status_name}{/if} · {relativeTime(ticket.updated_at)}
-									</p>
-								</div>
-							</button>
-						{/each}
+	{:else}
+		<div class="flex flex-col gap-3">
+			{#each projects as project, i (project.id)}
+				<div
+					in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }}
+					class="card cursor-pointer py-5 px-6 flex items-center gap-6"
+					role="button"
+					tabindex="0"
+					onclick={() => goto(`/projects/${project.id}`)}
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goto(`/projects/${project.id}`); } }}
+				>
+					<!-- Titel + Beschreibung -->
+					<div class="min-w-0 flex-1">
+						<h3 class="text-lg font-semibold truncate" style="color: var(--color-text);" title={project.name}>
+							{project.name}
+						</h3>
+						{#if project.description}
+							<p class="text-sm mt-1 truncate-2" style="color: var(--color-text-secondary);" title={project.description}>
+								{project.description}
+							</p>
+						{:else}
+							<code class="text-xs" style="color: var(--color-text-secondary);">{project.slug}</code>
+						{/if}
 					</div>
-				{/if}
-			</div>
+
+					<!-- Metriken: gestaffelt nach Breakpoint ausgeblendet.
+					     Wegfall-Reihenfolge klein→groß: (a) zuerst weg, (e) zuletzt. -->
+					<div class="hidden 2xl:flex flex-col items-end shrink-0 w-28">
+						<span class="text-caption" style="color: var(--color-text-secondary);">Letzte Bearbeitung</span>
+						<span class="text-sm font-mono" style="color: var(--color-text);">{relativeTime(project.last_activity)}</span>
+					</div>
+
+					<div class="hidden xl:flex flex-col items-end shrink-0 w-28">
+						<span class="text-caption" style="color: var(--color-text-secondary);">Wartet auf Mensch</span>
+						<span class="font-mono text-sm flex items-center gap-1.5"
+							style="color: {project.waiting_on_human > 0 ? 'var(--color-warning)' : 'var(--color-text)'};">
+							{#if project.waiting_on_human > 0}
+								<span class="w-1.5 h-1.5 rounded-full shrink-0" style="background: var(--color-warning);"></span>
+							{:else}
+								<AlertCircle class="w-3 h-3" style="color: var(--color-text-secondary);" />
+							{/if}
+							{project.waiting_on_human}
+						</span>
+					</div>
+
+					<div class="hidden lg:flex flex-col items-end shrink-0 w-24">
+						<span class="text-caption" style="color: var(--color-text-secondary);">Durchsatz 7T</span>
+						<span class="font-mono text-sm flex items-center gap-1" style="color: var(--color-text);">
+							<Zap class="w-3 h-3" style="color: var(--color-text-secondary);" />{project.throughput_7d}
+						</span>
+					</div>
+
+					<div class="hidden md:flex flex-col items-end shrink-0 w-24">
+						<span class="text-caption" style="color: var(--color-text-secondary);">Ältestes offen</span>
+						<span class="font-mono text-sm flex items-center gap-1" style="color: var(--color-text);">
+							<Hourglass class="w-3 h-3" style="color: var(--color-text-secondary);" />
+							{project.oldest_open_created_at ? ageInDays(project.oldest_open_created_at) : '–'}
+						</span>
+					</div>
+
+					<div class="hidden sm:flex flex-col items-end shrink-0 w-24">
+						<span class="text-caption" style="color: var(--color-text-secondary);">KB-Notes</span>
+						<span class="font-mono text-sm flex items-center gap-1" style="color: var(--color-text);">
+							<BookOpen class="w-3 h-3" style="color: var(--color-text-secondary);" />{project.notes_count}
+						</span>
+					</div>
+
+					<!-- Tortendiagramm -->
+					<div class="shrink-0">
+						<StatusPie statuses={project.statuses} size={80} />
+					</div>
+				</div>
+			{/each}
 		</div>
 	{/if}
 </div>
