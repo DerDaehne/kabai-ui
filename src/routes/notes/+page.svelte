@@ -3,9 +3,12 @@
 	import { goto } from '$app/navigation';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { browser } from '$app/environment';
 	import { BookOpen, Search, Compass, Archive, ShieldCheck, ShieldAlert, ShieldQuestion, Tag as TagIcon } from 'lucide-svelte';
 	import type { NoteSummary, Project } from '$lib/types';
 	import { sanitizeHtml } from '$lib/markdown';
+
+	const PROJECT_FILTER_STORAGE_KEY = 'kabai:notesProjectFilter';
 
 	let notes: NoteSummary[] = [];
 	let allTags: string[] = [];
@@ -80,6 +83,33 @@
 		} catch {
 			// Projekt-Filter bleibt dann leer — Notes laden trotzdem
 		}
+		restoreProjectFilter();
+	}
+
+	// Gemerkten Projektfilter wiederherstellen (#499): fällt still auf
+	// "alle Projekte" zurück, falls das gemerkte Projekt nicht mehr existiert.
+	function restoreProjectFilter() {
+		if (!browser) return;
+		const saved = localStorage.getItem(PROJECT_FILTER_STORAGE_KEY);
+		if (!saved) return;
+		const valid = saved === 'none' || projects.some((p) => String(p.id) === saved);
+		if (valid) {
+			projectFilter = saved;
+			fetchNotes();
+		} else {
+			localStorage.removeItem(PROJECT_FILTER_STORAGE_KEY);
+		}
+	}
+
+	function onProjectFilterChange() {
+		if (browser) {
+			if (projectFilter === 'all') {
+				localStorage.removeItem(PROJECT_FILTER_STORAGE_KEY);
+			} else {
+				localStorage.setItem(PROJECT_FILTER_STORAGE_KEY, projectFilter);
+			}
+		}
+		fetchNotes();
 	}
 
 	function onQueryInput() {
@@ -141,7 +171,7 @@
 			{/each}
 		</select>
 
-		<select bind:value={projectFilter} onchange={fetchNotes} class="px-3 py-2 rounded-lg text-sm max-w-[200px]" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text);">
+		<select bind:value={projectFilter} onchange={onProjectFilterChange} class="px-3 py-2 rounded-lg text-sm max-w-[200px]" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text);">
 			<option value="all">Alle Projekte</option>
 			<option value="none">Ohne Projekt</option>
 			{#each projects as p}
