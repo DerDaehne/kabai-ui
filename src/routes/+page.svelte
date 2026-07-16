@@ -5,6 +5,7 @@
 	import { quintOut } from 'svelte/easing';
 	import { Plus, Layers } from 'lucide-svelte';
 	import ProjectCard from '$components/projects/ProjectCard.svelte';
+	import ProjectSearchBar from '$components/projects/ProjectSearchBar.svelte';
 	import EmptyState from '$components/ui/EmptyState.svelte';
 	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
 	import type { ProjectOverview } from '$lib/types';
@@ -15,6 +16,25 @@
 	// Exklusiv-Zustand für das Kontextmenü: nur eine Projekt-Card zeigt ihr
 	// Menü gleichzeitig — Öffnen einer anderen Card schließt die vorherige.
 	let openMenuProjectId: number | null = null;
+
+	// Ticket #497: Suchstring + Aktiv/Archiviert-Sicht über der Liste.
+	let searchQuery = '';
+	let view: 'active' | 'archived' = 'active';
+
+	// Das Backend kennt `projects.archived` noch nicht (folgt in #498/#501).
+	// Bis dahin filtert die Archiv-Sicht auf ein Feld, das nie gesetzt ist —
+	// sie zeigt also bewusst immer den EmptyState.
+	$: viewFiltered = view === 'archived'
+		? projects.filter((p) => (p as any).archived === true)
+		: projects;
+
+	$: filteredProjects = (() => {
+		const q = searchQuery.trim().toLowerCase();
+		if (!q) return viewFiltered;
+		return viewFiltered.filter((p) =>
+			p.name.toLowerCase().includes(q) || (p.description ?? '').toLowerCase().includes(q)
+		);
+	})();
 
 	// Ticket #496: Lösch-Flow über das Band-Popup (BannerConfirm).
 	let deleteTargetId: number | null = null;
@@ -112,6 +132,10 @@
 		</div>
 	{/if}
 
+	{#if !isLoading && projects.length > 0}
+		<ProjectSearchBar bind:query={searchQuery} bind:view />
+	{/if}
+
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
 			<div class="relative w-10 h-10">
@@ -129,12 +153,19 @@
 			</EmptyState>
 		</div>
 
+	{:else if filteredProjects.length === 0}
+		<div in:fade={{ duration: 300 }}>
+			<EmptyState />
+		</div>
+
 	{:else}
 		<div class="flex flex-col gap-3">
-			{#each projects as project, i (project.id)}
+			<!-- Gestaffeltes delay bleibt fürs Erstladen, aber gedeckelt (Math.min),
+			     damit Such-/Sicht-Wechsel nicht träge wirken. -->
+			{#each filteredProjects as project, i (project.id)}
 				<div
-					in:fly={{ y: 24, duration: 350, delay: i * 50, easing: quintOut }}
-					out:fade={{ duration: 200 }}
+					in:fly={{ y: 16, duration: 250, delay: Math.min(i, 8) * 40, easing: quintOut }}
+					out:fade={{ duration: 150 }}
 				>
 					<ProjectCard
 						{project}
