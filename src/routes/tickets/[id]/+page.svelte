@@ -11,6 +11,7 @@
 	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
+	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
 	import { formatDate, initials } from '$lib/utils/format';
 
 	$: id = $page.params.id;
@@ -120,8 +121,21 @@
 		}
 	}
 
-	async function handleDelete() {
-		if (!ticket || !confirm(`Ticket "${ticket.title}" wirklich löschen?`)) return;
+	// Ticket #508: window.confirm ersetzt durch das Band-Popup (BannerConfirm).
+	let pendingDeleteTicket = false;
+
+	function handleDelete() {
+		if (!ticket) return;
+		pendingDeleteTicket = true;
+	}
+
+	function cancelDeleteTicket() {
+		pendingDeleteTicket = false;
+	}
+
+	async function confirmDeleteTicket() {
+		if (!ticket || isDeleting) return;
+		pendingDeleteTicket = false;
 		isDeleting = true;
 		try {
 			const res = await fetch(`/api/tickets/${id}`, { method: 'DELETE' });
@@ -589,3 +603,11 @@
 		</div>
 	{/if}
 </div>
+
+<BannerConfirm
+	open={pendingDeleteTicket}
+	text={ticket ? `Ticket #${ticket.id} „${ticket.title}" wirklich löschen?` : ''}
+	tone="danger"
+	onConfirm={confirmDeleteTicket}
+	onCancel={cancelDeleteTicket}
+/>

@@ -9,6 +9,7 @@
 	import type { Project } from '$lib/types';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
+	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
 
 	$: id = $page.params.id;
 
@@ -54,8 +55,21 @@
 		finally { isSaving = false; }
 	}
 
-	async function handleDelete() {
-		if (!confirm(`Projekt "${project?.name}" wirklich löschen? Alle Daten gehen unwiderruflich verloren.`)) return;
+	// Ticket #508: window.confirm ersetzt durch das Band-Popup (BannerConfirm).
+	let pendingDeleteProject = false;
+
+	function handleDelete() {
+		if (!project) return;
+		pendingDeleteProject = true;
+	}
+
+	function cancelDeleteProject() {
+		pendingDeleteProject = false;
+	}
+
+	async function confirmDeleteProject() {
+		if (isDeleting) return;
+		pendingDeleteProject = false;
 		isDeleting = true;
 		try {
 			const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
@@ -159,3 +173,11 @@
 		</div>
 	{/if}
 </div>
+
+<BannerConfirm
+	open={pendingDeleteProject}
+	text={`Projekt „${project?.name}" wirklich löschen? Alle Daten gehen unwiderruflich verloren.`}
+	tone="danger"
+	onConfirm={confirmDeleteProject}
+	onCancel={cancelDeleteProject}
+/>

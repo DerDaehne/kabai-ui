@@ -8,6 +8,7 @@
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
+	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
 	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
 	import { formatDate, initials } from '$lib/utils/format';
 
@@ -198,8 +199,21 @@
 		}
 	}
 
-	async function handleDelete() {
-		if (!ticket || !confirm(`Ticket "${ticket.title}" löschen?`)) return;
+	// Ticket #508: window.confirm ersetzt durch das Band-Popup (BannerConfirm).
+	let pendingDeleteTicket = false;
+
+	function handleDelete() {
+		if (!ticket) return;
+		pendingDeleteTicket = true;
+	}
+
+	function cancelDeleteTicket() {
+		pendingDeleteTicket = false;
+	}
+
+	async function confirmDeleteTicket() {
+		if (!ticket || isDeleting) return;
+		pendingDeleteTicket = false;
 		isDeleting = true;
 		try {
 			const res = await fetch(`/api/tickets/${ticketId}`, { method: 'DELETE' });
@@ -378,10 +392,10 @@
 						</button>
 						{#if showActionsMenu}
 							<div role="menu" aria-label="Weitere Aktionen"
-								class="absolute right-0 top-full mt-1 z-20 min-w-[140px] rounded-lg py-1"
-								style="background: var(--color-surface); box-shadow: var(--elevation-2);">
+								class="absolute right-0 top-full mt-1 z-20 min-w-[140px] py-1"
+								style="background: var(--color-surface); box-shadow: var(--elevation-2); border: 1px solid var(--edge-strong); border-radius: var(--radius-control);">
 								<button role="menuitem" onclick={() => { showActionsMenu = false; handleDelete(); }} disabled={isDeleting}
-									class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors hover:bg-[rgba(239,68,68,0.1)]"
+									class="actions-menu-item w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors"
 									style="color: var(--danger);">
 									{#if isDeleting}
 										<Spinner size={3} color="currentColor" thickness="border" />
@@ -687,3 +701,24 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Ticket #508: BannerConfirm statt window.confirm. TicketModal läuft innerhalb eines
+     SidePanel (dessen Panel-Fläche z-50 + backdrop-filter trägt). backdrop-filter auf
+     einem Vorfahren macht diesen zum containing block für position:fixed-Nachfahren —
+     das Band bleibt also auf die Panelfläche begrenzt, muss dort aber sicher ÜBER dem
+     Panelinhalt liegen. BannerConfirm bringt bereits z-[100] mit, klar über dem
+     SidePanel-Scrim/Panel (z-50) — keine Anhebung nötig, nur sichergestellt. -->
+<BannerConfirm
+	open={pendingDeleteTicket}
+	text={ticket ? `Ticket #${ticket.id} „${ticket.title}" löschen?` : ''}
+	tone="danger"
+	onConfirm={confirmDeleteTicket}
+	onCancel={cancelDeleteTicket}
+/>
+
+<style>
+	/* CSS-:hover statt JS-Handlern für den Menüpunkt im "Weitere Aktionen"-Dropdown (#507) */
+	.actions-menu-item:hover:not(:disabled) {
+		background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+	}
+</style>

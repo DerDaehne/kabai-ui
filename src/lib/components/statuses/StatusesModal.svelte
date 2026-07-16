@@ -7,6 +7,7 @@
 	import { accentFor as accent } from '$lib/colors';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
+	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
 
 	export let projectId: number;
 	export let onClose: () => void = () => {};
@@ -66,8 +67,25 @@
 		finally { savingId = null; }
 	}
 
-	async function handleDelete(id: number, name: string) {
-		if (!confirm(`Status "${name}" löschen?`)) return;
+	// Ticket #508: window.confirm ersetzt durch das Band-Popup (BannerConfirm).
+	let pendingDeleteId: number | null = null;
+	let pendingDeleteName = '';
+
+	function handleDelete(id: number, name: string) {
+		pendingDeleteId = id;
+		pendingDeleteName = name;
+	}
+
+	function cancelDeleteStatus() {
+		pendingDeleteId = null;
+		pendingDeleteName = '';
+	}
+
+	async function confirmDeleteStatus() {
+		if (pendingDeleteId === null || deletingId !== null) return;
+		const id = pendingDeleteId;
+		pendingDeleteId = null;
+		pendingDeleteName = '';
 		deletingId = id;
 		try {
 			const res = await fetch(`/api/projects/${projectId}/statuses/${id}`, { method: 'DELETE' });
@@ -251,3 +269,14 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Ticket #508: BannerConfirm statt window.confirm. StatusesModal läuft wie TicketModal
+     innerhalb eines SidePanel (z-50 + backdrop-filter auf der Panelfläche) — BannerConfirm
+     bringt bereits z-[100] mit und liegt damit klar darüber, keine Anhebung nötig. -->
+<BannerConfirm
+	open={pendingDeleteId !== null}
+	text={`Status „${pendingDeleteName}" löschen?`}
+	tone="danger"
+	onConfirm={confirmDeleteStatus}
+	onCancel={cancelDeleteStatus}
+/>

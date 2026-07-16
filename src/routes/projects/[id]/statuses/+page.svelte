@@ -8,6 +8,7 @@
 	import type { BoardStatus } from '$lib/types';
 	import { accentFor } from '$lib/colors';
 	import Spinner from '$components/ui/Spinner.svelte';
+	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
 
 	let statuses: BoardStatus[] = [];
 	let isLoading = true;
@@ -78,8 +79,25 @@
 		}
 	}
 
-	async function handleDelete(statusId: number, name: string) {
-		if (!confirm(`Status "${name}" wirklich löschen?`)) return;
+	// Ticket #508: window.confirm ersetzt durch das Band-Popup (BannerConfirm).
+	let pendingDeleteId: number | null = null;
+	let pendingDeleteName = '';
+
+	function handleDelete(statusId: number, name: string) {
+		pendingDeleteId = statusId;
+		pendingDeleteName = name;
+	}
+
+	function cancelDeleteStatus() {
+		pendingDeleteId = null;
+		pendingDeleteName = '';
+	}
+
+	async function confirmDeleteStatus() {
+		if (pendingDeleteId === null || deletingId !== null) return;
+		const statusId = pendingDeleteId;
+		pendingDeleteId = null;
+		pendingDeleteName = '';
 		deletingId = statusId;
 		try {
 			const res = await fetch(`/api/projects/${id}/statuses/${statusId}`, { method: 'DELETE' });
@@ -322,3 +340,11 @@
 		</p>
 	{/if}
 </div>
+
+<BannerConfirm
+	open={pendingDeleteId !== null}
+	text={`Status „${pendingDeleteName}" wirklich löschen?`}
+	tone="danger"
+	onConfirm={confirmDeleteStatus}
+	onCancel={cancelDeleteStatus}
+/>
