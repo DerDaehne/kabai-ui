@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 	import { ChevronUp, X, Trash2, Archive, AlertCircle, Zap, Hourglass, BookOpen } from 'lucide-svelte';
 	import StatusPie from '$components/projects/StatusPie.svelte';
 	import type { ProjectOverview } from '$lib/types';
@@ -69,6 +71,22 @@
 	$: if (isMenuOpen && firstMenuButtonEl) {
 		firstMenuButtonEl.focus();
 	}
+
+	function prefersReducedMotion() {
+		return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+	}
+
+	// Einblende-Transition der Milchglas-Scheibe: Fade + dezentes translateY,
+	// analog zum Overlay-Stil aus BannerConfirm.svelte (#496). Bei
+	// reduced-motion nur ein reiner Fade ohne Bewegung.
+	function menuIn(node: HTMLElement) {
+		if (prefersReducedMotion()) return fade(node, { duration: 120 });
+		return {
+			duration: 200,
+			easing: quintOut,
+			css: (t: number) => `opacity: ${t}; transform: translateY(${(1 - t) * 6}px);`
+		};
+	}
 </script>
 
 <div
@@ -81,8 +99,9 @@
 	onclick={handleCardClick}
 	onkeydown={handleCardKeydown}
 >
-	<!-- Normaler Inhalt: fadet im Kontextmenü-Zustand aus -->
-	<div class="project-card__content flex items-center gap-6 w-full" class:content-hidden={isMenuOpen} aria-hidden={isMenuOpen}>
+	<!-- Normaler Inhalt: bleibt sichtbar (scheint durchs Milchglas), wird im
+	     Kontextmenü-Zustand nur vor Fokus/Screenreadern geschützt -->
+	<div class="project-card__content flex items-center gap-6 w-full" class:content-inert={isMenuOpen} aria-hidden={isMenuOpen}>
 		<!-- Titel + Beschreibung -->
 		<div class="min-w-0 flex-1">
 			<h3 class="text-lg font-semibold truncate" style="color: var(--color-text);" title={project.name}>
@@ -145,9 +164,12 @@
 		</div>
 	</div>
 
-	<!-- Kontextmenü-Inhalt: Löschen / Archivieren -->
+	<!-- Kontextmenü-Inhalt: Löschen / Archivieren.
+	     Milchglas statt Ausblenden (Review #495): der Card-Inhalt bleibt
+	     sichtbar und scheint durch die geblurte Scheibe hindurch, im
+	     gleichen Overlay-Stil wie BannerConfirm.svelte (#496). -->
 	{#if isMenuOpen}
-		<div class="project-card__menu absolute inset-0 flex items-center justify-center gap-3">
+		<div class="project-card__menu absolute inset-0 flex items-center justify-center gap-3" transition:menuIn>
 			<button
 				bind:this={firstMenuButtonEl}
 				type="button"
@@ -198,28 +220,41 @@
 		overflow: visible;
 	}
 
-	.project-card__content {
-		transition: opacity var(--duration-fast) var(--ease-soft);
-	}
-
-	.project-card__content.content-hidden {
-		opacity: 0;
+	.project-card__content.content-inert {
+		/* Bleibt sichtbar (scheint durchs Milchglas), aber kein Fokus/Klick mehr möglich */
 		pointer-events: none;
 	}
 
 	.project-card.menu-open {
-		background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+		/* Nur noch Border-Betonung, keine opake Füllfarbe mehr — der
+		   Milchglas-Effekt kommt jetzt von .project-card__menu selbst */
 		border-color: color-mix(in srgb, var(--color-primary) 35%, var(--edge));
 		cursor: default;
 	}
 
+	/* Milchglas-Scheibe über dem (weiterhin sichtbaren) Karten-Inhalt.
+	   Gleicher Overlay-Stil wie BannerConfirm.svelte (#496): halbtransparenter
+	   Farbschimmer + backdrop-filter: blur. Die Card selbst hat
+	   overflow: visible (wegen der Tropfen-Laschen), daher braucht die
+	   Scheibe hier ihren eigenen border-radius passend zu .card (--radius-card
+	   aus app.css), statt sich auf geerbtes Card-Clipping zu verlassen. */
 	.project-card__menu {
-		animation: menu-fade-in var(--duration-fast) var(--ease-soft);
+		background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+		-webkit-backdrop-filter: blur(6px);
+		backdrop-filter: blur(6px);
+		border-radius: var(--radius-card);
 	}
 
-	@keyframes menu-fade-in {
-		from { opacity: 0; }
-		to { opacity: 1; }
+	.project-card__menu .btn-subtle {
+		/* Eigene, deckende Fläche für Lesbarkeit auf dem geblurten Hintergrund —
+		   .btn-subtle nutzt sonst --color-surface-hover, das durch den
+		   Primary-Schimmer der Scheibe zu wenig Kontrast zum Text hätte */
+		background: var(--color-surface);
+		border-color: color-mix(in srgb, var(--color-primary) 25%, var(--edge));
+	}
+
+	.project-card__menu .btn-subtle:hover {
+		background: color-mix(in srgb, var(--color-surface) 90%, white 6%);
 	}
 
 	/* Tropfen: halbrunde Lasche, die aus der Kante herauswächst. */
