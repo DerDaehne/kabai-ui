@@ -83,6 +83,10 @@ export const GET: RequestHandler = async ({ locals }) => {
 			};
 		});
 
+		// Aktivstes Projekt zuerst (last_activity absteigend). NULL-sicher: last_activity
+		// fällt oben immer auf p.created_at zurück, ist also nie null/undefined.
+		data.sort((a: any, b: any) => new Date(b.last_activity).getTime() - new Date(a.last_activity).getTime());
+
 		return json({ ok: true, data });
 	} catch (error) {
 		console.error('GET /api/projects/overview error:', error);

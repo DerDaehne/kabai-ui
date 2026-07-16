@@ -2,19 +2,27 @@
 	import type { ProjectOverviewStatus } from '$lib/types';
 
 	// Tortendiagramm: Ticket-Anzahl je Board-Status, Reihenfolge nach Status-Position.
-	// Farbverlauf: erster Status Grau, letzter Status Grün, dazwischen linear
-	// interpoliert (Grau → Grün), passend zum Dark Theme abgetönt.
+	// Farbgebung: erster Status Grau (Backlog), letzter Status Grün (Done),
+	// dazwischen kategoriale, klar unterscheidbare Hues statt linearer
+	// Interpolation — Nachbarsegmente sollen nicht mehr ineinander verschmelzen.
 	export let statuses: ProjectOverviewStatus[] = [];
 	export let size = 80;
 
-	const GREY = { r: 0x6b, g: 0x72, b: 0x80 }; // #6b7280
-	const GREEN = { r: 0x34, g: 0xd3, b: 0x99 }; // #34d399
+	const GREY = '#6b7280';
+	const GREEN = '#34d399';
 
-	function lerpColor(t: number): string {
-		const r = Math.round(GREY.r + (GREEN.r - GREY.r) * t);
-		const g = Math.round(GREY.g + (GREEN.g - GREY.g) * t);
-		const b = Math.round(GREY.b + (GREEN.b - GREY.b) * t);
-		return `rgb(${r}, ${g}, ${b})`;
+	// Zwischenstatus (weder erster noch letzter) bekommen der Reihe nach deutlich
+	// getrennte Hues statt einer Grau-Grün-Interpolation. Bei mehr Zwischenstatus
+	// als Farben wird die Palette zyklisch wiederverwendet.
+	const MID_PALETTE = ['#60a5fa', '#f59e0b', '#a78bfa', '#f472b6', '#22d3ee'];
+
+	// Ordnet einem Status anhand seiner Position in der sortierten Liste eine
+	// feste, deterministische Farbe zu (gleicher Index = gleiche Farbe).
+	function colorForIndex(i: number, n: number): string {
+		if (n <= 1) return GREEN;
+		if (i === 0) return GREY;
+		if (i === n - 1) return GREEN;
+		return MID_PALETTE[(i - 1) % MID_PALETTE.length];
 	}
 
 	// Sonderstatus (human_intervention/human_answered) fließen nicht ins Diagramm ein
@@ -37,7 +45,7 @@
 		return visibleStatuses.map((s, i) => {
 			const fraction = s.ticket_count / total;
 			const dash = fraction * circumference;
-			const color = lerpColor(n > 1 ? i / (n - 1) : 1);
+			const color = colorForIndex(i, n);
 			const seg = { color, dash, offset, label: `${s.display_name}: ${s.ticket_count}`, count: s.ticket_count };
 			offset += dash;
 			return seg;
