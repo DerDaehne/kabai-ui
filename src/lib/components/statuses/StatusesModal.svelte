@@ -4,6 +4,9 @@
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { Plus, Trash2, Check, X, Bot, Layers } from 'lucide-svelte';
 	import type { BoardStatus } from '$lib/types';
+	import { accentFor as accent } from '$lib/colors';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 
 	export let projectId: number;
 	export let onClose: () => void = () => {};
@@ -28,17 +31,6 @@
 	$: if (newDisplayName && !newNameManual) {
 		newName = newDisplayName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
 	}
-
-	// Gedämpfte Spalten-Akzente — nur noch für den kleinen Orientierungspunkt je
-	// Status-Zeile (Theme v3: Farbe trägt Bedeutung, keine Regenbogen-Codierung mehr).
-	const accentColors = [
-		{ border: '#6e7bf2', glow: 'rgba(110,123,242,0.15)' },
-		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.15)' },
-		{ border: '#3da06b', glow: 'rgba(61,160,107,0.15)' },
-		{ border: '#c98a2d', glow: 'rgba(201,138,45,0.15)' },
-		{ border: '#c25252', glow: 'rgba(194,82,82,0.15)' },
-	];
-	function accent(i: number) { return accentColors[i % accentColors.length]; }
 
 	async function fetchStatuses() {
 		try {
@@ -128,7 +120,9 @@
 	</div>
 
 	{#if error}
-		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
+		<div class="mb-4">
+			<ErrorBanner message={error} compact />
+		</div>
 	{/if}
 
 	<!-- New Status Form -->
@@ -163,7 +157,7 @@
 				<button onclick={createStatus} disabled={isCreating || !newDisplayName || !newName}
 					class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
 					style="background: var(--primary); color: #000; opacity: {isCreating || !newDisplayName || !newName ? 0.5 : 1};">
-					{#if isCreating}<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-3.5 h-3.5" />{/if}
+					{#if isCreating}<Spinner size={3} color="black" thickness="border-2" />{:else}<Plus class="w-3.5 h-3.5" />{/if}
 					Erstellen
 				</button>
 			</div>
@@ -172,10 +166,7 @@
 
 	{#if isLoading}
 		<div class="flex justify-center py-12">
-			<div class="relative w-8 h-8">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary);"></div>
-			</div>
+			<Spinner size={8} />
 		</div>
 	{:else if statuses.length === 0 && !showNewForm}
 		<div class="text-center py-12" style="color: var(--text-muted);">
@@ -220,7 +211,7 @@
 								onmouseenter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
 								onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}>
 								{#if deletingId === status.id}
-									<div class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+									<Spinner size={3} color="currentColor" thickness="border" />
 								{:else}<Trash2 class="w-3.5 h-3.5" />{/if}
 							</button>
 						</div>
@@ -249,7 +240,7 @@
 								<button onclick={() => saveEdit(status.id)} disabled={savingId === status.id || !editValues.display_name}
 									class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
 									style="background: {ac.border}; color: #000; opacity: {savingId === status.id || !editValues.display_name ? 0.5 : 1};">
-									{#if savingId === status.id}<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>{:else}<Check class="w-3.5 h-3.5" />{/if}
+									{#if savingId === status.id}<Spinner size={3} color="black" thickness="border-2" />{:else}<Check class="w-3.5 h-3.5" />{/if}
 									Speichern
 								</button>
 							</div>

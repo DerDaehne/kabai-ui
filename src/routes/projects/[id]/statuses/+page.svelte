@@ -6,6 +6,8 @@
 	import { cubicOut, quintOut } from 'svelte/easing';
 	import { Plus, ArrowLeft, Trash2, Check, X, Layers, Bot } from 'lucide-svelte';
 	import type { BoardStatus } from '$lib/types';
+	import { accentFor } from '$lib/colors';
+	import Spinner from '$components/ui/Spinner.svelte';
 
 	let statuses: BoardStatus[] = [];
 	let isLoading = true;
@@ -18,20 +20,6 @@
 	let editValues = { display_name: '', position: 0, agent_role_instruction: '' };
 
 	$: id = $page.params.id;
-
-	// Gedämpfte Spalten-Akzente — nur noch für den kleinen Orientierungspunkt je
-	// Status-Zeile (Theme v3: Farbe trägt Bedeutung, keine Regenbogen-Codierung mehr).
-	const accentColors = [
-		{ border: '#6e7bf2', glow: 'rgba(110,123,242,0.15)' },
-		{ border: '#8b5cf6', glow: 'rgba(139,92,246,0.15)' },
-		{ border: '#3da06b', glow: 'rgba(61,160,107,0.15)' },
-		{ border: '#c98a2d', glow: 'rgba(201,138,45,0.15)' },
-		{ border: '#c25252', glow: 'rgba(194,82,82,0.15)' },
-	];
-
-	function accentFor(i: number) {
-		return accentColors[i % accentColors.length];
-	}
 
 	async function fetchStatuses() {
 		try {
@@ -162,10 +150,7 @@
 	<!-- Loading -->
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
-			<div class="relative w-12 h-12">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary);"></div>
-			</div>
+			<Spinner size={12} />
 			<p class="text-sm" style="color: var(--text-muted);">Lade Statuses…</p>
 		</div>
 
@@ -250,7 +235,7 @@
 								title="Löschen"
 							>
 								{#if deletingId === status.id}
-									<div class="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin"></div>
+									<Spinner size={3.5} color="currentColor" thickness="border" />
 								{:else}
 									<Trash2 class="w-4 h-4" />
 								{/if}
@@ -318,7 +303,7 @@
 									style="background: {accent.border}; color: #000; opacity: {(savingId === status.id || !editValues.display_name) ? 0.5 : 1}; cursor: {(savingId === status.id || !editValues.display_name) ? 'not-allowed' : 'pointer'};"
 								>
 									{#if savingId === status.id}
-										<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+										<Spinner size={4} color="black" thickness="border-2" />
 										Speichern…
 									{:else}
 										<Check class="w-4 h-4" />

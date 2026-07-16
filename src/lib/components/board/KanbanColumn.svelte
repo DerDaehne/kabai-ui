@@ -4,6 +4,7 @@
 	import { Plus, Pencil, ChevronsLeft } from 'lucide-svelte';
 	import TicketCard from './TicketCard.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
+	import { accentColors } from '$lib/colors';
 
 	interface Props {
 		status: BoardStatus;
@@ -33,13 +34,6 @@
 	// Gedämpfte Spalten-Akzente — nur noch für den kleinen Orientierungspunkt im
 	// Header verwendet (Theme v3: Farbe trägt Bedeutung, keine Regenbogen-Codierung
 	// mehr für Chips/Hover/Drag-Feedback — die laufen jetzt einheitlich über Primary).
-	const accentColors = [
-		{ border: '#6e7bf2' },
-		{ border: '#8b5cf6' },
-		{ border: '#3da06b' },
-		{ border: '#c98a2d' },
-		{ border: '#c25252' },
-	];
 	$: accent = accentColors[colorIndex % accentColors.length];
 
 	let isDragOver = false;

@@ -7,6 +7,8 @@
 	import { z } from 'zod';
 	import { ArrowLeft, Settings, Trash2, Check } from 'lucide-svelte';
 	import type { Project } from '$lib/types';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 
 	$: id = $page.params.id;
 
@@ -80,10 +82,7 @@
 
 	{#if isLoading}
 		<div class="flex justify-center py-24">
-			<div class="relative w-10 h-10">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary);"></div>
-			</div>
+			<Spinner />
 		</div>
 	{:else if project}
 		<div in:fly={{ y: 20, duration: 400, easing: quintOut }}>
@@ -120,7 +119,9 @@
 				</div>
 
 				{#if error}
-					<div class="mt-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
+					<div class="mt-4">
+						<ErrorBanner message={error} compact />
+					</div>
 				{/if}
 
 				<div class="flex gap-3 mt-6">
@@ -128,7 +129,7 @@
 					<button onclick={handleSubmit} disabled={isSaving}
 						class="btn btn-primary flex items-center gap-2 flex-1 justify-center">
 						{#if isSaving}
-							<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+							<Spinner size={4} color="black" thickness="border-2" />
 							Speichern…
 						{:else if saved}
 							<Check class="w-4 h-4" /> Gespeichert
@@ -148,7 +149,7 @@
 				<button onclick={handleDelete} disabled={isDeleting}
 					class="btn btn-danger flex items-center gap-2">
 					{#if isDeleting}
-						<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+						<Spinner size={4} color="white" thickness="border-2" />
 						Löschen…
 					{:else}
 						<Trash2 class="w-4 h-4" /> Projekt löschen

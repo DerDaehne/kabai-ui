@@ -5,6 +5,7 @@
 	import { Plus, Pencil, Trash2, Activity } from 'lucide-svelte';
 	import { aiEvents, sseConnected, type AiEvent, type AiEventOp } from '$lib/stores/aiActivity';
 	import { openTicketRequest } from '$lib/stores/ui';
+	import { relativeTime } from '$lib/utils/format';
 
 	// Rendert höchstens die letzten 10 Events — kein Scroll-Archiv nötig
 	// (aiEvents selbst ist bereits neueste zuerst, Ring-Puffer 50).
@@ -21,15 +22,6 @@
 	onDestroy(() => {
 		if (intervalId) clearInterval(intervalId);
 	});
-
-	function relativeTime(timestamp: Date, _now: number): string {
-		const diffMs = _now - timestamp.getTime();
-		const diffMin = Math.floor(diffMs / 60000);
-		if (diffMin < 1) return 'gerade eben';
-		if (diffMin < 60) return `vor ${diffMin} min`;
-		const diffH = Math.floor(diffMin / 60);
-		return `vor ${diffH} h`;
-	}
 
 	function opIcon(op: AiEventOp) {
 		if (op === 'INSERT') return Plus;
@@ -89,7 +81,9 @@
 						<span class="font-mono" style="color: var(--color-text-secondary);">#{event.ticket_id}</span> {opLabel(event.op)}
 					</span>
 					<span class="text-caption font-mono shrink-0" style="color: var(--color-text-secondary);">
-						{relativeTime(event.timestamp, now)}
+						<!-- "now &&" referenziert die Tick-Variable, damit Svelte den Ausdruck alle
+						     30s neu auswertet (relativeTime selbst liest intern Date.now()). -->
+						{now && relativeTime(event.timestamp)}
 					</span>
 				</button>
 			</li>

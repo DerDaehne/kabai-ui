@@ -3,6 +3,7 @@
 	import { fade } from 'svelte/transition';
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
+	import { initials } from '$lib/utils/format';
 
 	export let ticket: Ticket;
 	export let projectId: number;
@@ -25,9 +26,7 @@
 		aiBadgeTimer = setTimeout(() => { showAiBadge = false; }, 5000);
 	}
 
-	$: assigneeInitials = ticket.assignee
-		? ticket.assignee.split(' ').map(p => p.charAt(0).toUpperCase()).slice(0, 2).join('')
-		: null;
+	$: assigneeInitials = ticket.assignee ? initials(ticket.assignee) : null;
 
 	function handleDragStart(e: DragEvent) {
 		isDragging = true;

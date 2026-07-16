@@ -7,6 +7,9 @@
 	import { BookOpen, Search, Compass, Archive, ShieldCheck, ShieldAlert, ShieldQuestion, Tag as TagIcon } from 'lucide-svelte';
 	import type { NoteSummary, Project } from '$lib/types';
 	import { sanitizeHtml } from '$lib/markdown';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
+	import { formatDate } from '$lib/utils/format';
 
 	const PROJECT_FILTER_STORAGE_KEY = 'kabai:notesProjectFilter';
 
@@ -42,10 +45,6 @@
 		if (!note.last_verified_at) return 'never';
 		const ageDays = (Date.now() - new Date(note.last_verified_at).getTime()) / 86400000;
 		return ageDays > VERIFY_STALE_DAYS ? 'stale' : 'fresh';
-	}
-
-	function formatDate(d: string): string {
-		return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
 	}
 
 	async function fetchNotes() {
@@ -187,9 +186,7 @@
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
-			{error}
-		</div>
+		<ErrorBanner message={error} />
 	{/if}
 
 	{#if fuzzyFallback && query.trim()}
@@ -200,10 +197,7 @@
 
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
-			<div class="relative w-10 h-10">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary);"></div>
-			</div>
+			<Spinner />
 		</div>
 
 	{:else if notes.length === 0}

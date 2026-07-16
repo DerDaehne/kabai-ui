@@ -14,6 +14,8 @@
 	import { pushAiEvent, sseConnected } from '$lib/stores/aiActivity';
 	import { openTicketRequest } from '$lib/stores/ui';
 	import type { Project, BoardStatus, Ticket } from '$lib/types';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 
 	$: id = $page.params.id;
 
@@ -224,15 +226,12 @@
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>{error}</div>
+		<ErrorBanner message={error} />
 	{/if}
 
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-24 gap-4" in:fade={{ duration: 200 }}>
-			<div class="relative w-10 h-10">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary);"></div>
-			</div>
+			<Spinner />
 			<p class="text-sm" style="color: var(--text-muted);">Lade Board…</p>
 		</div>
 

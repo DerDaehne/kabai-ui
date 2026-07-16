@@ -4,6 +4,8 @@
 	import { quintOut } from 'svelte/easing';
 	import { z } from 'zod';
 	import { ArrowLeft, Plus } from 'lucide-svelte';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 
 	let name = '';
 	let slug = '';
@@ -83,7 +85,7 @@
 				</div>
 
 				{#if error}
-					<div class="p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
+					<ErrorBanner message={error} compact />
 				{/if}
 
 				<div class="flex gap-3 pt-2">
@@ -91,7 +93,7 @@
 					<button type="submit" disabled={isLoading || !name || !slug}
 						class="btn btn-primary flex items-center gap-2 flex-1 justify-center">
 						{#if isLoading}
-							<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+							<Spinner size={4} color="black" thickness="border-2" />
 							Erstellen…
 						{:else}
 							<Plus class="w-4 h-4" /> Projekt erstellen

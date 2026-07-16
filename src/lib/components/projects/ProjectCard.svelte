@@ -4,6 +4,7 @@
 	import { ChevronUp, X, Trash2, Archive, AlertCircle, Zap, Hourglass, BookOpen } from 'lucide-svelte';
 	import StatusPie from '$components/projects/StatusPie.svelte';
 	import type { ProjectOverview } from '$lib/types';
+	import { relativeTime, ageInDays } from '$lib/utils/format';
 
 	// Ticket #495: Hover-Tropfen + Milchglas-Kontextmenü auf der Projekt-Card.
 	// Extrahiert aus src/routes/+page.svelte (Ticket #494 Refactoring).
@@ -20,24 +21,6 @@
 	let dropButtonEl: HTMLButtonElement;
 	let firstMenuButtonEl: HTMLButtonElement;
 	let cardEl: HTMLDivElement;
-
-	function relativeTime(iso: string): string {
-		const diffMs = Date.now() - new Date(iso).getTime();
-		const mins = Math.round(diffMs / 60000);
-		if (mins < 1) return 'gerade eben';
-		if (mins < 60) return `vor ${mins} Min.`;
-		const hours = Math.round(mins / 60);
-		if (hours < 24) return `vor ${hours} Std.`;
-		const days = Math.round(hours / 24);
-		return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
-	}
-
-	function ageInDays(iso: string): string {
-		const diffMs = Date.now() - new Date(iso).getTime();
-		const days = Math.floor(diffMs / 86400000);
-		if (days < 1) return '<1 Tag';
-		return `${days} Tag${days !== 1 ? 'en' : ''}`;
-	}
 
 	function openMenu() {
 		onRequestOpen(project.id);

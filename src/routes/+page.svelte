@@ -8,6 +8,8 @@
 	import ProjectSearchBar from '$components/projects/ProjectSearchBar.svelte';
 	import EmptyState from '$components/ui/EmptyState.svelte';
 	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import type { ProjectOverview } from '$lib/types';
 
 	let projects: ProjectOverview[] = [];
@@ -130,17 +132,12 @@
 	</div>
 
 	{#if error}
-		<div class="p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
-			{error}
-		</div>
+		<ErrorBanner message={error} />
 	{/if}
 
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
-			<div class="relative w-10 h-10">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary);"></div>
-			</div>
+			<Spinner />
 		</div>
 
 	{:else if projects.length === 0}

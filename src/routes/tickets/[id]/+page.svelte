@@ -9,6 +9,9 @@
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import { pushAiEvent } from '$lib/stores/aiActivity';
 	import type { TicketDetailed, BoardStatus, TicketTask } from '$lib/types';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
+	import { formatDate, initials } from '$lib/utils/format';
 
 	$: id = $page.params.id;
 
@@ -235,9 +238,7 @@
 		references: 'referenziert'
 	};
 
-	$: assigneeInitials = ticket?.assignee
-		? ticket.assignee.split(' ').map(p => p.charAt(0).toUpperCase()).slice(0, 2).join('')
-		: null;
+	$: assigneeInitials = ticket?.assignee ? initials(ticket.assignee) : null;
 
 	$: tasksCompleted = ticket?.tasks.filter(t => t.is_completed).length ?? 0;
 	$: tasksTotal = ticket?.tasks.length ?? 0;
@@ -259,17 +260,14 @@
 	</button>
 
 	{#if error && !isEditing}
-		<div class="mb-4 p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
-			{error}
+		<div class="mb-4">
+			<ErrorBanner message={error} />
 		</div>
 	{/if}
 
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
-			<div class="relative w-10 h-10">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary);"></div>
-			</div>
+			<Spinner />
 		</div>
 
 	{:else if ticket}
@@ -318,7 +316,7 @@
 							style="color: var(--danger); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);"
 						>
 							{#if isDeleting}
-								<div class="w-3.5 h-3.5 border border-current border-t-transparent rounded-full animate-spin"></div>
+								<Spinner size={3.5} color="currentColor" thickness="border" />
 							{:else}
 								<Trash2 class="w-3.5 h-3.5" />
 							{/if}
@@ -375,7 +373,7 @@
 						</div>
 
 						{#if error}
-							<div class="p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
+							<ErrorBanner message={error} compact />
 						{/if}
 
 						<div class="flex justify-end gap-2 pt-1">
@@ -390,7 +388,7 @@
 								style="background: var(--primary); color: #000; opacity: {isSaving || !editTitle.trim() ? 0.5 : 1};"
 							>
 								{#if isSaving}
-									<div class="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+									<Spinner size={3.5} color="black" thickness="border-2" />
 									Speichern…
 								{:else}
 									<Check class="w-3.5 h-3.5" />
@@ -419,13 +417,13 @@
 					<div class="flex items-center gap-2">
 						<Clock class="w-4 h-4 shrink-0" style="color: var(--text-muted);" />
 						<span class="text-xs font-mono" style="color: var(--text-muted);">
-							{new Date(ticket.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+							{formatDate(ticket.created_at)}
 						</span>
 					</div>
 					<div class="flex items-center gap-2">
 						<Clock class="w-4 h-4 shrink-0" style="color: var(--text-muted);" />
 						<span class="text-xs font-mono" style="color: var(--text-muted);">
-							Zuletzt: {new Date(ticket.updated_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+							Zuletzt: {formatDate(ticket.updated_at)}
 						</span>
 					</div>
 				</div>
@@ -493,7 +491,7 @@
 						onkeydown={(e) => e.key === 'Enter' && addTask()} />
 					<button onclick={addTask} disabled={!newTaskTitle.trim() || isAddingTask}
 						class="btn-subtle flex items-center gap-1.5 px-4 py-2 text-sm font-medium shrink-0">
-						{#if isAddingTask}<div class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>{:else}<Plus class="w-4 h-4" />{/if}
+						{#if isAddingTask}<Spinner size={3.5} color="currentColor" thickness="border-2" />{:else}<Plus class="w-4 h-4" />{/if}
 						Hinzufügen
 					</button>
 				</div>
@@ -550,20 +548,20 @@
 
 				<div class="py-4 space-y-4">
 					{#each ticket.comments as comment (comment.id)}
-						{@const initials = comment.author.split(' ').map(p => p.charAt(0).toUpperCase()).slice(0, 2).join('')}
+						{@const commentInitials = initials(comment.author)}
 						<div class="flex gap-3">
 							<div
 								class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
 								style="background: var(--color-surface-hover); color: var(--color-text-secondary);"
 							>
-								{initials}
+								{commentInitials}
 							</div>
 							<div class="flex-1 min-w-0">
 								<div class="rounded-lg px-4 py-3" style="background: rgba(255,255,255,0.03);">
 									<div class="flex items-center gap-2 mb-1.5">
 										<span class="text-sm font-medium" style="color: var(--text);">{comment.author}</span>
 										<span class="text-xs font-mono" style="color: var(--text-muted);">
-											{new Date(comment.created_at).toLocaleDateString('de-DE')}
+											{formatDate(comment.created_at, true)}
 										</span>
 									</div>
 									<p class="text-sm whitespace-pre-wrap leading-relaxed" style="color: var(--text);">{comment.comment_text}</p>
@@ -582,7 +580,7 @@
 					<div class="flex justify-end">
 						<button onclick={addComment} disabled={!newCommentText.trim() || isAddingComment}
 							class="btn-subtle flex items-center gap-1.5 px-4 py-2 text-sm font-medium">
-							{#if isAddingComment}<div class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>{:else}<MessageSquare class="w-3.5 h-3.5" />{/if}
+							{#if isAddingComment}<Spinner size={3.5} color="currentColor" thickness="border-2" />{:else}<MessageSquare class="w-3.5 h-3.5" />{/if}
 							Kommentieren
 						</button>
 					</div>

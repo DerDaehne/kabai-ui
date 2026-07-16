@@ -6,6 +6,8 @@
 	import { quintOut } from 'svelte/easing';
 	import { ArrowLeft, Check, Layers, Bot } from 'lucide-svelte';
 	import type { BoardStatus } from '$lib/types';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 
 	$: id = $page.params.id;
 	$: sid = $page.params.sid;
@@ -84,10 +86,7 @@
 
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-24 gap-4">
-			<div class="relative w-10 h-10">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
-					style="border-top-color: var(--primary);"></div>
-			</div>
+			<Spinner />
 		</div>
 
 	{:else if !status}
@@ -172,9 +171,7 @@
 
 					<!-- Error -->
 					{#if error}
-						<div class="p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 6, duration: 200 }}>
-							{error}
-						</div>
+						<ErrorBanner message={error} y={6} compact />
 					{/if}
 
 					<!-- Actions -->
@@ -192,7 +189,7 @@
 							class="btn btn-primary flex items-center gap-2 flex-1 justify-center"
 						>
 							{#if isSaving}
-								<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+								<Spinner size={4} color="black" thickness="border-2" />
 								Speichern…
 							{:else}
 								<Check class="w-4 h-4" />

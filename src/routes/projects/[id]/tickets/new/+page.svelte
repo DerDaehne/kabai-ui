@@ -7,6 +7,8 @@
 	import { z } from 'zod';
 	import { ArrowLeft, Plus, User, Flag } from 'lucide-svelte';
 	import type { BoardStatus, Ticket, TicketType } from '$lib/types';
+	import Spinner from '$components/ui/Spinner.svelte';
+	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 
 	let title = '';
 	let description = '';
@@ -216,9 +218,7 @@
 				</div>
 
 				{#if error}
-					<div class="p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">
-						{error}
-					</div>
+					<ErrorBanner message={error} compact />
 				{/if}
 
 				<div class="flex gap-3 pt-2">
@@ -231,7 +231,7 @@
 						class="btn btn-primary flex items-center gap-2 flex-1 justify-center"
 					>
 						{#if isLoading}
-							<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+							<Spinner size={4} color="black" thickness="border-2" />
 							Erstellen…
 						{:else}
 							<Plus class="w-4 h-4" />
