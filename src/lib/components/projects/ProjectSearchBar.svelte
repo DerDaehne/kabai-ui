@@ -1,7 +1,7 @@
 <script lang="ts">
-	// Ticket #497: Floating-Suchfeld mit Expand-Animation + Aktiv/Archiviert-
-	// Umschalt-Tropfen über der Projektliste. Formsprache (halbrunde Lasche,
-	// aus der Kante herauswachsend) übernommen aus ProjectCard.svelte.
+	// Ticket #497: Floating-Suchfeld mit Expand-Animation; der Aktiv/Archiviert-
+	// Umschalter sitzt als eigene kleine Pille darunter (Review-Entscheid,
+	// 3. Runde — der angehängte Tropfen wirkte zu dominant am Suchfeld).
 	import { Search, FolderOpen, Archive } from 'lucide-svelte';
 
 	export let query = '';
@@ -17,48 +17,56 @@
 			placeholder="Suchen…"
 			class="search-input"
 			aria-label="Projekte durchsuchen"
+			onkeydown={(e) => {
+				// Review-Finding #497 (3. Runde): ESC gibt den Fokus wieder frei.
+				if (e.key === 'Escape') (e.currentTarget as HTMLInputElement).blur();
+			}}
 		/>
+	</div>
 
-		<!-- Umschalt-Tropfen: hängt mittig unten aus der Pille heraus. -->
-		<div class="view-drop" role="group" aria-label="Sicht wählen">
-			<button
-				type="button"
-				class="view-drop__half view-drop__half--left"
-				class:is-active={view === 'active'}
-				aria-pressed={view === 'active'}
-				title="Aktive Projekte anzeigen"
-				onclick={() => (view = 'active')}
-			>
-				{#if view === 'active'}
-					<span class="view-drop__label">Aktiv</span>
-				{:else}
-					<FolderOpen class="w-3 h-3" />
-				{/if}
-			</button>
-			<button
-				type="button"
-				class="view-drop__half view-drop__half--right"
-				class:is-active={view === 'archived'}
-				aria-pressed={view === 'archived'}
-				title="Archivierte Projekte anzeigen"
-				onclick={() => (view = 'archived')}
-			>
-				{#if view === 'archived'}
-					<span class="view-drop__label">Archiv</span>
-				{:else}
-					<Archive class="w-3 h-3" />
-				{/if}
-			</button>
-		</div>
+	<!-- Sicht-Wähler: eigene kleine Pille unterhalb der Suchpille
+	     (Review-Finding #497, 3. Runde — nicht mehr als angehängter Tropfen). -->
+	<div class="view-pill" role="group" aria-label="Sicht wählen">
+		<button
+			type="button"
+			class="view-pill__half view-pill__half--left"
+			class:is-active={view === 'active'}
+			aria-pressed={view === 'active'}
+			title="Aktive Projekte anzeigen"
+			onclick={() => (view = 'active')}
+		>
+			{#if view === 'active'}
+				<span class="view-pill__label">Aktiv</span>
+			{:else}
+				<FolderOpen class="w-3 h-3" />
+			{/if}
+		</button>
+		<button
+			type="button"
+			class="view-pill__half view-pill__half--right"
+			class:is-active={view === 'archived'}
+			aria-pressed={view === 'archived'}
+			title="Archivierte Projekte anzeigen"
+			onclick={() => (view = 'archived')}
+		>
+			{#if view === 'archived'}
+				<span class="view-pill__label">Archiv</span>
+			{:else}
+				<Archive class="w-3 h-3" />
+			{/if}
+		</button>
 	</div>
 </div>
 
 <style>
 	.search-wrap {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
 		/* Abstände regelt die Kopfzeile der Seite (Rework #497). */
 		margin: 0;
+		width: 100%;
 	}
 
 	.search-pill {
@@ -114,29 +122,21 @@
 		}
 	}
 
-	/* Umschalt-Tropfen: gleiche Formsprache wie .drop in ProjectCard.svelte —
-	   halbrunde Lasche, oben mit der Pillen-Kante verschmolzen.
-	   Rework #497 (2. Runde): visuell hinter die Pille zurückgestuft —
-	   kleiner, dunklere (zurückgesetzte) Fläche mit Innenschatten, schwächere
-	   Kante und gedämpftere Aktiv-Farben, damit die Suchpille die Hierarchie
-	   klar anführt. */
-	.view-drop {
-		position: absolute;
-		left: 50%;
-		bottom: -19px;
-		transform: translateX(-50%);
-		width: 104px;
-		height: 20px;
+	/* Sicht-Wähler (Rework #497, 3. Runde): eigene kleine, freistehende Pille
+	   unterhalb der Suchpille — bewusst klein, dunkel (zurückgesetzt) und mit
+	   Innenschatten, damit die Suchpille die Hierarchie klar anführt. */
+	.view-pill {
+		width: 112px;
+		height: 22px;
 		display: flex;
 		border: 1px solid var(--edge);
-		border-top-color: transparent;
-		border-radius: 0 0 999px 999px;
+		border-radius: 999px;
 		overflow: hidden;
 		background: color-mix(in srgb, var(--color-surface) 65%, var(--color-bg));
 		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.28);
 	}
 
-	.view-drop__half {
+	.view-pill__half {
 		flex: 1;
 		display: flex;
 		align-items: center;
@@ -151,27 +151,27 @@
 		transition: background-color var(--duration-fast) var(--ease-soft), color var(--duration-fast) var(--ease-soft);
 	}
 
-	.view-drop__half--left {
+	.view-pill__half--left {
 		border-right: 1px solid var(--edge);
 	}
 
-	.view-drop__half.is-active {
+	.view-pill__half.is-active {
 		color: var(--color-text);
 	}
 
-	.view-drop__half--left.is-active {
+	.view-pill__half--left.is-active {
 		background: color-mix(in srgb, var(--color-primary) 12%, transparent);
 	}
 
-	.view-drop__half--right.is-active {
+	.view-pill__half--right.is-active {
 		background: color-mix(in srgb, var(--color-warning) 12%, transparent);
 	}
 
-	.view-drop__half:hover {
+	.view-pill__half:hover {
 		color: var(--color-text);
 	}
 
-	.view-drop__label {
+	.view-pill__label {
 		line-height: 1;
 	}
 </style>
