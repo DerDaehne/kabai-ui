@@ -156,7 +156,7 @@
 {#if open}
 	<div
 		class="fixed inset-0 z-50"
-		style="background: rgba(0,0,0,0.5);"
+		style="background: rgba(0,0,0,0.5); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);"
 		transition:fade={{ duration: prefersReducedMotion() ? 120 : 200 }}
 		onclick={onClose}
 	>
