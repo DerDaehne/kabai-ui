@@ -107,18 +107,21 @@
 </script>
 
 <div class="w-full space-y-8">
-	<!-- Header -->
-	<div class="flex items-end justify-between gap-4" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
-		<div>
-			<div class="flex items-center gap-3 mb-1">
-				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
-					<Layers class="w-5 h-5" style="color: var(--primary);" />
-				</div>
-				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Projekte</h1>
-			</div>
-			<p class="ml-12 text-sm" style="color: var(--text-muted);">
-				{projects.length} Projekt{projects.length !== 1 ? 'e' : ''} · Kanban-Boards
-			</p>
+	<!-- Kopfzeile (Rework #497): Headline auf ein Minimum reduziert, die
+	     Suchleiste ist das zentrale Element und sitzt mittig auf gleicher
+	     Höhe wie Headline und Primäraktion. Der große Abstand nach unten
+	     setzt die Suche deutlich von der Projektliste ab (der Sicht-Tropfen
+	     hängt zusätzlich ~24px unter die Pille). -->
+	<div class="flex items-center gap-6" style="margin-bottom: 56px;" in:fly={{ y: -16, duration: 400, easing: quintOut }}>
+		<div class="flex items-center gap-2 shrink-0">
+			<Layers class="w-4 h-4" style="color: var(--primary);" />
+			<h1 class="text-base font-semibold tracking-tight" style="color: var(--text);">Projekte</h1>
+			<span class="text-sm font-mono" style="color: var(--text-muted);">{projects.length}</span>
+		</div>
+		<div class="flex-1 min-w-0 flex justify-center">
+			{#if !isLoading && projects.length > 0}
+				<ProjectSearchBar bind:query={searchQuery} bind:view />
+			{/if}
 		</div>
 		<button onclick={() => goto('/projects/new')} class="btn btn-primary flex items-center gap-2 shrink-0">
 			<Plus class="w-4 h-4" />
@@ -130,10 +133,6 @@
 		<div class="p-4 rounded-xl text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);" in:fly={{ y: 8, duration: 200 }}>
 			{error}
 		</div>
-	{/if}
-
-	{#if !isLoading && projects.length > 0}
-		<ProjectSearchBar bind:query={searchQuery} bind:view />
 	{/if}
 
 	{#if isLoading}

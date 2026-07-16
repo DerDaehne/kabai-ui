@@ -57,7 +57,8 @@
 	.search-wrap {
 		display: flex;
 		justify-content: center;
-		margin: var(--space-6) 0 var(--space-8);
+		/* Abstände regelt die Kopfzeile der Seite (Rework #497). */
+		margin: 0;
 	}
 
 	.search-pill {
@@ -65,13 +66,16 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		width: 200px;
+		/* Rework #497: initial breiter (280 statt 200px), Verbreiterung
+		   gemächlicher als --duration-fast — die Pille ist das zentrale
+		   Element und darf sich Zeit nehmen. */
+		width: 280px;
 		max-width: 60%;
 		padding: 8px 14px;
 		border-radius: 999px;
 		background: var(--color-surface);
 		border: 1px solid var(--edge);
-		transition: width var(--duration-fast) var(--ease-soft), max-width var(--duration-fast) var(--ease-soft), border-color var(--duration-fast) var(--ease-soft);
+		transition: width 350ms var(--ease-soft), max-width 350ms var(--ease-soft), border-color var(--duration-fast) var(--ease-soft);
 	}
 
 	.search-pill:focus-within {
