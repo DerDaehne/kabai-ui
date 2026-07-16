@@ -22,8 +22,12 @@
 		goto(href);
 	}
 
-	function isActive(href: string): boolean {
-		const path = $page.url.pathname;
+	// Der Pfad muss als reaktive Variable im Template auftauchen — steckt er
+	// nur im Funktionsrumpf, rendert der {@const}-Ausdruck bei Client-Side-
+	// Navigation nicht neu (Review-Finding #500: „springt erst bei Reload um").
+	$: currentPath = $page.url.pathname;
+
+	function isActive(href: string, path: string): boolean {
 		if (href === '/') return path === '/';
 		return path === href || path.startsWith(href + '/');
 	}
@@ -59,7 +63,7 @@
 	<!-- Navigation Links -->
 	<div class="flex flex-col gap-1 px-2 mt-2">
 		{#each navItems as item}
-			{@const active = isActive(item.href)}
+			{@const active = isActive(item.href, currentPath)}
 			<button
 				onclick={() => navigate(item.href)}
 				title={item.label}
@@ -169,49 +173,58 @@
 	   gerundet wie die anderen Einträge, rechts offen bis zur Nav-Kante,
 	   wo er nahtlos in die Content-Fläche übergeht. */
 	.nav-item-active {
-		--notch-size: 14px;
+		--notch-size: 18px;
 		border-radius: var(--radius-control) 0 0 var(--radius-control);
 		margin-right: -8px; /* kompensiert das px-2 des Elternelements — Fläche reicht bis zur Nav-Kante */
-		transition: background-color var(--duration-fast) var(--ease-soft);
+		animation: nav-merge-in 220ms var(--ease-soft);
 		/* Notch-Quadrate ragen in Nachbar-Einträge hinein (kleiner gap-1)
 		   und müssen über deren Hintergrund liegen, unabhängig von der
 		   DOM-Reihenfolge. */
 		z-index: 1;
 	}
 
-	/* Konkave Übergänge: über/unter dem aktiven Eintrag krümmt sich die
-	   Kante der Nav-Fläche (--color-surface) in den Eintrag hinein. Jedes
-	   Notch ist ein 14×14px-Quadrat direkt an der Ecke des Eintrags, gefüllt
-	   mit der Nav-Hintergrundfarbe; ein radialer Verlauf zentriert auf genau
-	   dieser Ecke stanzt einen Viertelkreis aus, sodass die (bereits darunter
-	   liegende) Eintrags-Hintergrundfarbe durchscheint — kein box-shadow,
-	   kein zusätzliches Overflow-Element, keine Clip-Path-Abhängigkeit. */
+	/* Konkave Übergänge (Review-Rework #500): über/unter dem aktiven Eintrag
+	   krümmt sich die Nav-Kante sichtbar in die Content-Fläche hinein. Jedes
+	   Notch ist ein Quadrat direkt an der Ecke des Eintrags; ein radialer
+	   Verlauf zentriert auf der ecke-fernen Seite malt innen die Nav-Farbe
+	   (--color-surface) und außen die Panel-Farbe (--color-content-panel) —
+	   die Kreisgrenze ist der konkave Viertelbogen. Die erste Fassung stanzte
+	   „transparent" aus und zeigte damit Surface auf Surface: unsichtbar. */
 	.nav-item-notch {
 		position: absolute;
 		right: 0;
 		width: var(--notch-size);
 		height: var(--notch-size);
 		pointer-events: none;
-		background: var(--color-surface);
+		animation: notch-in 220ms var(--ease-soft);
 	}
 
 	.nav-item-notch-top {
 		top: calc(var(--notch-size) * -1);
-		border-radius: 0 0 var(--notch-size) 0;
 		background:
-			radial-gradient(circle at bottom right, transparent var(--notch-size), var(--color-surface) calc(var(--notch-size) + 1px));
+			radial-gradient(circle at top left, var(--color-surface) calc(var(--notch-size) - 0.5px), var(--color-content-panel) calc(var(--notch-size) + 0.5px));
 	}
 
 	.nav-item-notch-bottom {
 		bottom: calc(var(--notch-size) * -1);
-		border-radius: 0 var(--notch-size) 0 0;
 		background:
-			radial-gradient(circle at top right, transparent var(--notch-size), var(--color-surface) calc(var(--notch-size) + 1px));
+			radial-gradient(circle at bottom left, var(--color-surface) calc(var(--notch-size) - 0.5px), var(--color-content-panel) calc(var(--notch-size) + 0.5px));
+	}
+
+	@keyframes nav-merge-in {
+		from { opacity: 0.4; }
+		to { opacity: 1; }
+	}
+
+	@keyframes notch-in {
+		from { opacity: 0; transform: translateX(4px); }
+		to { opacity: 1; transform: translateX(0); }
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.nav-item-active {
-			transition: none;
+		.nav-item-active,
+		.nav-item-notch {
+			animation: none;
 		}
 	}
 </style>
