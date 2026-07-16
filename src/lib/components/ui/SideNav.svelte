@@ -28,7 +28,9 @@
 	$: currentPath = $page.url.pathname;
 
 	function isActive(href: string, path: string): boolean {
-		if (href === '/') return path === '/';
+		// „Projekte" umfasst auch die Detail-/Board-Ansichten unter /projects/…
+		// (Review-Finding #500: das Herauswachsen bleibt dort aktiv).
+		if (href === '/') return path === '/' || path === '/projects' || path.startsWith('/projects/');
 		return path === href || path.startsWith(href + '/');
 	}
 
@@ -71,7 +73,7 @@
 				class="nav-item relative flex items-center gap-3 pl-2 md:pl-3 py-2 focus-visible:outline focus-visible:outline-2 {active ? 'nav-item-active pr-4 md:pr-5' : 'pr-2 md:pr-3 rounded-md transition-colors'}"
 				style="
 					outline-color: var(--color-primary);
-					background: {active ? 'var(--color-content-panel)' : 'transparent'};
+					background: transparent;
 					color: {active ? 'var(--color-text)' : 'var(--color-text-secondary)'};
 				"
 				onmouseenter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)'; }}
@@ -176,11 +178,26 @@
 		--notch-size: 18px;
 		border-radius: var(--radius-control) 0 0 var(--radius-control);
 		margin-right: -8px; /* kompensiert das px-2 des Elternelements — Fläche reicht bis zur Nav-Kante */
-		animation: nav-merge-in 220ms var(--ease-soft);
 		/* Notch-Quadrate ragen in Nachbar-Einträge hinein (kleiner gap-1)
 		   und müssen über deren Hintergrund liegen, unabhängig von der
 		   DOM-Reihenfolge. */
 		z-index: 1;
+	}
+
+	/* Die Panel-Fläche liegt als eigene Schicht unter dem Eintrags-Inhalt und
+	   wächst beim Aktivieren geschmeidig aus der rechten Kante heraus — das
+	   „Herauswachsen aus der Content-Fläche" wird so als Bewegung erlebbar
+	   (Review-Finding #500). z-index -1 hält sie unter Text/Icon, aber im
+	   Stacking-Kontext des Eintrags (z-index 1) über der Nav-Fläche. */
+	.nav-item-active::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: var(--color-content-panel);
+		border-radius: inherit;
+		transform-origin: right center;
+		animation: nav-merge-in 260ms var(--ease-soft);
 	}
 
 	/* Konkave Übergänge (Review-Rework #500): über/unter dem aktiven Eintrag
@@ -190,39 +207,43 @@
 	   (--color-surface) und außen die Panel-Farbe (--color-content-panel) —
 	   die Kreisgrenze ist der konkave Viertelbogen. Die erste Fassung stanzte
 	   „transparent" aus und zeigte damit Surface auf Surface: unsichtbar. */
+	/* Innen „transparent" statt Surface: so scheint beim Hover über den
+	   Nachbar-Eintrag dessen Hover-Fläche durch, statt dass das Notch-Quadrat
+	   als Fremdkörper darüberliegt (Review-Finding #500). Sichtbar bleibt nur
+	   der schmale Panel-Sichel-Bogen an der Nav-Kante — die konkave Ecke. */
 	.nav-item-notch {
 		position: absolute;
 		right: 0;
 		width: var(--notch-size);
 		height: var(--notch-size);
 		pointer-events: none;
-		animation: notch-in 220ms var(--ease-soft);
+		animation: notch-in 260ms var(--ease-soft) 60ms backwards;
 	}
 
 	.nav-item-notch-top {
 		top: calc(var(--notch-size) * -1);
 		background:
-			radial-gradient(circle at top left, var(--color-surface) calc(var(--notch-size) - 0.5px), var(--color-content-panel) calc(var(--notch-size) + 0.5px));
+			radial-gradient(circle at top left, transparent calc(var(--notch-size) - 0.5px), var(--color-content-panel) calc(var(--notch-size) + 0.5px));
 	}
 
 	.nav-item-notch-bottom {
 		bottom: calc(var(--notch-size) * -1);
 		background:
-			radial-gradient(circle at bottom left, var(--color-surface) calc(var(--notch-size) - 0.5px), var(--color-content-panel) calc(var(--notch-size) + 0.5px));
+			radial-gradient(circle at bottom left, transparent calc(var(--notch-size) - 0.5px), var(--color-content-panel) calc(var(--notch-size) + 0.5px));
 	}
 
 	@keyframes nav-merge-in {
-		from { opacity: 0.4; }
-		to { opacity: 1; }
+		from { opacity: 0; transform: scaleX(0.4); }
+		to { opacity: 1; transform: scaleX(1); }
 	}
 
 	@keyframes notch-in {
-		from { opacity: 0; transform: translateX(4px); }
+		from { opacity: 0; transform: translateX(6px); }
 		to { opacity: 1; transform: translateX(0); }
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.nav-item-active,
+		.nav-item-active::before,
 		.nav-item-notch {
 			animation: none;
 		}
