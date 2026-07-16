@@ -32,7 +32,7 @@
 				{#if view === 'active'}
 					<span class="view-drop__label">Aktiv</span>
 				{:else}
-					<FolderOpen class="w-3.5 h-3.5" />
+					<FolderOpen class="w-3 h-3" />
 				{/if}
 			</button>
 			<button
@@ -46,7 +46,7 @@
 				{#if view === 'archived'}
 					<span class="view-drop__label">Archiv</span>
 				{:else}
-					<Archive class="w-3.5 h-3.5" />
+					<Archive class="w-3 h-3" />
 				{/if}
 			</button>
 		</div>
@@ -66,10 +66,10 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		/* Rework #497: initial breiter (280 statt 200px), Verbreiterung
-		   gemächlicher als --duration-fast — die Pille ist das zentrale
-		   Element und darf sich Zeit nehmen. */
-		width: 280px;
+		/* Rework #497 (2. Runde): die Pille ist DAS zentrale Element der
+		   Seite — deutlich breiter in Ruhe, raumgreifend im Fokus, und die
+		   Verbreiterung nimmt sich Zeit (gemächlicher als --duration-fast). */
+		width: 480px;
 		max-width: 60%;
 		padding: 8px 14px;
 		border-radius: 999px;
@@ -79,13 +79,15 @@
 	}
 
 	.search-pill:focus-within {
-		width: 480px;
+		width: 760px;
+		max-width: 75%;
 		border-color: var(--color-primary);
 	}
 
 	/* Solange Text eingegeben ist, bleibt die Pille breit — auch ohne Fokus. */
 	.search-pill.has-query {
-		width: 480px;
+		width: 760px;
+		max-width: 75%;
 	}
 
 	.search-input {
@@ -96,6 +98,8 @@
 		outline: none;
 		color: var(--color-text);
 		font-size: 14px;
+		/* Suchtext mittig in der Pille (Review-Finding #497, 2. Runde) */
+		text-align: center;
 	}
 
 	.search-input::placeholder {
@@ -105,25 +109,31 @@
 	@media (prefers-reduced-motion: reduce) {
 		.search-pill {
 			transition: border-color var(--duration-fast) var(--ease-soft);
-			width: 480px;
+			width: 760px;
+			max-width: 75%;
 		}
 	}
 
 	/* Umschalt-Tropfen: gleiche Formsprache wie .drop in ProjectCard.svelte —
-	   halbrunde Lasche, oben mit der Pillen-Kante verschmolzen. */
+	   halbrunde Lasche, oben mit der Pillen-Kante verschmolzen.
+	   Rework #497 (2. Runde): visuell hinter die Pille zurückgestuft —
+	   kleiner, dunklere (zurückgesetzte) Fläche mit Innenschatten, schwächere
+	   Kante und gedämpftere Aktiv-Farben, damit die Suchpille die Hierarchie
+	   klar anführt. */
 	.view-drop {
 		position: absolute;
 		left: 50%;
-		bottom: -23px;
+		bottom: -19px;
 		transform: translateX(-50%);
-		width: 120px;
-		height: 24px;
+		width: 104px;
+		height: 20px;
 		display: flex;
-		border: 1px solid var(--edge-strong);
+		border: 1px solid var(--edge);
 		border-top-color: transparent;
 		border-radius: 0 0 999px 999px;
 		overflow: hidden;
-		background: var(--color-surface-hover);
+		background: color-mix(in srgb, var(--color-surface) 65%, var(--color-bg));
+		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.28);
 	}
 
 	.view-drop__half {
@@ -150,11 +160,11 @@
 	}
 
 	.view-drop__half--left.is-active {
-		background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface-hover));
+		background: color-mix(in srgb, var(--color-primary) 12%, transparent);
 	}
 
 	.view-drop__half--right.is-active {
-		background: color-mix(in srgb, var(--color-warning) 18%, var(--color-surface-hover));
+		background: color-mix(in srgb, var(--color-warning) 12%, transparent);
 	}
 
 	.view-drop__half:hover {
