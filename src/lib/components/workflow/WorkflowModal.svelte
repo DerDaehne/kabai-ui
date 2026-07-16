@@ -6,6 +6,8 @@
 	import { SvelteFlow, Background, Controls, addEdge, MarkerType } from '@xyflow/svelte';
 	import '@xyflow/svelte/dist/style.css';
 	import { Network, Trash2, ArrowRight } from 'lucide-svelte';
+	import Spinner from '$lib/components/ui/Spinner.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
 	import type { BoardStatus, StatusTransition } from '$lib/types';
 	import type { Node, Edge, Connection } from '@xyflow/svelte';
 
@@ -32,7 +34,7 @@
 			data: { label: s.display_name },
 			position: { x: 200 * (i % cols), y: 120 * Math.floor(i / cols) },
 			type: 'default',
-			style: 'background: #0d0d1a; border: 1px solid #00d9ff40; color: #e2e8ff; border-radius: 8px; font-weight: 600; font-size: 13px;'
+			style: 'background: var(--color-surface); border: 1px solid var(--edge-strong); color: var(--color-text); border-radius: 8px; font-weight: 600; font-size: 13px;'
 		}));
 	}
 
@@ -41,8 +43,8 @@
 			id: `${fromId}-${toId}`,
 			source: String(fromId),
 			target: String(toId),
-			markerEnd: { type: MarkerType.ArrowClosed, color: '#00d9ff' },
-			style: 'stroke: #00d9ff; stroke-width: 2;'
+			markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--color-text-secondary)' },
+			style: 'stroke: var(--color-text-secondary); stroke-width: 2;'
 		};
 	}
 
@@ -126,20 +128,20 @@
 	</div>
 
 	{#if error}
-		<div class="mb-4 p-3 rounded-lg text-sm" style="background: rgba(239,68,68,0.08); border-left: 2px solid var(--color-danger); color: var(--danger);">{error}</div>
+		<div class="mb-4">
+			<ErrorBanner message={error} compact />
+		</div>
 	{/if}
 
 	{#if isLoading}
 		<div class="flex justify-center py-16">
-			<div class="relative w-8 h-8">
-				<div class="absolute inset-0 rounded-full border-2 border-transparent animate-spin" style="border-top-color: var(--accent);"></div>
-			</div>
+			<Spinner size={8} />
 		</div>
 	{:else if statuses.length === 0}
 		<p class="text-center py-12 text-sm" style="color: var(--text-muted);">Keine Statuses gefunden.</p>
 	{:else}
 		<!-- Graph -->
-		<div class="rounded-xl overflow-hidden mb-5" style="height: 360px; box-shadow: inset 0 0 0 1px var(--edge);">
+		<div class="workflow-graph rounded-xl overflow-hidden mb-5" style="height: 360px; box-shadow: inset 0 0 0 1px var(--edge);">
 			<SvelteFlow
 				{nodes}
 				{edges}
@@ -147,10 +149,10 @@
 				{ondelete}
 				deleteKey={['Delete', 'Backspace']}
 				fitView
-				style="background: #03030c;"
+				style="background: var(--color-bg);"
 			>
-				<Background style="color: #1a1a30;" />
-				<Controls style="background: #0d0d1a; border-color: #2e2e5a;" />
+				<Background style="color: var(--edge-strong);" />
+				<Controls style="background: var(--color-surface); border-color: var(--edge-strong);" />
 			</SvelteFlow>
 		</div>
 
@@ -166,23 +168,20 @@
 					{#each transitionMeta as t, i (t.fromId + '-' + t.toId)}
 						{@const key = `${t.fromId}-${t.toId}`}
 						<div in:fly={{ x: -12, duration: 200, delay: i * 30, easing: quintOut }}
-							class="flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-150 hover:bg-[var(--color-surface-hover)]"
-							style="background: rgba(255,255,255,0.04);">
+							class="transition-row flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-150"
+							style="background: var(--color-surface); border: 1px solid var(--edge);">
 							<div class="flex items-center gap-2 text-sm">
-								<span class="font-medium" style="color: var(--primary);">{t.fromName}</span>
+								<span class="font-medium" style="color: var(--color-primary);">{t.fromName}</span>
 								<ArrowRight class="w-3.5 h-3.5 shrink-0" style="color: var(--text-muted);" />
-								<span class="font-medium" style="color: var(--accent);">{t.toName}</span>
+								<span class="font-medium" style="color: var(--color-primary);">{t.toName}</span>
 							</div>
 							<button
 								onclick={() => deleteTransition(t.fromId, t.toId)}
 								disabled={deletingKey === key}
-								class="w-6 h-6 rounded-md flex items-center justify-center transition-all"
-								style="color: var(--text-muted);"
-								onmouseenter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; }}
-								onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+								class="transition-row__delete w-6 h-6 rounded-md flex items-center justify-center transition-all"
 								title="Transition löschen">
 								{#if deletingKey === key}
-									<div class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+									<Spinner size={3} thickness="border" color="currentColor" />
 								{:else}<Trash2 class="w-3.5 h-3.5" />{/if}
 							</button>
 						</div>
@@ -192,3 +191,107 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Ticket #512: Delete-Button der Transition-Liste — Hover war zuvor per
+	   onmouseenter/onmouseleave inline gesetzt, jetzt als CSS-:hover-Klasse. */
+	.transition-row {
+		color: var(--color-text);
+	}
+
+	.transition-row:hover {
+		border-color: var(--edge-strong);
+		background: var(--color-surface-hover);
+	}
+
+	.transition-row__delete {
+		color: var(--text-muted);
+		background: transparent;
+	}
+
+	.transition-row__delete:hover:not(:disabled) {
+		color: var(--color-danger);
+		background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+	}
+
+	.transition-row__delete:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	/* SvelteFlow-Theming über --xy-*-Variablen (v0.1.x) statt harter Hex-Werte:
+	   Nodes/Edges/Controls/Selection auf das Graphit/Indigo-Tokensystem
+	   umgezogen — Cyan-Neon (#00d9ff) entfällt vollständig. */
+	.workflow-graph :global(.svelte-flow) {
+		--xy-background-color: var(--color-bg);
+		--xy-background-color-default: var(--color-bg);
+
+		--xy-node-background-color: var(--color-surface);
+		--xy-node-background-color-default: var(--color-surface);
+		--xy-node-color: var(--color-text);
+		--xy-node-color-default: var(--color-text);
+		--xy-node-border: 1px solid var(--edge-strong);
+		--xy-node-border-default: 1px solid var(--edge-strong);
+		--xy-node-boxshadow-hover: none;
+		--xy-node-boxshadow-hover-default: none;
+		--xy-node-boxshadow-selected: 0 0 0 1.5px var(--color-primary);
+		--xy-node-boxshadow-selected-default: 0 0 0 1.5px var(--color-primary);
+
+		--xy-edge-stroke: var(--color-text-secondary);
+		--xy-edge-stroke-default: var(--color-text-secondary);
+		--xy-edge-stroke-width: 2;
+		--xy-edge-stroke-width-default: 2;
+		--xy-edge-stroke-selected: var(--color-primary);
+		--xy-edge-stroke-selected-default: var(--color-primary);
+
+		--xy-connectionline-stroke: var(--color-primary);
+		--xy-connectionline-stroke-default: var(--color-primary);
+
+		--xy-handle-background-color: var(--color-text-secondary);
+		--xy-handle-background-color-default: var(--color-text-secondary);
+		--xy-handle-border-color: var(--color-bg);
+		--xy-handle-border-color-default: var(--color-bg);
+
+		--xy-selection-background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
+		--xy-selection-background-color-default: color-mix(in srgb, var(--color-primary) 8%, transparent);
+		--xy-selection-border: 1px dotted var(--color-primary);
+		--xy-selection-border-default: 1px dotted var(--color-primary);
+
+		--xy-minimap-background-color: var(--color-surface);
+		--xy-minimap-background-color-default: var(--color-surface);
+
+		--xy-controls-button-background-color: var(--color-surface);
+		--xy-controls-button-background-color-default: var(--color-surface);
+		--xy-controls-button-background-color-hover: var(--color-surface-hover);
+		--xy-controls-button-background-color-hover-default: var(--color-surface-hover);
+		--xy-controls-button-color: var(--color-text-secondary);
+		--xy-controls-button-color-default: var(--color-text-secondary);
+		--xy-controls-button-color-hover: var(--color-text);
+		--xy-controls-button-color-hover-default: var(--color-text);
+		--xy-controls-button-border-color: var(--edge-strong);
+		--xy-controls-button-border-color-default: var(--edge-strong);
+		--xy-controls-box-shadow: none;
+		--xy-controls-box-shadow-default: none;
+
+		--xy-edge-label-background-color: var(--color-surface);
+		--xy-edge-label-background-color-default: var(--color-surface);
+		--xy-edge-label-color: var(--color-text);
+		--xy-edge-label-color-default: var(--color-text);
+	}
+
+	/* Node-Hover: xyflow setzt Boxschatten per default-Var, ruhige Flächen
+	   bekommen stattdessen nur eine leicht hellere Kante (keine Schatten). */
+	.workflow-graph :global(.svelte-flow__node:hover) {
+		box-shadow: none !important;
+		border-color: var(--edge-strong);
+	}
+
+	.workflow-graph :global(.svelte-flow__node.selected) {
+		box-shadow: 0 0 0 1.5px var(--color-primary) !important;
+	}
+
+	.workflow-graph :global(.svelte-flow__attribution) {
+		background: transparent;
+		color: var(--text-muted);
+	}
+</style>
