@@ -8,9 +8,15 @@
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
+	import BottomSheet from '$components/ui/BottomSheet.svelte';
+	import NewStatusSheet from '$components/statuses/NewStatusSheet.svelte';
 
 	export let projectId: number;
 	export let onClose: () => void = () => {};
+	// Ticket #509: host-agnostisch — im SidePanel begrenzt/scrollt der Host das Panel;
+	// als Vollseiten-Deep-Link (src/routes/projects/[id]/statuses/+page.svelte) braucht
+	// es keine feste max-Höhe/Scroll-Kapselung und keinen Platz für den Panel-Close-Button.
+	export let standalone = false;
 
 	let statuses: BoardStatus[] = [];
 	let isLoading = true;
@@ -20,17 +26,23 @@
 	let editingId: number | null = null;
 	let editValues = { display_name: '', position: 0, agent_role_instruction: '' };
 
-	// New status form
-	let showNewForm = false;
-	let newName = '';
-	let newDisplayName = '';
-	let newPosition = 0;
-	let newInstruction = '';
-	let newNameManual = false;
-	let isCreating = false;
+	// Ticket #509: "Neuer Status" nutzt jetzt einheitlich das BottomSheet aus #506
+	// (vormals hatte diese Komponente ein eigenes, einfacheres Inline-Formular;
+	// die Vollseiten-Route src/routes/projects/[id]/statuses/+page.svelte hatte
+	// bereits den BottomSheet-Trigger). Damit hat auch das SidePanel den Trigger.
+	let showNewStatus = false;
 
-	$: if (newDisplayName && !newNameManual) {
-		newName = newDisplayName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+	function openNewStatusSheet() {
+		showNewStatus = true;
+	}
+
+	function closeNewStatusSheet() {
+		showNewStatus = false;
+	}
+
+	async function handleStatusCreated(_status: { id: number }) {
+		closeNewStatusSheet();
+		await fetchStatuses();
 	}
 
 	async function fetchStatuses() {
@@ -96,29 +108,10 @@
 		finally { deletingId = null; }
 	}
 
-	async function createStatus() {
-		if (!newDisplayName || !newName) return;
-		isCreating = true;
-		try {
-			const res = await fetch(`/api/projects/${projectId}/statuses`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name: newName, display_name: newDisplayName, position: newPosition, agent_role_instruction: newInstruction || null })
-			});
-			const result = await res.json();
-			if (result.ok) {
-				statuses = [...statuses, result.data].sort((a, b) => a.position - b.position);
-				newName = ''; newDisplayName = ''; newPosition = statuses.length; newInstruction = ''; newNameManual = false;
-				showNewForm = false;
-			} else error = result.error || 'Fehler beim Erstellen';
-		} catch { error = 'Netzwerkfehler'; }
-		finally { isCreating = false; }
-	}
-
 	onMount(fetchStatuses);
 </script>
 
-<div class="p-6 pr-14 max-h-[80vh] overflow-y-auto">
+<div class={standalone ? '' : 'p-6 pr-14 max-h-[80vh] overflow-y-auto'}>
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-6">
 		<div class="flex items-center gap-3">
@@ -130,9 +123,8 @@
 				<p class="text-xs" style="color: var(--text-muted);">{statuses.length} Status{statuses.length !== 1 ? 'e' : ''}</p>
 			</div>
 		</div>
-		<button onclick={() => { showNewForm = !showNewForm; }}
-			class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-			style="background: {showNewForm ? 'color-mix(in srgb, var(--color-primary) 15%, transparent)' : 'var(--border)'}; color: {showNewForm ? 'var(--primary)' : 'var(--text-muted)'}; border: 1px solid {showNewForm ? 'color-mix(in srgb, var(--color-primary) 30%, transparent)' : 'transparent'};">
+		<button onclick={openNewStatusSheet}
+			class="btn btn-primary flex items-center gap-2 px-3 py-1.5 text-sm">
 			<Plus class="w-4 h-4" /> Neu
 		</button>
 	</div>
@@ -143,53 +135,14 @@
 		</div>
 	{/if}
 
-	<!-- New Status Form -->
-	{#if showNewForm}
-		<div transition:slide={{ duration: 260, easing: cubicOut }}
-			class="mb-4 p-4 rounded-xl space-y-3"
-			style="background: color-mix(in srgb, var(--color-primary) 4%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent);">
-			<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Neuer Status</p>
-			<div class="grid grid-cols-2 gap-3">
-				<div>
-					<label class="block text-xs font-medium mb-1" style="color: var(--text-muted);">Anzeigename *</label>
-					<input type="text" bind:value={newDisplayName} class="input" placeholder="z.B. In Bearbeitung" autofocus />
-				</div>
-				<div>
-					<label class="block text-xs font-medium mb-1" style="color: var(--text-muted);">Code-Name *</label>
-					<input type="text" bind:value={newName} oninput={() => newNameManual = true}
-						class="input font-mono" placeholder="in_progress" />
-				</div>
-				<div>
-					<label class="block text-xs font-medium mb-1" style="color: var(--text-muted);">Position</label>
-					<input type="number" bind:value={newPosition} class="input" min="0" />
-				</div>
-				<div>
-					<label class="block text-xs font-medium mb-1 flex items-center gap-1" style="color: var(--text-muted);">
-						<Bot class="w-3 h-3" /> Agent-Instruktion
-					</label>
-					<input type="text" bind:value={newInstruction} class="input" placeholder="Optional" />
-				</div>
-			</div>
-			<div class="flex justify-end gap-2 pt-1">
-				<button onclick={() => showNewForm = false} class="px-3 py-1.5 rounded-lg text-xs transition-all" style="color: var(--text-muted); background: var(--border);">Abbrechen</button>
-				<button onclick={createStatus} disabled={isCreating || !newDisplayName || !newName}
-					class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
-					style="background: var(--primary); color: #000; opacity: {isCreating || !newDisplayName || !newName ? 0.5 : 1};">
-					{#if isCreating}<Spinner size={3} color="black" thickness="border-2" />{:else}<Plus class="w-3.5 h-3.5" />{/if}
-					Erstellen
-				</button>
-			</div>
-		</div>
-	{/if}
-
 	{#if isLoading}
 		<div class="flex justify-center py-12">
 			<Spinner size={8} />
 		</div>
-	{:else if statuses.length === 0 && !showNewForm}
+	{:else if statuses.length === 0}
 		<div class="text-center py-12" style="color: var(--text-muted);">
 			<p class="mb-3">Noch keine Statuses.</p>
-			<button onclick={() => showNewForm = true} class="btn btn-primary">Ersten Status erstellen</button>
+			<button onclick={openNewStatusSheet} class="btn btn-primary">Ersten Status erstellen</button>
 		</div>
 	{:else}
 		<div class="space-y-2">
@@ -280,3 +233,9 @@
 	onConfirm={confirmDeleteStatus}
 	onCancel={cancelDeleteStatus}
 />
+
+<!-- Ticket #509: BottomSheet-Trigger aus #506 (vormals nur in der Vollseiten-Route)
+     wandert mit ins Modal, damit auch der SidePanel-Weg ihn hat. -->
+<BottomSheet open={showNewStatus} title="Neuer Status" onClose={closeNewStatusSheet}>
+	<NewStatusSheet projectId={String(projectId)} onCreated={handleStatusCreated} onCancel={closeNewStatusSheet} />
+</BottomSheet>

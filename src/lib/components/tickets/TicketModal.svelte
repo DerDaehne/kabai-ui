@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
@@ -9,6 +9,7 @@
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
+	import { pushAiEvent } from '$lib/stores/aiActivity';
 	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
 	import { formatDate, initials } from '$lib/utils/format';
 
@@ -16,6 +17,16 @@
 	export let onClose: () => void = () => {};
 	export let onDeleted: () => void = () => {};
 	export let liveUpdateSignal: { ticketId: number; seq: number } | null = null;
+	// Ticket #509: Host-agnostisch — im SidePanel (Board) liefert der Host bereits
+	// eine zentrale SSE-Verbindung + liveUpdateSignal-Prop. Als Vollseiten-Deep-Link
+	// (src/routes/tickets/[id]/+page.svelte) gibt es keinen solchen Host, daher baut
+	// das Modal in diesem Fall seine eigene SSE-Verbindung auf (Muster wie vormals
+	// in der Route selbst: connectLiveUpdates + pushAiEvent für die Activity-Rail).
+	export let standalone = false;
+	// Nur relevant für standalone: informiert den Wrapper über die project_id,
+	// sobald das Ticket geladen ist, damit "Zurück zum Board" zum richtigen
+	// Projekt zurückspringen kann (vormals via $page.params in der Route selbst).
+	export let onProjectLoaded: (projectId: number) => void = () => {};
 
 	let ticket: TicketDetailed | null = null;
 	let statuses: BoardStatus[] = [];
@@ -77,8 +88,11 @@
 			const res = await fetch(`/api/tickets/${ticketId}`);
 			const result = await res.json();
 			if (result.ok) {
-				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [] };
-				if (ticket.status?.special_type === 'human_intervention') await fetchStatuses();
+				const loaded: TicketDetailed = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [] };
+				ticket = loaded;
+				if (loaded.status?.special_type === 'human_intervention') await fetchStatuses();
+				connectStandaloneLiveUpdates(loaded.project_id);
+				if (standalone) onProjectLoaded(loaded.project_id);
 			} else {
 				error = result.error || 'Ticket nicht gefunden';
 			}
@@ -114,6 +128,24 @@
 		lastSeenSeq = liveUpdateSignal.seq;
 		refreshTicketQuietly();
 	}
+
+	// Nur im standalone-Modus (Vollseiten-Deep-Link) aktiv — im SidePanel übernimmt
+	// der Host (projects/[id]/+page.svelte) die SSE-Verbindung zentral für alle Tickets.
+	let eventSource: EventSource | null = null;
+	function connectStandaloneLiveUpdates(projectId: number) {
+		if (!standalone || eventSource) return;
+		eventSource = new EventSource(`/api/projects/${projectId}/events`);
+		eventSource.onmessage = (event) => {
+			try {
+				const payload = JSON.parse(event.data) as { op: string; ticket_id: number };
+				pushAiEvent(payload.ticket_id, payload.op);
+				if (payload.ticket_id !== ticketId) return;
+				refreshTicketQuietly();
+			} catch { /* ignore */ }
+		};
+	}
+
+	onDestroy(() => eventSource?.close());
 
 	async function fetchStatuses() {
 		if (!ticket) return;
@@ -341,7 +373,7 @@
 
 <svelte:window on:keydown|capture={handleMenuWindowKeydown} on:click={handleMenuOutsideClick} />
 
-<div class="p-6 pr-14">
+<div class={standalone ? '' : 'p-6 pr-14'}>
 	{#if isLoading}
 		<div class="flex flex-col items-center justify-center py-20 gap-4">
 			<Spinner />
@@ -509,6 +541,12 @@
 					<Clock class="w-3.5 h-3.5 shrink-0" />
 					{formatDate(ticket.created_at)}
 				</div>
+				{#if standalone}
+					<div class="flex items-center gap-1.5 font-mono text-xs" style="color: var(--text-muted);">
+						<Clock class="w-3.5 h-3.5 shrink-0" />
+						Zuletzt: {formatDate(ticket.updated_at)}
+					</div>
+				{/if}
 			</div>
 			<div class="hairline"></div>
 
