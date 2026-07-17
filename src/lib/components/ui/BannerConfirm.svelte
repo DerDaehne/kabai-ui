@@ -2,6 +2,7 @@
 	import { tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { portal } from '$lib/utils/portal';
 
 	// Ticket #496: UI-weites "Band-Popup" für zerstörerische Aktionen (Löschen,
 	// später #498 Archivieren). Anders als ein zentriertes Klick-durch-Dialogfeld
@@ -88,7 +89,11 @@
 <svelte:window on:keydown={handleKey} />
 
 {#if open}
+	<!-- use:portal: Overlay ans body heben, damit fixed sich auf den Viewport
+	     bezieht, auch wenn das Band aus einem SidePanel heraus geöffnet wird
+	     (backdrop-filter macht das Panel sonst zum Containing Block). -->
 	<div
+		use:portal
 		class="fixed inset-0 z-[100] flex items-center justify-center overlay"
 		transition:fade={{ duration: prefersReducedMotion() ? 120 : 200 }}
 	>

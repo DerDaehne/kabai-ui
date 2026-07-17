@@ -2,6 +2,7 @@
 	import { tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { portal } from '$lib/utils/portal';
 
 	// Ticket #506: Basis-Komponente für alle "Neu anlegen"-Flows. Statt eines
 	// zentrierten Dialogs schiebt sich von unten ein Blatt Papier ins Bild —
@@ -100,8 +101,11 @@
 <svelte:window on:keydown={handleKey} />
 
 {#if open}
-	<!-- Scrim-Klick schließt; Tastatur-Äquivalent ist Escape (svelte:window). -->
+	<!-- Scrim-Klick schließt; Tastatur-Äquivalent ist Escape (svelte:window).
+	     use:portal: Overlay ans body heben, damit fixed sich auf den Viewport
+	     bezieht, auch wenn das Sheet in einem SidePanel gehostet wird. -->
 	<div
+		use:portal
 		class="fixed inset-0 z-[100] flex items-end justify-center overlay"
 		transition:fade={{ duration: prefersReducedMotion() ? 120 : 200 }}
 		onclick={onClose}
