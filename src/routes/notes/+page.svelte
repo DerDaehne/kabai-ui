@@ -9,6 +9,7 @@
 	import { sanitizeHtml } from '$lib/markdown';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
+	import EmptyState from '$components/ui/EmptyState.svelte';
 	import { formatDate } from '$lib/utils/format';
 
 	const PROJECT_FILTER_STORAGE_KEY = 'kabai:notesProjectFilter';
@@ -151,26 +152,25 @@
 				bind:value={query}
 				oninput={onQueryInput}
 				placeholder="Volltextsuche (Titel, Tags, Inhalt)…"
-				class="w-full pl-9 pr-3 py-2 rounded-lg text-sm outline-none"
-				style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text);"
+				class="input pl-9"
 			/>
 		</div>
 
-		<select bind:value={kindFilter} onchange={fetchNotes} class="px-3 py-2 rounded-lg text-sm" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text);">
+		<select bind:value={kindFilter} onchange={fetchNotes} class="input w-auto">
 			<option value="">Alle Arten</option>
 			<option value="hub">Hub</option>
 			<option value="adr">ADR</option>
 			<option value="note">Note</option>
 		</select>
 
-		<select bind:value={tagFilter} onchange={fetchNotes} class="px-3 py-2 rounded-lg text-sm max-w-[180px]" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text);">
+		<select bind:value={tagFilter} onchange={fetchNotes} class="input w-auto max-w-[180px]">
 			<option value="">Alle Tags</option>
 			{#each allTags as t}
 				<option value={t}>{t}</option>
 			{/each}
 		</select>
 
-		<select bind:value={projectFilter} onchange={onProjectFilterChange} class="px-3 py-2 rounded-lg text-sm max-w-[200px]" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text);">
+		<select bind:value={projectFilter} onchange={onProjectFilterChange} class="input w-auto max-w-[200px]">
 			<option value="all">Alle Projekte</option>
 			<option value="none">Ohne Projekt</option>
 			{#each projects as p}
@@ -201,14 +201,8 @@
 		</div>
 
 	{:else if notes.length === 0}
-		<div class="flex flex-col items-center justify-center py-24 rounded-2xl card" in:fade={{ duration: 300 }}>
-			<div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style="background: color-mix(in srgb, var(--color-primary) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);">
-				<BookOpen class="w-8 h-8" style="color: var(--text-muted);" />
-			</div>
-			<h3 class="text-lg font-semibold mb-2" style="color: var(--text);">Keine Notes gefunden</h3>
-			<p class="text-sm" style="color: var(--text-muted);">
-				{query.trim() ? 'Suche oder Filter anpassen.' : 'Die Knowledge Base ist noch leer — Agenten legen Notes über die kabai_docs-Tools an.'}
-			</p>
+		<div in:fade={{ duration: 300 }}>
+			<EmptyState />
 		</div>
 
 	{:else}
@@ -223,10 +217,8 @@
 					{#each hubs as note (note.id)}
 						<button
 							onclick={() => goto(`/notes/${note.slug}`)}
-							class="text-left rounded-xl p-5 border cursor-pointer transition-all duration-200"
-							style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--card-bg)); border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);"
-							onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--color-warning)'; }}
-							onmouseleave={(e) => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-warning) 35%, transparent)'; }}
+							class="hub-card text-left rounded-xl p-5 border cursor-pointer transition-all duration-200"
+							style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--card-bg));"
 						>
 							<div class="flex items-center gap-2 mb-2">
 								<Compass class="w-4 h-4 shrink-0" style="color: var(--color-warning);" />
@@ -319,6 +311,15 @@
 </div>
 
 <style>
+	/* Ticket #511: JS onmouseenter/onmouseleave durch CSS-:hover ersetzt. */
+	.hub-card {
+		border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
+	}
+
+	.hub-card:hover {
+		border-color: var(--color-warning);
+	}
+
 	.snippet :global(mark) {
 		background: color-mix(in srgb, var(--color-primary) 20%, transparent);
 		color: var(--text);

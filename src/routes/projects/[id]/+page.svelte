@@ -208,10 +208,7 @@
 
 		<div class="flex items-center gap-2 shrink-0">
 			<button onclick={() => showInbox = true}
-				class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
-				style="color: var(--text-muted); background: var(--border);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'color-mix(in srgb, var(--color-primary) 10%, transparent)'; e.currentTarget.style.color = 'var(--primary)'; }}
-				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+				class="btn-subtle relative flex items-center gap-2 px-3 py-2 text-sm">
 				<Inbox class="w-4 h-4" />
 				<span class="hidden sm:inline">Inbox</span>
 				{#if inboxTickets.length > 0}
@@ -222,26 +219,17 @@
 				{/if}
 			</button>
 			<button onclick={() => showStatuses = true}
-				class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
-				style="color: var(--text-muted); background: var(--border);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'color-mix(in srgb, var(--color-primary) 10%, transparent)'; e.currentTarget.style.color = 'var(--primary)'; }}
-				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+				class="btn-subtle flex items-center gap-2 px-3 py-2 text-sm">
 				<Layers class="w-4 h-4" />
 				<span class="hidden sm:inline">Statuses</span>
 			</button>
 			<button onclick={() => showWorkflow = true}
-				class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
-				style="color: var(--text-muted); background: var(--border);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'rgba(139,92,246,0.12)'; e.currentTarget.style.color = 'var(--accent)'; }}
-				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+				class="btn-subtle flex items-center gap-2 px-3 py-2 text-sm">
 				<Network class="w-4 h-4" />
 				<span class="hidden sm:inline">Workflow</span>
 			</button>
 			<button onclick={() => goto(`/projects/${id}/settings`)}
-				class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200"
-				style="color: var(--text-muted); background: var(--border);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--text)'; }}
-				onmouseleave={(e) => { e.currentTarget.style.background = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+				class="btn-subtle flex items-center gap-2 px-3 py-2 text-sm">
 				<Settings class="w-4 h-4" />
 				<span class="hidden sm:inline">Einstellungen</span>
 			</button>

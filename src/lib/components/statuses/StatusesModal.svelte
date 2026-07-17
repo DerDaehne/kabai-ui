@@ -150,7 +150,7 @@
 				{@const ac = accent(i)}
 				<div in:fly={{ y: 16, duration: 300, delay: i * 40, easing: quintOut }}
 					class="rounded-xl overflow-hidden"
-					style="background: var(--card-bg); box-shadow: {editingId === status.id ? `0 0 0 1px ${ac.border}66` : '0 0 0 1px var(--edge)'}; transition: box-shadow var(--duration-base) var(--ease-soft);">
+					style="background: var(--card-bg); border: 1px solid {editingId === status.id ? `color-mix(in srgb, ${ac.border} 40%, transparent)` : 'var(--edge)'}; transition: border-color var(--duration-base) var(--ease-soft);">
 					<div class="flex items-center gap-3 p-3">
 						<div class="w-1 self-stretch rounded-full shrink-0" style="background: {ac.border};"></div>
 						<div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
@@ -169,18 +169,13 @@
 						<div class="flex items-center gap-1 shrink-0">
 							{#if editingId !== status.id}
 								<button onclick={() => startEdit(status)}
-									class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
-									style="color: {ac.border}; background: {ac.glow}; border: 1px solid {ac.border}40;">Bearbeiten</button>
+									class="btn-subtle px-2.5 py-1 text-xs font-medium">Bearbeiten</button>
 							{:else}
 								<button onclick={cancelEdit}
-									class="px-2.5 py-1 rounded-lg text-xs transition-all"
-									style="color: var(--text-muted); background: var(--border);">Abbrechen</button>
+									class="btn-ghost px-2.5 py-1 text-xs">Abbrechen</button>
 							{/if}
 							<button onclick={() => handleDelete(status.id, status.display_name)} disabled={deletingId === status.id}
-								class="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
-								style="color: var(--text-muted);"
-								onmouseenter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
-								onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}>
+								class="status-delete-btn w-7 h-7 rounded-lg flex items-center justify-center transition-all">
 								{#if deletingId === status.id}
 									<Spinner size={3} color="currentColor" thickness="border" />
 								{:else}<Trash2 class="w-3.5 h-3.5" />{/if}
@@ -209,9 +204,9 @@
 							</div>
 							<div class="flex justify-end">
 								<button onclick={() => saveEdit(status.id)} disabled={savingId === status.id || !editValues.display_name}
-									class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
-									style="background: {ac.border}; color: #000; opacity: {savingId === status.id || !editValues.display_name ? 0.5 : 1};">
-									{#if savingId === status.id}<Spinner size={3} color="black" thickness="border-2" />{:else}<Check class="w-3.5 h-3.5" />{/if}
+									class="btn-subtle flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold"
+									style="color: {ac.border};">
+									{#if savingId === status.id}<Spinner size={3} color="currentColor" thickness="border-2" />{:else}<Check class="w-3.5 h-3.5" />{/if}
 									Speichern
 								</button>
 							</div>
@@ -239,3 +234,16 @@
 <BottomSheet open={showNewStatus} title="Neuer Status" onClose={closeNewStatusSheet}>
 	<NewStatusSheet projectId={String(projectId)} onCreated={handleStatusCreated} onCancel={closeNewStatusSheet} />
 </BottomSheet>
+
+<style>
+	/* Ticket #511: JS onmouseenter/onmouseleave durch CSS-:hover ersetzt. */
+	.status-delete-btn {
+		color: var(--text-muted);
+		background: transparent;
+	}
+
+	.status-delete-btn:hover:not(:disabled) {
+		color: var(--danger);
+		background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+	}
+</style>

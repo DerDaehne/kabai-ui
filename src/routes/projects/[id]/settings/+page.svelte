@@ -155,7 +155,7 @@
 			</div>
 
 			<!-- Danger Zone -->
-			<div class="rounded-2xl p-6" style="background: var(--card-bg); box-shadow: inset 0 0 0 1px rgba(239,68,68,0.2);">
+			<div class="rounded-2xl p-6" style="background: var(--card-bg); border: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);">
 				<h2 class="text-base font-semibold mb-1" style="color: var(--danger);">Gefahrenbereich</h2>
 				<p class="text-sm mb-5" style="color: var(--text-muted);">
 					Alle Statuses, Tickets, Tasks und Kommentare werden unwiderruflich gelöscht.

@@ -71,10 +71,8 @@
 				<button
 					type="button"
 					onclick={() => onEntryClick(event)}
-					class="flex items-center gap-2 w-full text-left rounded-md focus-visible:outline focus-visible:outline-2"
+					class="rail-entry-btn flex items-center gap-2 w-full text-left rounded-md focus-visible:outline focus-visible:outline-2"
 					style="padding: var(--space-2); background: transparent; border: none; cursor: pointer; outline-color: var(--color-primary);"
-					onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
-					onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; }}
 				>
 					<svelte:component this={opIcon(event.op)} class="w-4 h-4 shrink-0" style="color: var(--color-text-secondary);" />
 					<span class="text-small flex-1 min-w-0 truncate" style="color: var(--color-text);">
@@ -92,6 +90,11 @@
 {/if}
 
 <style>
+	/* Ticket #511: JS onmouseenter/onmouseleave durch CSS-:hover ersetzt. */
+	.rail-entry-btn:hover {
+		background: var(--color-surface-hover);
+	}
+
 	.rail-status-dot {
 		display: inline-block;
 		width: 8px;

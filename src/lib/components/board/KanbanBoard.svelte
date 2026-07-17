@@ -120,12 +120,22 @@
 				onclick={onOpenStatuses}
 				title="Neue Spalte"
 				aria-label="Neue Spalte"
-				class="w-full min-h-[160px] flex items-center justify-center rounded-xl border-2 border-dashed transition-all duration-200 group"
-				style="border-color: var(--border-bright); color: var(--text-muted);"
-				onmouseenter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)'; }}
-				onmouseleave={(e) => { e.currentTarget.style.borderColor = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+				class="new-column-btn w-full min-h-[160px] flex items-center justify-center rounded-xl border-2 border-dashed transition-all duration-200 group">
 				<Plus class="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
 			</button>
 		</div>
 	</div>
 </div>
+
+<style>
+	/* Ticket #511: JS onmouseenter/onmouseleave durch CSS-:hover ersetzt. */
+	.new-column-btn {
+		border-color: var(--border-bright);
+		color: var(--text-muted);
+	}
+
+	.new-column-btn:hover {
+		border-color: var(--primary);
+		color: var(--primary);
+	}
+</style>

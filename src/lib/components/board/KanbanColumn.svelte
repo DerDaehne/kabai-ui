@@ -98,10 +98,8 @@
 			onclick={onToggleCollapse}
 			aria-expanded="false"
 			title="Spalte {status.display_name} ausklappen"
-			class="flex-1 w-full flex flex-col items-center gap-2.5 py-3 cursor-pointer focus-visible:outline focus-visible:outline-2"
-			style="color: var(--text-muted); outline-color: var(--color-primary); background: transparent; border: none;"
-			onmouseenter={(e) => { e.currentTarget.style.color = 'var(--color-text)'; }}
-			onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+			class="collapse-toggle flex-1 w-full flex flex-col items-center gap-2.5 py-3 cursor-pointer focus-visible:outline focus-visible:outline-2"
+			style="outline-color: var(--color-primary); background: transparent; border: none;"
 		>
 			{#if isDragOver}
 				<Plus class="w-3.5 h-3.5 shrink-0" style="color: var(--color-primary);" />
@@ -136,30 +134,21 @@
 			<button
 				onclick={onToggleCollapse}
 				aria-expanded="true"
-				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
-				style="color: var(--text-muted);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
-				onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+				class="column-action-btn w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
 				title="Spalte einklappen"
 			>
 				<ChevronsLeft class="w-3.5 h-3.5" />
 			</button>
 			<button
 				onclick={onOpenStatuses}
-				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
-				style="color: var(--text-muted);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
-				onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+				class="column-action-btn w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
 				title="Status bearbeiten"
 			>
 				<Pencil class="w-3 h-3" />
 			</button>
 			<button
 				onclick={onNewTicket}
-				class="w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
-				style="color: var(--text-muted);"
-				onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
-				onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+				class="column-action-btn w-6 h-6 rounded-md flex items-center justify-center transition-all duration-200"
 				title="Neues Ticket"
 			>
 				<Plus class="w-3.5 h-3.5" />
@@ -191,7 +180,7 @@
 					<span style="color: var(--color-primary);">Hier ablegen</span>
 				{:else}
 					Keine Tickets
-					<button onclick={onNewTicket} class="mt-1 transition-colors" style="color: var(--primary);" onmouseenter={(e) => e.currentTarget.style.opacity = '0.7'} onmouseleave={(e) => e.currentTarget.style.opacity = '1'}>
+					<button onclick={onNewTicket} class="empty-new-btn mt-1 transition-colors" style="color: var(--primary);">
 						+ Neu
 					</button>
 				{/if}
@@ -214,10 +203,7 @@
 	<div class="hairline"></div>
 	<button
 		onclick={onNewTicket}
-		class="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs transition-all duration-200"
-		style="color: var(--text-muted);"
-		onmouseenter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
-		onmouseleave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+		class="footer-new-btn w-full flex items-center justify-center gap-1.5 py-2.5 text-xs transition-all duration-200"
 	>
 		<Plus class="w-3.5 h-3.5" />
 		Neues Ticket
@@ -240,5 +226,39 @@
 		.column-actions {
 			transition: none;
 		}
+	}
+
+	/* Ticket #511: JS onmouseenter/onmouseleave-Handler, die nur Styles
+	   toggelten, durch CSS-:hover ersetzt (Muster wie WorkflowModal, #512). */
+	.collapse-toggle {
+		color: var(--text-muted);
+	}
+
+	.collapse-toggle:hover {
+		color: var(--color-text);
+	}
+
+	.column-action-btn {
+		color: var(--text-muted);
+		background: transparent;
+	}
+
+	.column-action-btn:hover {
+		background: var(--color-surface-hover);
+		color: var(--color-text);
+	}
+
+	.empty-new-btn:hover {
+		opacity: 0.7;
+	}
+
+	.footer-new-btn {
+		color: var(--text-muted);
+		background: transparent;
+	}
+
+	.footer-new-btn:hover {
+		background: var(--color-surface-hover);
+		color: var(--color-text);
 	}
 </style>

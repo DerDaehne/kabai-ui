@@ -70,14 +70,12 @@
 				onclick={() => navigate(item.href)}
 				title={item.label}
 				aria-current={active ? 'page' : undefined}
-				class="nav-item relative flex items-center gap-3 pl-2 md:pl-3 py-2 focus-visible:outline focus-visible:outline-2 {active ? 'nav-item-active pr-4 md:pr-5' : 'pr-2 md:pr-3 rounded-md transition-colors'}"
+				class="nav-item relative flex items-center gap-3 pl-2 md:pl-3 py-2 focus-visible:outline focus-visible:outline-2 {active ? 'nav-item-active pr-4 md:pr-5' : 'nav-item-inactive pr-2 md:pr-3 rounded-md transition-colors'}"
 				style="
 					outline-color: var(--color-primary);
 					background: transparent;
 					color: {active ? 'var(--color-text)' : 'var(--color-text-secondary)'};
 				"
-				onmouseenter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)'; }}
-				onmouseleave={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
 			>
 				{#if active}
 					<span class="absolute left-0 top-1 bottom-1 w-0.5 rounded-full" style="background: var(--color-primary);"></span>
@@ -95,10 +93,8 @@
 		<button
 			onclick={() => railOpen.set(true)}
 			title="AI-Aktivität anzeigen"
-			class="relative w-full flex items-center gap-3 px-2 md:px-3 py-2 rounded-md transition-colors focus-visible:outline focus-visible:outline-2"
+			class="nav-hover-bg relative w-full flex items-center gap-3 px-2 md:px-3 py-2 rounded-md transition-colors focus-visible:outline focus-visible:outline-2"
 			style="outline-color: var(--color-primary); color: {$unseenActivityCount > 0 ? 'var(--color-primary)' : 'var(--color-text-secondary)'};"
-			onmouseenter={(e) => (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)'}
-			onmouseleave={(e) => (e.currentTarget as HTMLElement).style.background = 'transparent'}
 		>
 			<span class="relative inline-flex shrink-0">
 				<Activity class="w-4 h-4" />
@@ -120,10 +116,8 @@
 			onclick={() => navCollapsed.update(c => !c)}
 			title={$navCollapsed ? 'Navigation ausklappen' : 'Navigation einklappen'}
 			aria-expanded={!$navCollapsed}
-			class="w-full flex items-center gap-3 px-2 md:px-3 py-2 rounded-md transition-colors focus-visible:outline focus-visible:outline-2"
+			class="nav-hover-bg w-full flex items-center gap-3 px-2 md:px-3 py-2 rounded-md transition-colors focus-visible:outline focus-visible:outline-2"
 			style="outline-color: var(--color-primary); color: var(--color-text-secondary);"
-			onmouseenter={(e) => (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)'}
-			onmouseleave={(e) => (e.currentTarget as HTMLElement).style.background = 'transparent'}
 		>
 			{#if $navCollapsed}
 				<PanelLeftOpen class="w-4 h-4 shrink-0" />
@@ -146,10 +140,8 @@
 			<button
 				onclick={() => navigate('/api/auth/logout')}
 				title="Logout"
-				class="btn-ghost flex items-center gap-2 px-2 md:px-3 py-2 rounded-md justify-start focus-visible:outline focus-visible:outline-2"
-				style="outline-color: var(--color-primary);"
-				onmouseenter={(e) => (e.currentTarget as HTMLElement).style.color = 'var(--color-danger)'}
-				onmouseleave={(e) => (e.currentTarget as HTMLElement).style.color = 'var(--color-text-secondary)'}
+				class="btn-ghost logout-btn flex items-center gap-2 px-2 md:px-3 py-2 rounded-md justify-start focus-visible:outline focus-visible:outline-2"
+				style="outline-color: var(--color-primary); color: var(--color-text-secondary);"
 			>
 				<LogOut class="w-4 h-4 shrink-0" />
 				<span class="{labelClass}">Logout</span>
@@ -169,6 +161,20 @@
 </nav>
 
 <style>
+	/* Ticket #511: JS onmouseenter/onmouseleave-Handler, die nur Styles
+	   toggelten, durch CSS-:hover ersetzt. */
+	.nav-item-inactive:hover {
+		background: var(--color-surface-hover);
+	}
+
+	.nav-hover-bg:hover {
+		background: var(--color-surface-hover);
+	}
+
+	.logout-btn:hover {
+		color: var(--color-danger);
+	}
+
 	/* Ticket #500: der aktive Nav-Eintrag "verschmilzt" mit der
 	   Content-Fläche (.content-panel, gleicher --color-content-panel-
 	   Hintergrund) statt als eigene Pille daneben zu schweben — links

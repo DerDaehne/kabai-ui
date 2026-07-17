@@ -97,10 +97,8 @@
 	<!-- Zurück zur Übersicht -->
 	<button
 		onclick={() => goto('/notes')}
-		class="flex items-center gap-2 text-sm transition-colors"
+		class="back-link flex items-center gap-2 text-sm transition-colors"
 		style="color: var(--text-muted);"
-		onmouseenter={(e) => { e.currentTarget.style.color = 'var(--text)'; }}
-		onmouseleave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
 	>
 		<ArrowLeft class="w-4 h-4" />
 		Knowledge Base
@@ -281,3 +279,10 @@
 		{/if}
 	{/if}
 </div>
+
+<style>
+	/* Ticket #511: JS onmouseenter/onmouseleave durch CSS-:hover ersetzt. */
+	.back-link:hover {
+		color: var(--text);
+	}
+</style>

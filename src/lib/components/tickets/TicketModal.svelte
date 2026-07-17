@@ -451,10 +451,9 @@
 						Dieses Ticket wartet auf deine Antwort. Beantworte die Frage der KI (z.B. per Kommentar) und gib es dann zurück.
 					</p>
 					<button onclick={returnToAI} disabled={isReturning || !humanAnsweredStatus}
-						class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all"
-						style="background: var(--primary); color: #000; opacity: {isReturning || !humanAnsweredStatus ? 0.5 : 1};">
+						class="btn-primary flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold shrink-0">
 						{#if isReturning}
-							<Spinner size={3} color="black" thickness="border-2" />
+							<Spinner size={3} color="currentColor" thickness="border-2" />
 						{:else}
 							<Send class="w-3.5 h-3.5" />
 						{/if}
@@ -467,7 +466,7 @@
 			{#if isEditing}
 				<div transition:slide={{ duration: 280, easing: cubicOut }}
 					class="rounded-xl p-4 space-y-3"
-					style="background: color-mix(in srgb, var(--color-primary) 3%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 20%, transparent);">
+					style="background: color-mix(in srgb, var(--color-primary) 3%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);">
 					<p class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary);">Bearbeiten</p>
 					<div>
 						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Titel *</label>
@@ -512,12 +511,11 @@
 						<div class="p-2 rounded text-xs" style="background: rgba(239,68,68,0.1); color: var(--danger);">{error}</div>
 					{/if}
 					<div class="flex justify-end gap-2">
-						<button onclick={cancelEdit} class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
-							style="color: var(--text-muted); background: var(--border);"><X class="w-3.5 h-3.5" /> Abbrechen</button>
+						<button onclick={cancelEdit} class="btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs"><X class="w-3.5 h-3.5" /> Abbrechen</button>
 						<button onclick={saveEdit} disabled={isSaving || !editTitle.trim()}
-							class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
-							style="background: var(--primary); color: #000; opacity: {isSaving || !editTitle.trim() ? 0.5 : 1};">
-							{#if isSaving}<Spinner size={3} color="black" thickness="border-2" />{:else}<Check class="w-3.5 h-3.5" />{/if}
+							class="btn-subtle flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold"
+							style="color: var(--primary);">
+							{#if isSaving}<Spinner size={3} color="currentColor" thickness="border-2" />{:else}<Check class="w-3.5 h-3.5" />{/if}
 							Speichern
 						</button>
 					</div>
@@ -630,7 +628,7 @@
 						<div class="flex justify-end gap-2">
 							<button onclick={() => showAddRelation = false} class="btn-subtle px-3 py-1 text-xs" style="color: var(--text-muted);">Abbrechen</button>
 							<button onclick={addRelation} disabled={!relationTargetId || isAddingRelation}
-								class="px-3 py-1 rounded-md text-xs font-semibold" style="background: var(--color-primary); color: #0e0f13; opacity: {!relationTargetId || isAddingRelation ? 0.5 : 1};">
+								class="btn-subtle px-3 py-1 text-xs font-semibold">
 								Verknüpfen
 							</button>
 						</div>
