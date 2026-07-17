@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { Plus } from 'lucide-svelte';
@@ -12,6 +11,9 @@
 	export let tickets: Ticket[];
 	export let onTicketClick: (ticketId: number) => void = () => {};
 	export let onOpenStatuses: () => void = () => {};
+	// Ticket #506: "Neues Ticket" öffnet jetzt das BottomSheet des Aufrufers
+	// statt zur Route /tickets/new zu navigieren.
+	export let onNewTicket: (statusId: number) => void = () => {};
 	export let orbitSignals: Map<number, number> = new Map();
 
 	let dragError = '';
@@ -45,7 +47,7 @@
 	}));
 
 	function handleNewTicket(statusId: number) {
-		goto(`/projects/${projectId}/tickets/new?status_id=${statusId}`);
+		onNewTicket(statusId);
 	}
 
 	async function handleTicketDrop(ticketId: number, toStatusId: number) {

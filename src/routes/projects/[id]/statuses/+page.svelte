@@ -9,6 +9,8 @@
 	import { accentFor } from '$lib/colors';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
+	import BottomSheet from '$components/ui/BottomSheet.svelte';
+	import NewStatusSheet from '$components/statuses/NewStatusSheet.svelte';
 
 	let statuses: BoardStatus[] = [];
 	let isLoading = true;
@@ -115,6 +117,24 @@
 		}
 	}
 
+	// Ticket #506: "Neuer Status" öffnet jetzt das von unten hereingeschobene
+	// BottomSheet statt zur Route /statuses/new zu navigieren. Die Route bleibt
+	// als Deep-Link erhalten (siehe .../statuses/new/+page.svelte).
+	let showNewStatus = false;
+
+	function openNewStatusSheet() {
+		showNewStatus = true;
+	}
+
+	function closeNewStatusSheet() {
+		showNewStatus = false;
+	}
+
+	async function handleStatusCreated(_status: { id: number }) {
+		closeNewStatusSheet();
+		await fetchStatuses();
+	}
+
 	onMount(fetchStatuses);
 </script>
 
@@ -144,7 +164,7 @@
 			</div>
 
 			<button
-				onclick={() => goto(`/projects/${id}/statuses/new`)}
+				onclick={openNewStatusSheet}
 				class="btn btn-primary flex items-center gap-2 shrink-0"
 			>
 				<Plus class="w-4 h-4" />
@@ -185,7 +205,7 @@
 			<p class="mb-6 text-sm text-center max-w-xs" style="color: var(--text-muted);">
 				Erstellen Sie Statuses, um die Spalten Ihres Kanban-Boards zu definieren.
 			</p>
-			<button onclick={() => goto(`/projects/${id}/statuses/new`)} class="btn btn-primary">
+			<button onclick={openNewStatusSheet} class="btn btn-primary">
 				Ersten Status erstellen
 			</button>
 		</div>
@@ -348,3 +368,7 @@
 	onConfirm={confirmDeleteStatus}
 	onCancel={cancelDeleteStatus}
 />
+
+<BottomSheet open={showNewStatus} title="Neuer Status" onClose={closeNewStatusSheet}>
+	<NewStatusSheet projectId={id ?? ''} onCreated={handleStatusCreated} onCancel={closeNewStatusSheet} />
+</BottomSheet>

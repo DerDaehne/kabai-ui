@@ -8,6 +8,8 @@
 	import ProjectSearchBar from '$components/projects/ProjectSearchBar.svelte';
 	import EmptyState from '$components/ui/EmptyState.svelte';
 	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
+	import BottomSheet from '$components/ui/BottomSheet.svelte';
+	import NewProjectSheet from '$components/projects/NewProjectSheet.svelte';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import type { ProjectOverview } from '$lib/types';
@@ -91,6 +93,24 @@
 	// No-op-Callback — der Archivieren-Flow folgt in #498.
 	function handleArchive(_id: number) {}
 
+	// Ticket #506: "Neues Projekt" öffnet jetzt das von unten hereingeschobene
+	// BottomSheet statt zur Route /projects/new zu navigieren. Die Route bleibt
+	// als Deep-Link erhalten (siehe src/routes/projects/new/+page.svelte).
+	let showNewProjectSheet = false;
+
+	function openNewProjectSheet() {
+		showNewProjectSheet = true;
+	}
+
+	function closeNewProjectSheet() {
+		showNewProjectSheet = false;
+	}
+
+	function handleProjectCreated(_project: { id: number }) {
+		closeNewProjectSheet();
+		fetchProjects();
+	}
+
 	async function fetchProjects() {
 		try {
 			isLoading = true;
@@ -125,7 +145,7 @@
 				<ProjectSearchBar bind:query={searchQuery} bind:view />
 			{/if}
 		</div>
-		<button onclick={() => goto('/projects/new')} class="btn btn-primary flex items-center gap-2 shrink-0">
+		<button onclick={openNewProjectSheet} class="btn btn-primary flex items-center gap-2 shrink-0">
 			<Plus class="w-4 h-4" />
 			Neues Projekt
 		</button>
@@ -143,7 +163,7 @@
 	{:else if projects.length === 0}
 		<div in:fade={{ duration: 300 }}>
 			<EmptyState>
-				<button onclick={() => goto('/projects/new')} class="btn btn-primary mt-4">
+				<button onclick={openNewProjectSheet} class="btn btn-primary mt-4">
 					Erstes Projekt erstellen
 				</button>
 			</EmptyState>
@@ -185,3 +205,7 @@
 	onConfirm={confirmDelete}
 	onCancel={cancelDelete}
 />
+
+<BottomSheet open={showNewProjectSheet} title="Neues Projekt" onClose={closeNewProjectSheet}>
+	<NewProjectSheet onCreated={handleProjectCreated} onCancel={closeNewProjectSheet} />
+</BottomSheet>

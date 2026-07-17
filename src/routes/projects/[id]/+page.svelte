@@ -7,10 +7,12 @@
 	import { Settings, Layers, Network, Inbox } from 'lucide-svelte';
 	import KanbanBoard from '$components/board/KanbanBoard.svelte';
 	import SidePanel from '$components/ui/SidePanel.svelte';
+	import BottomSheet from '$components/ui/BottomSheet.svelte';
 	import TicketModal from '$components/tickets/TicketModal.svelte';
 	import StatusesModal from '$components/statuses/StatusesModal.svelte';
 	import WorkflowModal from '$components/workflow/WorkflowModal.svelte';
 	import InboxModal from '$components/inbox/InboxModal.svelte';
+	import NewTicketSheet from '$components/tickets/NewTicketSheet.svelte';
 	import { pushAiEvent, sseConnected } from '$lib/stores/aiActivity';
 	import { openTicketRequest } from '$lib/stores/ui';
 	import type { Project, BoardStatus, Ticket } from '$lib/types';
@@ -30,6 +32,27 @@
 	let showStatuses = false;
 	let showWorkflow = false;
 	let showInbox = false;
+
+	// Ticket #506: "Neues Ticket" öffnet jetzt das von unten hereingeschobene
+	// BottomSheet statt zur Route /tickets/new zu navigieren. Die Route bleibt
+	// als Deep-Link erhalten (siehe .../tickets/new/+page.svelte).
+	let showNewTicket = false;
+	let newTicketStatusId: number | null = null;
+
+	function openNewTicketSheet(statusId: number) {
+		newTicketStatusId = statusId;
+		showNewTicket = true;
+	}
+
+	function closeNewTicketSheet() {
+		showNewTicket = false;
+	}
+
+	async function handleTicketCreated(_ticket: { id: number }) {
+		closeNewTicketSheet();
+		const tr = await fetch(`/api/projects/${id}/tickets`).then(r => r.json());
+		if (tr.ok) tickets = tr.data;
+	}
 
 	// Kanban-Board zeigt keine Human-Intervention-Spalten (die laufen über die Inbox)
 	$: kanbanStatuses = statuses.filter(s => !s.special_type);
@@ -237,7 +260,7 @@
 
 	{:else if project && kanbanStatuses.length > 0}
 		<div in:fly={{ y: 16, duration: 400, easing: quintOut }}>
-			<KanbanBoard projectId={project.id} statuses={kanbanStatuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} {orbitSignals} />
+			<KanbanBoard projectId={project.id} statuses={kanbanStatuses} bind:tickets {onTicketClick} onOpenStatuses={() => showStatuses = true} onNewTicket={openNewTicketSheet} {orbitSignals} />
 		</div>
 
 	{:else if project}
@@ -279,3 +302,15 @@
 		<WorkflowModal projectId={project.id} onClose={() => showWorkflow = false} />
 	{/if}
 </SidePanel>
+
+<!-- Neues Ticket -->
+<BottomSheet open={showNewTicket} title="Neues Ticket" onClose={closeNewTicketSheet}>
+	{#if project}
+		<NewTicketSheet
+			projectId={id ?? ''}
+			initialStatusId={newTicketStatusId}
+			onCreated={handleTicketCreated}
+			onCancel={closeNewTicketSheet}
+		/>
+	{/if}
+</BottomSheet>
