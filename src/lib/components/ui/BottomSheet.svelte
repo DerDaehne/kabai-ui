@@ -137,10 +137,13 @@
 	}
 
 	.sheet {
-		width: min(720px, 92vw);
-		max-height: 88vh;
-		top: 12vh;
-		position: relative;
+		/* Review #506: 75% der Viewport-Breite, fährt bis fast an die obere
+		   Bildschirmkante hoch. Das frühere top: 12vh (position: relative)
+		   schob das unten angedockte Blatt über die Viewport-Unterkante
+		   hinaus — die Buttons waren abgeschnitten. */
+		width: 75vw;
+		min-width: min(640px, 92vw);
+		height: 96vh;
 		background: var(--color-surface);
 		border: 1px solid var(--edge-strong);
 		border-bottom: none;
