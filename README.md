@@ -43,6 +43,8 @@ cp .env.example .env
 docker compose up -d
 ```
 
+This pulls the published image from `codeberg.org/danszek/kabai-ui` — no local build needed.
+
 The app runs at **http://localhost:3000**.  
 Log in with the PostgreSQL credentials set in `.env` (`KABAI_DB_USER` / `KABAI_DB_PASSWORD`).
 
@@ -96,9 +98,9 @@ are baked into the Docker image, and are applied by the app itself **on
 every startup** (`scripts/migrate.mjs`) — each exactly once, recorded in the
 `schema_migrations` table. Re-runs are always safe.
 
-**Starting a new image is all it takes:** pull/build the new version, start
-it, and the configured database is brought up to the migration level that
-version ships with. The runner needs `KABAI_DB_USER`/`KABAI_DB_PASSWORD`
+**Starting a new image is all it takes:** pull the new version
+(`docker compose pull kabai-ui`), start it, and the configured database is
+brought up to the migration level that version ships with. The runner needs `KABAI_DB_USER`/`KABAI_DB_PASSWORD`
 (set in the compose file); without them the app starts with a warning and
 skips migrations (for externally managed schemas). If a migration fails,
 the app refuses to start rather than run against a broken schema.
@@ -141,7 +143,8 @@ user checkout. Details: knowledge-base note `concept-kabai-ui-migrations-sync`.
 ## Releases
 
 Container images are built and published automatically on every tag push to
-`codeberg.org/danszek/kabai-ui`. Details and release criteria: [RELEASING.md](./RELEASING.md).
+`codeberg.org/danszek/kabai-ui`; `docker-compose.yml` runs this image
+(`:latest`). Details and release criteria: [RELEASING.md](./RELEASING.md).
 
 ## License
 

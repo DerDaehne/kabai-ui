@@ -65,7 +65,7 @@ docker compose up -d
 Docker Compose starts:
 
 1. **`postgres`** — PostgreSQL 16; creates the database on first start.
-2. **`kabai-ui`** — builds the SvelteKit image and starts the app once PostgreSQL is ready. On startup the app first applies all pending schema migrations (baked into the image, tracked in the `schema_migrations` table — re-runs are no-ops), then starts the server.
+2. **`kabai-ui`** — pulls the published image (`codeberg.org/danszek/kabai-ui:latest`) and starts the app once PostgreSQL is ready. On startup the app first applies all pending schema migrations (baked into the image, tracked in the `schema_migrations` table — re-runs are no-ops), then starts the server.
 
 Watch the logs:
 
@@ -101,8 +101,8 @@ docker compose down
 # Stop and delete the database volume (data loss!)
 docker compose down -v
 
-# Restart only the app (e.g. after code changes)
-docker compose up -d --build kabai-ui
+# Update the app to the latest published image
+docker compose pull kabai-ui && docker compose up -d kabai-ui
 ```
 
 ---
@@ -137,12 +137,12 @@ backend repo). The migrations are baked into the Docker image and applied by
 the app itself on every startup: every migration runs exactly once; applied
 versions are stored in the `schema_migrations` table.
 
-**There is no manual migration step.** Updating means pulling/building the
-new image and restarting — the app brings the database up to the migration
-level its version ships with:
+**There is no manual migration step.** Updating means pulling the new image
+and restarting — the app brings the database up to the migration level its
+version ships with:
 
 ```bash
-docker compose up -d --build kabai-ui
+docker compose pull kabai-ui && docker compose up -d kabai-ui
 ```
 
 The runner uses `KABAI_DB_USER`/`KABAI_DB_PASSWORD` from the environment.
