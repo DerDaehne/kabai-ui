@@ -199,6 +199,28 @@ export interface NotesListResponse {
 	fuzzy_fallback: boolean;
 }
 
+// Canvas (V12__Canvas_Schema.sql, Ticket #526) — projektübergreifende
+// Planungsfläche. Ein Canvas gehört zu keinem Projekt fest, sondern wird
+// n:m über canvas_projects verknüpft (gleiches Muster wie notes/note_projects).
+export interface Canvas {
+	id: number;
+	name: string;
+	created_at: string;
+	updated_at: string;
+	project_ids: number[];
+	element_count: number;
+}
+
+// Form Types
+export interface CreateCanvasForm {
+	name: string;
+	project_ids?: number[];
+}
+
+export interface UpdateCanvasForm {
+	name?: string;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
 	ok: boolean;
