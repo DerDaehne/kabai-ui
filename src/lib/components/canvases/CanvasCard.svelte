@@ -1,13 +1,16 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { goto } from '$app/navigation';
 	import { ChevronUp, X, Trash2, Pencil, Layers, Plus, Check } from 'lucide-svelte';
 	import type { Canvas, Project } from '$lib/types';
 
-	// Ticket #526: Canvas-Card nach Vorbild ProjectCard.svelte (#495) — Card
-	// selbst hat keine Detailseite (die kommt erst mit #527/#528), daher
-	// laufen Umbenennen/Löschen/Projekt-Verknüpfung direkt auf der Karte statt
-	// über eine Navigation.
+	// Ticket #526: Canvas-Card nach Vorbild ProjectCard.svelte (#495) — Umbenennen/
+	// Löschen/Projekt-Verknüpfung laufen weiterhin direkt auf der Karte.
+	// Ticket #527: die Karte selbst hat jetzt eine Detailseite (Editor-
+	// Vollansicht /canvases/{id}) — Klick auf die Karte navigiert dorthin,
+	// außer auf Kebab-Menü/Badges/Buttons innerhalb der Karte (die stoppen
+	// die Propagation selbst bzw. sind in interaktiven Unterbereichen).
 	export let canvas: Canvas;
 	// Alle bekannten Projekte, für Namen-Lookup der Badges und die "+"-Auswahlliste.
 	export let allProjects: Project[] = [];
@@ -79,6 +82,15 @@
 		showProjectPicker = !showProjectPicker;
 	}
 
+	// Ticket #527: Klick auf die Karte (aber nicht auf Kebab-Menü/Badges/
+	// Buttons darin) navigiert zum Editor. Alle interaktiven Kind-Elemente
+	// rufen e.stopPropagation() in ihrem eigenen onclick auf, damit dieser
+	// Handler nur bei echten Klicks auf die freie Kartenfläche feuert.
+	function handleCardClick() {
+		if (isRenaming || isMenuOpen) return;
+		goto(`/canvases/${canvas.id}`);
+	}
+
 	$: if (isMenuOpen && firstMenuButtonEl) {
 		firstMenuButtonEl.focus();
 	}
@@ -97,7 +109,14 @@
 	}
 </script>
 
-<div class="canvas-card card relative py-5 px-6 flex flex-col gap-3" class:menu-open={isMenuOpen}>
+<div
+	class="canvas-card card relative py-5 px-6 flex flex-col gap-3"
+	class:menu-open={isMenuOpen}
+	onclick={handleCardClick}
+	onkeydown={(e) => { if (e.key === 'Enter' && !isRenaming && !isMenuOpen) goto(`/canvases/${canvas.id}`); }}
+	role="button"
+	tabindex="0"
+>
 	<div class="flex items-center gap-4" class:content-inert={isMenuOpen} aria-hidden={isMenuOpen}>
 		<Layers class="w-5 h-5 shrink-0" style="color: var(--color-primary);" />
 
@@ -109,13 +128,14 @@
 						type="text"
 						bind:value={renameValue}
 						onkeydown={handleRenameKeydown}
+						onclick={(e) => e.stopPropagation()}
 						class="input py-1 text-lg font-semibold"
 						aria-label="Canvas umbenennen"
 					/>
-					<button type="button" class="btn-subtle p-1.5" onclick={confirmRename} title="Übernehmen">
+					<button type="button" class="btn-subtle p-1.5" onclick={(e) => { e.stopPropagation(); confirmRename(); }} title="Übernehmen">
 						<Check class="w-4 h-4" style="color: var(--color-success);" />
 					</button>
-					<button type="button" class="btn-subtle p-1.5" onclick={cancelRename} title="Abbrechen">
+					<button type="button" class="btn-subtle p-1.5" onclick={(e) => { e.stopPropagation(); cancelRename(); }} title="Abbrechen">
 						<X class="w-4 h-4" />
 					</button>
 				</div>
@@ -133,7 +153,7 @@
 							type="button"
 							class="unlink-btn"
 							aria-label={`${project.name} von Canvas lösen`}
-							onclick={() => onUnlinkProject(canvas.id, project.id)}
+							onclick={(e) => { e.stopPropagation(); onUnlinkProject(canvas.id, project.id); }}
 						>
 							<X class="w-3 h-3" />
 						</button>
@@ -145,7 +165,7 @@
 						type="button"
 						class="badge add-project-btn"
 						style="border: 1px dashed var(--edge-strong); color: var(--color-text-secondary);"
-						onclick={toggleProjectPicker}
+						onclick={(e) => { e.stopPropagation(); toggleProjectPicker(); }}
 						aria-haspopup="listbox"
 						aria-expanded={showProjectPicker}
 					>
@@ -153,7 +173,7 @@
 					</button>
 
 					{#if showProjectPicker}
-						<div class="project-picker" transition:fade={{ duration: 120 }}>
+						<div class="project-picker" transition:fade={{ duration: 120 }} onclick={(e) => e.stopPropagation()} role="presentation">
 							{#if linkableProjects.length === 0}
 								<p class="text-xs px-3 py-2" style="color: var(--color-text-secondary);">Keine weiteren Projekte.</p>
 							{:else}
@@ -189,7 +209,8 @@
 				type="button"
 				class="btn-subtle flex items-center gap-2 px-4 py-2"
 				style="color: var(--color-text);"
-				onclick={() => {
+				onclick={(e) => {
+					e.stopPropagation();
 					closeMenu();
 					startRename();
 				}}
@@ -201,7 +222,7 @@
 				type="button"
 				class="btn-subtle flex items-center gap-2 px-4 py-2"
 				style="color: var(--color-danger);"
-				onclick={() => onDelete(canvas.id)}
+				onclick={(e) => { e.stopPropagation(); onDelete(canvas.id); }}
 			>
 				<Trash2 class="w-4 h-4" />
 				Löschen
@@ -234,6 +255,7 @@
 <style>
 	.canvas-card {
 		overflow: visible;
+		cursor: pointer;
 	}
 
 	.content-inert {

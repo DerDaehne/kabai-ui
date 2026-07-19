@@ -221,6 +221,71 @@ export interface UpdateCanvasForm {
 	name?: string;
 }
 
+// Canvas-Elemente (Ticket #527, Editor). Nur 'text' und 'frame' sind in
+// diesem Ticket bespielbar — 'image'/'sketch'/'ref' existieren im DB-CHECK
+// (V12) bereits für Folgetickets, werden hier aber weder angelegt noch
+// gerendert.
+export type CanvasElementType = 'text' | 'frame';
+
+export interface CanvasElement {
+	id: number;
+	canvas_id: number;
+	type: CanvasElementType;
+	position_x: number;
+	position_y: number;
+	width: number | null;
+	height: number | null;
+	z_order: number;
+	content: { text?: string; title?: string };
+	description: string | null;
+	parent_frame_id: number | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface CanvasEdge {
+	id: number;
+	canvas_id: number;
+	from_element_id: number;
+	to_element_id: number;
+	label: string | null;
+	created_at: string;
+}
+
+// Form Types
+export interface CreateCanvasElementForm {
+	type: CanvasElementType;
+	content: { text?: string; title?: string };
+	position_x: number;
+	position_y: number;
+	width?: number | null;
+	height?: number | null;
+	z_order?: number;
+	parent_frame_id?: number | null;
+}
+
+export interface UpdateCanvasElementForm {
+	position_x?: number;
+	position_y?: number;
+	width?: number | null;
+	height?: number | null;
+	z_order?: number;
+	content?: { text?: string; title?: string };
+	description?: string | null;
+	// explizit optional+nullable: fehlt der Key -> unverändert, null -> Frame lösen.
+	parent_frame_id?: number | null;
+}
+
+export interface CreateCanvasEdgeForm {
+	from_element_id: number;
+	to_element_id: number;
+	label?: string | null;
+}
+
+export interface UpdateCanvasEdgeForm {
+	label?: string | null;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
 	ok: boolean;
