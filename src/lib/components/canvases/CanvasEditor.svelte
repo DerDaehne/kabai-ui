@@ -8,10 +8,14 @@
 	import { writable } from 'svelte/store';
 	import { SvelteFlow, Background, Controls, MarkerType } from '@xyflow/svelte';
 	import '@xyflow/svelte/dist/style.css';
-	import { Type, Frame as FrameIcon } from 'lucide-svelte';
+	import { Type, Frame as FrameIcon, Link as LinkIcon } from 'lucide-svelte';
 	import TextNode from './nodes/TextNode.svelte';
 	import FrameNode from './nodes/FrameNode.svelte';
+	import RefNode from './nodes/RefNode.svelte';
 	import LabeledEdge from './nodes/LabeledEdge.svelte';
+	import RefPickerDialog from './RefPickerDialog.svelte';
+	import SidePanel from '$components/ui/SidePanel.svelte';
+	import TicketModal from '$components/tickets/TicketModal.svelte';
 	import type { CanvasElement, CanvasEdge } from '$lib/types';
 	import type { Node, Edge, Connection, NodeTypes, EdgeTypes } from '@xyflow/svelte';
 
@@ -26,6 +30,7 @@
 
 	const DEFAULT_TEXT_SIZE = { width: 200, height: 100 };
 	const DEFAULT_FRAME_SIZE = { width: 400, height: 300 };
+	const DEFAULT_REF_SIZE = { width: 220, height: 90 };
 	// Kaskadierender Versatz bei mehrfachem "+ Text"/"+ Frame"-Klick
 	// hintereinander, damit neue Elemente nicht exakt übereinanderliegen
 	// (Design-Entscheidung 4). Reset ist bewusst nicht implementiert — die
@@ -38,14 +43,23 @@
 		return offset;
 	}
 
+	function defaultSizeFor(type: CanvasElement['type']): { width: number; height: number } {
+		if (type === 'frame') return DEFAULT_FRAME_SIZE;
+		if (type === 'ref') return DEFAULT_REF_SIZE;
+		return DEFAULT_TEXT_SIZE;
+	}
+
 	function elementToNode(el: CanvasElement): Node {
-		const width = el.width ?? (el.type === 'frame' ? DEFAULT_FRAME_SIZE.width : DEFAULT_TEXT_SIZE.width);
-		const height = el.height ?? (el.type === 'frame' ? DEFAULT_FRAME_SIZE.height : DEFAULT_TEXT_SIZE.height);
+		const defaults = defaultSizeFor(el.type);
+		const width = el.width ?? defaults.width;
+		const height = el.height ?? defaults.height;
 		const base = {
 			id: String(el.id),
 			position: { x: el.position_x, y: el.position_y },
 			width,
 			height,
+			// zIndex-Konvention: nur Frames rendern "dahinter" (Design-Entscheidung
+			// 2) — Ref-Karten verhalten sich wie Text/Vordergrund-Elemente.
 			zIndex: el.type === 'frame' ? FRAME_Z_INDEX : TEXT_Z_INDEX
 		};
 		if (el.type === 'frame') {
@@ -56,6 +70,17 @@
 					title: el.content.title ?? '',
 					onTitleCommit: handleFrameTitleCommit,
 					onResizeEnd: handleResizeEnd
+				}
+			};
+		}
+		if (el.type === 'ref') {
+			return {
+				...base,
+				type: 'ref',
+				data: {
+					target_type: el.content.target_type,
+					target_id: el.content.target_id,
+					onOpenTicket: handleOpenRefTicket
 				}
 			};
 		}
@@ -90,7 +115,7 @@
 	// (draggable, deletable, sourcePosition, ...) — SvelteFlow reicht zur
 	// Laufzeit ohnehin den vollen Node/Edge durch, TS kennt hier nur die
 	// engere, praktisch benötigte Teilmenge.
-	const nodeTypes = { text: TextNode, frame: FrameNode } as unknown as NodeTypes;
+	const nodeTypes = { text: TextNode, frame: FrameNode, ref: RefNode } as unknown as NodeTypes;
 	const edgeTypes = { labeled: LabeledEdge } as unknown as EdgeTypes;
 
 	// --- Persistenz-Helfer -----------------------------------------------
@@ -270,6 +295,46 @@
 		}
 	}
 
+	// --- Referenz-Karten (Ticket #528) -------------------------------------
+	let showRefPicker = false;
+	// Vom RefNode-Klick bubbled hoch: EINE gemeinsame SidePanel/TicketModal-
+	// Instanz hier statt einer pro Node (Vorbild: onTextCommit/onTitleCommit
+	// bubbeln ebenfalls hoch statt dass jede Node ihre eigene Persistenz hätte).
+	let openRefTicketId: number | null = null;
+
+	function handleOpenRefTicket(ticketId: number) {
+		openRefTicketId = ticketId;
+	}
+
+	async function addRefElement(target: { target_type: 'ticket' | 'note'; target_id: number }) {
+		showRefPicker = false;
+		const offset = nextCascadeOffset();
+		try {
+			const res = await fetch(`/api/canvases/${canvasId}/elements`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					type: 'ref',
+					content: { target_type: target.target_type, target_id: target.target_id },
+					position_x: offset.x,
+					position_y: offset.y,
+					width: DEFAULT_REF_SIZE.width,
+					height: DEFAULT_REF_SIZE.height
+				})
+			});
+			const result = await res.json();
+			if (!result.ok) {
+				error = result.error || 'Fehler beim Anlegen';
+				return;
+			}
+			const newEl: CanvasElement = result.data;
+			elements = [...elements, newEl];
+			nodes.update((ns) => [...ns, elementToNode(newEl)]);
+		} catch {
+			error = 'Netzwerkfehler';
+		}
+	}
+
 	// --- Kanten anlegen (Design-Entscheidung 6) ----------------------------
 	// WICHTIG: SvelteFlow fügt bei einer Connect-Geste INTERN bereits selbst
 	// eine Edge in den Store ein (Handle.svelte ruft store-internes addEdge()
@@ -375,6 +440,9 @@
 		<button type="button" class="btn btn-ghost flex items-center gap-2" onclick={addFrameElement}>
 			<FrameIcon class="w-4 h-4" /> + Frame
 		</button>
+		<button type="button" class="btn btn-ghost flex items-center gap-2" onclick={() => (showRefPicker = true)}>
+			<LinkIcon class="w-4 h-4" /> + Referenz
+		</button>
 	</div>
 
 	<div class="canvas-editor__flow">
@@ -398,6 +466,21 @@
 		</SvelteFlow>
 	</div>
 </div>
+
+<!-- Ref-Picker: neue Referenz-Karte suchen/anlegen (Ticket #528) -->
+<SidePanel open={showRefPicker} onClose={() => (showRefPicker = false)} size="md" ariaLabel="Referenz einfügen">
+	{#if showRefPicker}
+		<RefPickerDialog onSelect={addRefElement} />
+	{/if}
+</SidePanel>
+
+<!-- Ticket/Epic aus einer Ref-Karte öffnen: EINE gemeinsame Instanz statt einer
+     pro RefNode (Ticket #528, gleiches Muster wie z.B. projects/[id]/+page.svelte). -->
+<SidePanel open={openRefTicketId !== null} onClose={() => (openRefTicketId = null)} size="md" ariaLabel="Ticket-Details">
+	{#if openRefTicketId !== null}
+		<TicketModal ticketId={openRefTicketId} onClose={() => (openRefTicketId = null)} />
+	{/if}
+</SidePanel>
 
 <style>
 	.canvas-editor {

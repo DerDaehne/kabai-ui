@@ -221,11 +221,10 @@ export interface UpdateCanvasForm {
 	name?: string;
 }
 
-// Canvas-Elemente (Ticket #527, Editor). Nur 'text' und 'frame' sind in
-// diesem Ticket bespielbar — 'image'/'sketch'/'ref' existieren im DB-CHECK
-// (V12) bereits für Folgetickets, werden hier aber weder angelegt noch
-// gerendert.
-export type CanvasElementType = 'text' | 'frame';
+// Canvas-Elemente (Ticket #527 Editor, Ticket #528 Referenz-Karten). 'image'/
+// 'sketch' existieren im DB-CHECK (V12) bereits für Folgetickets (#529/#530),
+// werden hier aber weder angelegt noch gerendert.
+export type CanvasElementType = 'text' | 'frame' | 'ref';
 
 export interface CanvasElement {
 	id: number;
@@ -236,7 +235,7 @@ export interface CanvasElement {
 	width: number | null;
 	height: number | null;
 	z_order: number;
-	content: { text?: string; title?: string };
+	content: { text?: string; title?: string; target_type?: 'ticket' | 'note'; target_id?: number };
 	description: string | null;
 	parent_frame_id: number | null;
 	created_at: string;
@@ -255,7 +254,7 @@ export interface CanvasEdge {
 // Form Types
 export interface CreateCanvasElementForm {
 	type: CanvasElementType;
-	content: { text?: string; title?: string };
+	content: { text?: string; title?: string; target_type?: 'ticket' | 'note'; target_id?: number };
 	position_x: number;
 	position_y: number;
 	width?: number | null;
@@ -270,11 +269,50 @@ export interface UpdateCanvasElementForm {
 	width?: number | null;
 	height?: number | null;
 	z_order?: number;
-	content?: { text?: string; title?: string };
+	content?: { text?: string; title?: string; target_type?: 'ticket' | 'note'; target_id?: number };
 	description?: string | null;
 	// explizit optional+nullable: fehlt der Key -> unverändert, null -> Frame lösen.
 	parent_frame_id?: number | null;
 }
+
+// Referenz-Karten (Ticket #528): Suche über Tickets/Epics projektübergreifend
+// für den RefPickerDialog.
+export interface TicketSearchResult {
+	id: number;
+	title: string;
+	type: TicketType;
+	project_id: number;
+	project_name: string;
+	status_id: number;
+	status_name: string;
+}
+
+// Auflösung eines 'ref'-Elements (GET /api/refs/[type]/[id]) — degradiert
+// bewusst zu { exists: false } statt eines Fehlers, wenn das Ziel gelöscht
+// wurde (RefNode rendert dann eine "nicht gefunden"-Karte statt abzustürzen).
+export interface RefResolveTicketResult {
+	exists: true;
+	id: number;
+	title: string;
+	type: TicketType;
+	project_id: number;
+	project_name: string;
+	status_name: string;
+}
+
+export interface RefResolveNoteResult {
+	exists: true;
+	id: number;
+	slug: string;
+	title: string;
+	kind: NoteKind;
+	project_names: string[];
+}
+
+export type RefResolveResult =
+	| { exists: false }
+	| RefResolveTicketResult
+	| RefResolveNoteResult;
 
 export interface CreateCanvasEdgeForm {
 	from_element_id: number;
