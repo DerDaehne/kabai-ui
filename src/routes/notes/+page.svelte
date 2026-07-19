@@ -148,11 +148,11 @@
 		<div>
 			<div class="flex items-center gap-3 mb-1">
 				<div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);">
-					<BookOpen class="w-5 h-5" style="color: var(--primary);" />
+					<BookOpen class="w-5 h-5" style="color: var(--color-primary);" />
 				</div>
-				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">Knowledge Base</h1>
+				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--color-text);">Knowledge Base</h1>
 			</div>
-			<p class="ml-12 text-sm" style="color: var(--text-muted);">
+			<p class="ml-12 text-sm" style="color: var(--color-text-secondary);">
 				{notes.length} Note{notes.length !== 1 ? 's' : ''} · Zettelkasten aller Projekte
 			</p>
 		</div>
@@ -161,7 +161,7 @@
 	<!-- Suche + Filter -->
 	<div class="flex flex-wrap items-center gap-3" in:fly={{ y: -8, duration: 400, delay: 80, easing: quintOut }}>
 		<div class="relative flex-1 min-w-[220px]">
-			<Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--text-muted);" />
+			<Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--color-text-secondary);" />
 			<input
 				bind:this={searchInputEl}
 				type="text"
@@ -194,8 +194,8 @@
 			{/each}
 		</select>
 
-		<label class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer select-none" style="background: var(--card-bg); border: 1px solid var(--border); color: {showArchived ? 'var(--text)' : 'var(--text-muted)'};">
-			<input type="checkbox" bind:checked={showArchived} onchange={fetchNotes} class="accent-[var(--primary)]" />
+		<label class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer select-none" style="background: var(--color-surface); border: 1px solid var(--edge-strong); color: {showArchived ? 'var(--color-text)' : 'var(--color-text-secondary)'};">
+			<input type="checkbox" bind:checked={showArchived} onchange={fetchNotes} class="accent-[var(--color-primary)]" />
 			<Archive class="w-3.5 h-3.5" />
 			Archivierte
 		</label>
@@ -206,7 +206,7 @@
 	{/if}
 
 	{#if fuzzyFallback && query.trim()}
-		<div class="p-3 rounded-xl text-sm" style="background: color-mix(in srgb, var(--color-warning) 6%, transparent); border-left: 2px solid var(--color-warning); color: var(--text-muted);" in:fade={{ duration: 200 }}>
+		<div class="p-3 rounded-xl text-sm" style="background: color-mix(in srgb, var(--color-warning) 6%, transparent); border-left: 2px solid var(--color-warning); color: var(--color-text-secondary);" in:fade={{ duration: 200 }}>
 			Keine exakten Treffer — ähnliche Titel gefunden (Tippfehler-Suche).
 		</div>
 	{/if}
@@ -225,29 +225,30 @@
 		<!-- Hubs: Einstiegspunkte / Inhaltsverzeichnisse -->
 		{#if hubs.length > 0}
 			<div in:fly={{ y: 16, duration: 350, easing: quintOut }}>
-				<div class="flex items-center gap-2 mb-3">
+				<div class="flex items-center gap-2 mb-2">
 					<Compass class="w-4 h-4" style="color: var(--color-warning);" />
-					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Einstiegspunkte</h2>
+					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--color-text-secondary);">Einstiegspunkte</h2>
 				</div>
-				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+				<div class="hub-list rounded-xl overflow-hidden" style="border: 1px solid var(--edge-strong);">
 					{#each hubs as note (note.id)}
+						{@const count = note.contained_count ?? 0}
 						<button
 							onclick={() => goto(`/notes/${note.slug}`)}
-							class="hub-card text-left rounded-xl p-5 border cursor-pointer transition-all duration-200"
-							style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--card-bg));"
+							class="hub-row flex items-center gap-3 w-full text-left px-3.5 py-2.5 cursor-pointer transition-colors duration-150"
 						>
-							<div class="flex items-center gap-2 mb-2">
-								<Compass class="w-4 h-4 shrink-0" style="color: var(--color-warning);" />
-								<h3 class="font-semibold truncate" style="color: var(--text);">{note.title}</h3>
-							</div>
-							<code class="text-xs" style="color: var(--text-muted);">{note.slug}</code>
+							<Compass class="w-4 h-4 shrink-0" style="color: var(--color-warning);" />
+							<h3 class="font-semibold truncate text-sm" style="color: var(--color-text);">{note.title}</h3>
+							<code class="text-xs shrink-0" style="color: var(--color-text-secondary);">{note.slug}</code>
 							{#if note.tags.length > 0}
-								<div class="flex flex-wrap gap-1 mt-2">
+								<div class="hidden sm:flex flex-wrap gap-1 min-w-0">
 									{#each note.tags as t}
-										<span class="text-xs px-1.5 py-0.5 rounded" style="background: var(--border); color: var(--text-muted);">{t}</span>
+										<span class="text-xs px-1.5 py-0.5 rounded truncate" style="background: var(--edge-strong); color: var(--color-text-secondary);">{t}</span>
 									{/each}
 								</div>
 							{/if}
+							<span class="ml-auto shrink-0 text-xs font-mono" style="color: var(--color-text-secondary);">
+								{count} Note{count !== 1 ? 's' : ''}
+							</span>
 						</button>
 					{/each}
 				</div>
@@ -255,13 +256,13 @@
 		{/if}
 
 		<!-- Notes-Liste -->
-		<div class="space-y-3">
+		<div class="space-y-2">
 			{#each listNotes as note, i (note.id)}
 				{@const ks = kindStyles[note.kind] ?? kindStyles.note}
 				{@const vs = verifyState(note)}
 				<div
 					in:fly={{ y: 16, duration: 300, delay: Math.min(i * 30, 300), easing: quintOut }}
-					class="rounded-xl p-4 card cursor-pointer"
+					class="rounded-xl p-3 card cursor-pointer"
 					style="{note.archived ? 'opacity: 0.55;' : ''}"
 					onclick={() => goto(`/notes/${note.slug}`)}
 					onkeydown={(e) => e.key === 'Enter' && goto(`/notes/${note.slug}`)}
@@ -272,38 +273,38 @@
 						<div class="min-w-0">
 							<div class="flex items-center gap-2 flex-wrap">
 								<span class="status-chip uppercase tracking-wide" style="--chip-color: {ks.color};">{ks.label}</span>
-								<h3 class="font-semibold truncate" style="color: var(--text);">{note.title}</h3>
+								<h3 class="font-semibold truncate" style="color: var(--color-text);">{note.title}</h3>
 								{#if note.archived}
-									<span class="text-xs px-1.5 py-0.5 rounded flex items-center gap-1" style="background: var(--border); color: var(--text-muted);"><Archive class="w-3 h-3" /> archiviert</span>
+									<span class="text-xs px-1.5 py-0.5 rounded flex items-center gap-1" style="background: var(--edge-strong); color: var(--color-text-secondary);"><Archive class="w-3 h-3" /> archiviert</span>
 								{/if}
 							</div>
-							<code class="text-xs" style="color: var(--text-muted);">{note.slug}</code>
+							<code class="text-xs" style="color: var(--color-text-secondary);">{note.slug}</code>
 
 							{#if note.snippet}
-								<p class="text-sm mt-2 snippet" style="color: var(--text-muted);">…{@html sanitizeHtml(note.snippet)}…</p>
+								<p class="text-sm mt-1.5 snippet" style="color: var(--color-text-secondary);">…{@html sanitizeHtml(note.snippet)}…</p>
 							{/if}
 
-							<div class="flex flex-wrap items-center gap-2 mt-2">
+							<div class="flex flex-wrap items-center gap-2 mt-1.5">
 								{#if note.tags.length > 0}
-									<TagIcon class="w-3 h-3" style="color: var(--text-muted);" />
+									<TagIcon class="w-3 h-3" style="color: var(--color-text-secondary);" />
 									{#each note.tags as t}
 										<button
 											class="text-xs px-1.5 py-0.5 rounded transition-colors"
-											style="background: var(--border); color: var(--text-muted);"
+											style="background: var(--edge-strong); color: var(--color-text-secondary);"
 											onclick={(e) => { e.stopPropagation(); tagFilter = t; fetchNotes(); }}
 										>{t}</button>
 									{/each}
 								{/if}
 								{#each note.projects as p}
-									<span class="text-xs px-1.5 py-0.5 rounded-md" style="background: rgba(255,255,255,0.05); color: var(--text-muted);">{p.name}</span>
+									<span class="text-xs px-1.5 py-0.5 rounded-md" style="background: rgba(255,255,255,0.05); color: var(--color-text-secondary);">{p.name}</span>
 								{/each}
 								{#if note.projects.length === 0}
-									<span class="text-xs italic" style="color: var(--text-muted);">global</span>
+									<span class="text-xs italic" style="color: var(--color-text-secondary);">global</span>
 								{/if}
 							</div>
 						</div>
 
-						<div class="shrink-0 flex flex-col items-end gap-1.5 text-xs" style="color: var(--text-muted);">
+						<div class="shrink-0 flex flex-col items-end gap-1 text-xs" style="color: var(--color-text-secondary);">
 							<span class="font-mono">{formatDate(note.updated_at)}</span>
 							{#if vs === 'fresh'}
 								<span class="flex items-center gap-1" style="color: var(--color-success);" title="Verifiziert am {formatDate(note.last_verified_at ?? '')}">
@@ -314,7 +315,7 @@
 									<ShieldAlert class="w-3.5 h-3.5" /> Verifikation alt
 								</span>
 							{:else}
-								<span class="flex items-center gap-1" style="color: var(--text-muted); opacity: 0.7;" title="Diese Note wurde noch nie verifiziert">
+								<span class="flex items-center gap-1" style="color: var(--color-text-secondary); opacity: 0.7;" title="Diese Note wurde noch nie verifiziert">
 									<ShieldQuestion class="w-3.5 h-3.5" /> nie verifiziert
 								</span>
 							{/if}
@@ -327,18 +328,23 @@
 </div>
 
 <style>
-	/* Ticket #511: JS onmouseenter/onmouseleave durch CSS-:hover ersetzt. */
-	.hub-card {
-		border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
+	/* Kompakte Hub-Liste (#536): schmale Zeilen statt Card-Grid — Trenner
+	   zwischen den Zeilen statt Abstand+eigener Rahmen pro Eintrag. */
+	.hub-row {
+		background: var(--color-surface);
 	}
 
-	.hub-card:hover {
-		border-color: var(--color-warning);
+	.hub-row:not(:last-child) {
+		border-bottom: 1px solid var(--edge);
+	}
+
+	.hub-row:hover {
+		background: var(--color-surface-hover);
 	}
 
 	.snippet :global(mark) {
 		background: color-mix(in srgb, var(--color-primary) 20%, transparent);
-		color: var(--text);
+		color: var(--color-text);
 		border-radius: 2px;
 		padding: 0 2px;
 	}

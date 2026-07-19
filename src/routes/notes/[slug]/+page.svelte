@@ -85,11 +85,11 @@
 		{:else}
 			<BookOpen class="w-3.5 h-3.5 shrink-0" style="color: {ks.color};" />
 		{/if}
-		<span class="text-sm truncate" style="color: var(--text);">{l.title}</span>
+		<span class="text-sm truncate" style="color: var(--color-text);">{l.title}</span>
 		{#if l.archived}
-			<Archive class="w-3 h-3 shrink-0" style="color: var(--text-muted);" />
+			<Archive class="w-3 h-3 shrink-0" style="color: var(--color-text-secondary);" />
 		{/if}
-		<code class="text-xs ml-auto shrink-0 hidden sm:inline" style="color: var(--text-muted);">{l.slug}</code>
+		<code class="text-xs ml-auto shrink-0 hidden sm:inline" style="color: var(--color-text-secondary);">{l.slug}</code>
 	</button>
 {/snippet}
 
@@ -98,7 +98,7 @@
 	<button
 		onclick={() => goto('/notes')}
 		class="back-link flex items-center gap-2 text-sm transition-colors"
-		style="color: var(--text-muted);"
+		style="color: var(--color-text-secondary);"
 	>
 		<ArrowLeft class="w-4 h-4" />
 		Knowledge Base
@@ -117,7 +117,7 @@
 
 		<!-- Warnbanner: archiviert / abgelöst -->
 		{#if note.archived}
-			<div class="flex items-center gap-3 p-4 rounded-xl" style="background: rgba(120,120,140,0.1); border-left: 2px solid var(--text-muted); color: var(--text-muted);" in:fade={{ duration: 200 }}>
+			<div class="flex items-center gap-3 p-4 rounded-xl" style="background: rgba(120,120,140,0.1); border-left: 2px solid var(--color-text-secondary); color: var(--color-text-secondary);" in:fade={{ duration: 200 }}>
 				<Archive class="w-5 h-5 shrink-0" />
 				<span class="text-sm">Diese Note ist <strong>archiviert</strong> und taucht in der Übersicht nur mit aktiviertem Archiv-Toggle auf.</span>
 			</div>
@@ -140,14 +140,14 @@
 		<div in:fly={{ y: -12, duration: 350, easing: quintOut }}>
 			<div class="flex items-center gap-2 flex-wrap mb-2">
 				<span class="status-chip uppercase tracking-wide" style="--chip-color: {ks.color};">{ks.label}</span>
-				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--text);">{note.title}</h1>
+				<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--color-text);">{note.title}</h1>
 			</div>
-			<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" style="color: var(--text-muted);">
+			<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" style="color: var(--color-text-secondary);">
 				<code>{note.slug}</code>
 				<span class="font-mono">erstellt {formatDate(note.created_at)}</span>
 				<span class="font-mono">aktualisiert {formatDate(note.updated_at)}</span>
 				{#each note.projects as p}
-					<button class="px-1.5 py-0.5 rounded-md transition-colors hover:bg-[var(--color-surface-hover)]" style="background: rgba(255,255,255,0.05); color: var(--text-muted);" onclick={() => goto(`/projects/${p.id}`)}>{p.name}</button>
+					<button class="px-1.5 py-0.5 rounded-md transition-colors hover:bg-[var(--color-surface-hover)]" style="background: rgba(255,255,255,0.05); color: var(--color-text-secondary);" onclick={() => goto(`/projects/${p.id}`)}>{p.name}</button>
 				{/each}
 				{#if note.projects.length === 0}
 					<span class="italic">global (kein Projekt)</span>
@@ -155,9 +155,9 @@
 			</div>
 			{#if note.tags.length > 0}
 				<div class="flex items-center gap-1.5 mt-2 flex-wrap">
-					<TagIcon class="w-3 h-3" style="color: var(--text-muted);" />
+					<TagIcon class="w-3 h-3" style="color: var(--color-text-secondary);" />
 					{#each note.tags as t}
-						<span class="text-xs px-1.5 py-0.5 rounded" style="background: var(--border); color: var(--text-muted);">{t}</span>
+						<span class="text-xs px-1.5 py-0.5 rounded" style="background: var(--edge-strong); color: var(--color-text-secondary);">{t}</span>
 					{/each}
 				</div>
 			{/if}
@@ -182,7 +182,7 @@
 				</span>
 			</div>
 		{:else}
-			<div class="flex items-center gap-2 p-3 rounded-xl text-sm card" style="color: var(--text-muted);">
+			<div class="flex items-center gap-2 p-3 rounded-xl text-sm card" style="color: var(--color-text-secondary);">
 				<ShieldQuestion class="w-4 h-4 shrink-0" />
 				<span>Diese Note wurde <strong>nie geprüft</strong> — Inhalt ohne Verifikation.</span>
 			</div>
@@ -190,10 +190,10 @@
 
 		<!-- Hub: Inhaltsverzeichnis -->
 		{#if note.kind === 'hub' && containsOut.length > 0}
-			<div class="rounded-xl p-5" style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--card-bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-warning) 25%, transparent);" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
+			<div class="rounded-xl p-5" style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 6%, transparent), var(--color-surface)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-warning) 25%, transparent);" in:fly={{ y: 12, duration: 300, easing: quintOut }}>
 				<div class="flex items-center gap-2 mb-3">
 					<ListTree class="w-4 h-4" style="color: var(--color-warning);" />
-					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Inhaltsverzeichnis</h2>
+					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--color-text-secondary);">Inhaltsverzeichnis</h2>
 				</div>
 				<div class="space-y-2">
 					{#each containsOut as l (l.note_id)}
@@ -206,23 +206,23 @@
 		<!-- Body -->
 		<div class="rounded-xl p-6 card" in:fly={{ y: 12, duration: 300, delay: 60, easing: quintOut }}>
 			{#if note.body.trim()}
-				<div class="markdown-body text-sm leading-relaxed" style="color: var(--text);">{@html renderMarkdown(note.body)}</div>
+				<div class="markdown-body text-sm leading-relaxed" style="color: var(--color-text);">{@html renderMarkdown(note.body)}</div>
 			{:else}
-				<p class="text-sm italic" style="color: var(--text-muted);">Kein Inhalt.</p>
+				<p class="text-sm italic" style="color: var(--color-text-secondary);">Kein Inhalt.</p>
 			{/if}
 		</div>
 
 		<!-- Konflikte -->
 		{#if contradictions.length > 0}
 			<div class="p-4 rounded-xl" style="background: rgba(239,68,68,0.06); border-left: 2px solid var(--color-danger);">
-				<div class="flex items-center gap-2 mb-2" style="color: var(--danger);">
+				<div class="flex items-center gap-2 mb-2" style="color: var(--color-danger);">
 					<Zap class="w-4 h-4 shrink-0" />
 					<span class="text-sm font-semibold">Widersprüche</span>
 				</div>
 				<div class="space-y-2">
 					{#each contradictions as l (`${l.direction}-${l.note_id}`)}
 						<div class="flex items-center gap-2">
-							<span class="text-xs shrink-0 w-24" style="color: var(--text-muted);">{l.direction === 'outgoing' ? 'widerspricht' : 'im Widerspruch zu dieser Note'}</span>
+							<span class="text-xs shrink-0 w-24" style="color: var(--color-text-secondary);">{l.direction === 'outgoing' ? 'widerspricht' : 'im Widerspruch zu dieser Note'}</span>
 							{@render noteLink(l)}
 						</div>
 					{/each}
@@ -234,8 +234,8 @@
 		{#if supersedes.length > 0 || (note.kind !== 'hub' && containsOut.length > 0) || containedIn.length > 0 || referencesOut.length > 0 || referencedBy.length > 0}
 			<div class="rounded-xl p-5 space-y-4 card" in:fly={{ y: 12, duration: 300, delay: 120, easing: quintOut }}>
 				<div class="flex items-center gap-2">
-					<Link2 class="w-4 h-4" style="color: var(--primary);" />
-					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Verknüpfte Notes</h2>
+					<Link2 class="w-4 h-4" style="color: var(--color-primary);" />
+					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--color-text-secondary);">Verknüpfte Notes</h2>
 				</div>
 
 				{#each [
@@ -247,7 +247,7 @@
 				] as group}
 					{#if group.items.length > 0}
 						<div>
-							<div class="text-xs mb-1.5" style="color: var(--text-muted);">{group.label}</div>
+							<div class="text-xs mb-1.5" style="color: var(--color-text-secondary);">{group.label}</div>
 							<div class="space-y-2">
 								{#each group.items as l (`${l.direction}-${l.link_type}-${l.note_id}`)}
 									{@render noteLink(l)}
@@ -263,16 +263,16 @@
 		{#if note.ticket_links.length > 0}
 			<div class="rounded-xl p-5 space-y-2 card" in:fly={{ y: 12, duration: 300, delay: 160, easing: quintOut }}>
 				<div class="flex items-center gap-2 mb-2">
-					<TicketIcon class="w-4 h-4" style="color: var(--primary);" />
-					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-muted);">Verknüpfte Tickets</h2>
+					<TicketIcon class="w-4 h-4" style="color: var(--color-primary);" />
+					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--color-text-secondary);">Verknüpfte Tickets</h2>
 				</div>
 				{#each note.ticket_links as tl (`${tl.ticket_id}-${tl.relation}`)}
 					<button
 						onclick={() => goto(`/tickets/${tl.ticket_id}`)}
 						class="flex items-center gap-2 px-3 py-2 rounded-lg text-left w-full card"
 					>
-						<span class="text-xs font-semibold px-2 py-0.5 rounded-md shrink-0" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--primary); border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);">{relationLabels[tl.relation] ?? tl.relation}</span>
-						<span class="text-sm truncate" style="color: var(--text);">#{tl.ticket_id} {tl.ticket_title}</span>
+						<span class="text-xs font-semibold px-2 py-0.5 rounded-md shrink-0" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-primary); border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);">{relationLabels[tl.relation] ?? tl.relation}</span>
+						<span class="text-sm truncate" style="color: var(--color-text);">#{tl.ticket_id} {tl.ticket_title}</span>
 					</button>
 				{/each}
 			</div>
@@ -283,6 +283,6 @@
 <style>
 	/* Ticket #511: JS onmouseenter/onmouseleave durch CSS-:hover ersetzt. */
 	.back-link:hover {
-		color: var(--text);
+		color: var(--color-text);
 	}
 </style>

@@ -159,6 +159,9 @@ export interface NoteSummary {
 	last_verified_at: string | null;
 	last_verified_ticket_id: number | null;
 	projects: NoteProjectRef[];
+	// Anzahl per "contains"-Link referenzierter Notes (nur für Hubs relevant,
+	// nur von /api/notes geliefert — bei /api/notes/[slug] (NoteDetail) nicht gesetzt)
+	contained_count?: number;
 	// Nur bei Suchtreffern gesetzt
 	snippet?: string;
 	rank?: number;

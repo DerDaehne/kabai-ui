@@ -16,6 +16,7 @@ function mapNote(row: any): NoteSummary {
 		last_verified_at: row.last_verified_at,
 		last_verified_ticket_id: row.last_verified_ticket_id,
 		projects: typeof row.projects === 'string' ? JSON.parse(row.projects) : (row.projects ?? []),
+		contained_count: row.contained_count !== undefined ? Number(row.contained_count) : 0,
 		...(row.snippet !== undefined ? { snippet: row.snippet } : {}),
 		...(row.rank !== undefined ? { rank: Number(row.rank) } : {})
 	};
@@ -60,7 +61,11 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 				json_agg(json_build_object('id', p.id, 'name', p.name) ORDER BY p.name)
 					FILTER (WHERE p.id IS NOT NULL),
 				'[]'
-			) AS projects
+			) AS projects,
+			(
+				SELECT COUNT(*) FROM note_links nl
+				WHERE nl.from_note_id = n.id AND nl.link_type = 'contains'
+			) AS contained_count
 		`;
 		const baseJoin = sql`
 			FROM notes n
