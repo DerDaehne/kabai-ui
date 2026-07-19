@@ -8,11 +8,20 @@
 	import CommandPalette from '$components/ui/CommandPalette.svelte';
 	import { Activity } from 'lucide-svelte';
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { railOpen, overlayStackDepth } from '$lib/stores/ui';
 	import { aiEvents, unseenActivityCount, markActivitySeen } from '$lib/stores/aiActivity';
-	import { focusSearchField, commandPaletteOpen } from '$lib/stores/commandPalette';
+	import { focusSearchField, commandPaletteOpen, globalPaletteActions } from '$lib/stores/commandPalette';
 
 	export let data: LayoutData;
+
+	// Ticket #535: "Hilfe öffnen" muss auf JEDER Seite in der Command Palette
+	// erscheinen — im Gegensatz zu paletteActions (seiten-spezifisch, wird pro
+	// Seite überschrieben) wird globalPaletteActions genau einmal hier befüllt,
+	// nie geleert.
+	onMount(() => {
+		globalPaletteActions.set([{ id: 'open-help', label: 'Hilfe öffnen', run: () => goto('/help') }]);
+	});
 
 	// Ticket #537: globaler Tastatur-Shortcut — "/" fokussiert das Suchfeld der
 	// aktuellen Seite (No-op, falls die Seite keins registriert hat, z.B. das

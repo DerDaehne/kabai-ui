@@ -5,7 +5,7 @@
 	import { Search } from 'lucide-svelte';
 	import { portal } from '$lib/utils/portal';
 	import { overlayStackDepth } from '$lib/stores/ui';
-	import { commandPaletteOpen, paletteActions, type CommandPaletteAction } from '$lib/stores/commandPalette';
+	import { commandPaletteOpen, paletteActions, globalPaletteActions, type CommandPaletteAction } from '$lib/stores/commandPalette';
 
 	// Ticket #537: Cmd-K-artige Command Palette — anders als BottomSheet/
 	// SidePanel bewusst KEIN Slide-in, sondern ein zentriertes Overlay nahe der
@@ -19,7 +19,9 @@
 	let previouslyFocused: HTMLElement | null = null;
 	let activeIndex = 0;
 
-	$: actions = $paletteActions;
+	// Ticket #535: globale Aktionen (z.B. "Hilfe öffnen") stehen auf jeder
+	// Seite VOR den seiten-spezifischen Aktionen.
+	$: actions = [...$globalPaletteActions, ...$paletteActions];
 	$: filtered = (() => {
 		const q = query.trim().toLowerCase();
 		if (!q) return actions;

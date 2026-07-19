@@ -22,5 +22,14 @@ export const focusSearchField = writable<(() => void) | null>(null);
 // Aktionen der aktuell aktiven Seite, die die Command Palette anzeigt.
 export const paletteActions = writable<CommandPaletteAction[]>([]);
 
+// Ticket #535: globale Aktionen, die auf JEDER Seite sichtbar sein müssen
+// (z.B. "Hilfe öffnen"). Anders als paletteActions wird dieser Store NICHT
+// pro Seite in onMount/onDestroy überschrieben/geleert — sonst würde die
+// nächste Seite den Eintrag sofort wieder wegräumen. Befüllt wird er einmalig
+// vom Root-Layout (src/routes/+layout.svelte, onMount), wo `goto` bereits im
+// Scope verfügbar ist (einfacher als `goto` aus einem reinen .ts-Modul
+// heraus aufzurufen).
+export const globalPaletteActions = writable<CommandPaletteAction[]>([]);
+
 // Steuert die Sichtbarkeit der Command Palette (vom Root-Layout gerendert).
 export const commandPaletteOpen = writable(false);

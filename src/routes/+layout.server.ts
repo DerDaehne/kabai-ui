@@ -64,7 +64,8 @@ function getTitleFromPath(path: string): string {
 		'statuses': 'Statuses',
 		'workflow': 'Workflow',
 		'tickets': 'Tickets',
-		'login': 'Anmelden'
+		'login': 'Anmelden',
+		'help': 'Hilfe'
 	};
 
 	return translations[lastSegment] || lastSegment;

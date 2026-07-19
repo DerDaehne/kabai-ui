@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SessionInfo } from '$lib/types';
-	import { User, LogOut, Folder, BookOpen, Activity, PanelLeftClose, PanelLeftOpen, Layers } from 'lucide-svelte';
+	import { User, LogOut, Folder, BookOpen, Activity, PanelLeftClose, PanelLeftOpen, Layers, HelpCircle } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { navCollapsed, railOpen } from '$lib/stores/ui';
@@ -18,7 +18,10 @@
 		{ href: '/notes', label: 'Knowledge Base', icon: BookOpen },
 		// Ticket #526: Canvas-Verwaltungsseite — kein Sub-Routing nötig, isActive()
 		// greift per Prefix-Match (siehe Kommentar dort).
-		{ href: '/canvases', label: 'Canvases', icon: Layers }
+		{ href: '/canvases', label: 'Canvases', icon: Layers },
+		// Ticket #535: globale statische Hilfe-Seite — analog Discoverability
+		// zu Projekte/Knowledge Base/Canvases (zusätzlich zur Command Palette).
+		{ href: '/help', label: 'Hilfe', icon: HelpCircle }
 	];
 
 	function navigate(href: string) {
