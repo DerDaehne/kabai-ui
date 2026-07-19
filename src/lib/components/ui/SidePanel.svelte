@@ -3,6 +3,7 @@
 	import { fade, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { X } from 'lucide-svelte';
+	import { overlayStackDepth } from '$lib/stores/ui';
 
 	export let open = false;
 	export let onClose: () => void = () => {};
@@ -132,22 +133,32 @@
 		panelEl?.focus();
 	}
 
+	// Ticket #537: overlayStackDepth zählt offene Overlays global (gleiches
+	// Muster wie BottomSheet), damit der globale "/"-/":"-Shortcut-Handler
+	// nicht über einem bereits offenen Panel ein zweites Overlay aufpoppt.
+	let wasOpen = false;
+
 	$: if (typeof document !== 'undefined') {
 		if (open) {
 			previouslyFocused = document.activeElement as HTMLElement | null;
 			document.body.style.overflow = 'hidden';
 			focusPanel();
+			if (!wasOpen) overlayStackDepth.update((n) => n + 1);
+			wasOpen = true;
 		} else {
 			document.body.style.overflow = '';
 			if (previouslyFocused) {
 				previouslyFocused.focus();
 				previouslyFocused = null;
 			}
+			if (wasOpen) overlayStackDepth.update((n) => Math.max(0, n - 1));
+			wasOpen = false;
 		}
 	}
 
 	onDestroy(() => {
 		if (typeof document !== 'undefined') document.body.style.overflow = '';
+		if (wasOpen) overlayStackDepth.update((n) => Math.max(0, n - 1));
 	});
 </script>
 

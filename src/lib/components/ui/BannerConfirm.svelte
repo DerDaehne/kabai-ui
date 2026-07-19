@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { portal } from '$lib/utils/portal';
+	import { overlayStackDepth } from '$lib/stores/ui';
 
 	// Ticket #496: UI-weites "Band-Popup" für zerstörerische Aktionen (Löschen,
 	// später #498 Archivieren). Anders als ein zentriertes Klick-durch-Dialogfeld
@@ -75,15 +76,30 @@
 		cancelBtnEl?.focus();
 	}
 
+	// Ticket #537: overlayStackDepth zählt offene Overlays global (gleiches
+	// Muster wie BottomSheet/SidePanel) — der globale "/"-/":"-Shortcut-Handler
+	// no-opt, solange ein BannerConfirm offen ist.
+	let wasOpen = false;
+
 	$: if (typeof document !== 'undefined') {
 		if (open) {
 			previouslyFocused = document.activeElement as HTMLElement | null;
 			focusCancel();
-		} else if (previouslyFocused) {
-			previouslyFocused.focus();
-			previouslyFocused = null;
+			if (!wasOpen) overlayStackDepth.update((n) => n + 1);
+			wasOpen = true;
+		} else {
+			if (previouslyFocused) {
+				previouslyFocused.focus();
+				previouslyFocused = null;
+			}
+			if (wasOpen) overlayStackDepth.update((n) => Math.max(0, n - 1));
+			wasOpen = false;
 		}
 	}
+
+	onDestroy(() => {
+		if (wasOpen) overlayStackDepth.update((n) => Math.max(0, n - 1));
+	});
 </script>
 
 <svelte:window on:keydown={handleKey} />

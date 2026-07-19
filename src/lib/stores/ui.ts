@@ -39,3 +39,12 @@ if (browser) {
 		sessionStorage.setItem(NAV_COLLAPSED_KEY, collapsed ? '1' : '0');
 	});
 }
+
+// Ticket #537: gemeinsamer Zähler für offene Overlays (BottomSheet, SidePanel,
+// BannerConfirm, CommandPalette). Der globale "/"- und ":"-Shortcut-Handler im
+// Root-Layout no-opt, solange dieser Zähler > 0 ist — sonst könnte "/" oder ":"
+// ein zweites Overlay über einem bereits offenen aufpoppen. Jede Komponente
+// erhöht ihn beim Öffnen (onMount bzw. reaktiv beim Übergang open=false->true)
+// und erniedrigt ihn beim Schließen/Zerstören — robuster als das Nachprüfen
+// einzelner lokaler Page-Booleans.
+export const overlayStackDepth = writable(0);

@@ -5,6 +5,7 @@
 	// Edge-Handling-Pattern, Theming) nach Vorbild WorkflowModal.svelte
 	// (#Workflow-Editor) — Dragging, Resize, Custom-Nodes, Frame-Containment
 	// sind hier komplett neu, das gibt es in WorkflowModal nicht.
+	import { onDestroy, onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import { SvelteFlow, Background, Controls, MarkerType } from '@xyflow/svelte';
 	import '@xyflow/svelte/dist/style.css';
@@ -18,6 +19,7 @@
 	import RefPickerDialog from './RefPickerDialog.svelte';
 	import SidePanel from '$components/ui/SidePanel.svelte';
 	import TicketModal from '$components/tickets/TicketModal.svelte';
+	import { paletteActions } from '$lib/stores/commandPalette';
 	import type { CanvasElement, CanvasEdge, AttachmentUploadResult } from '$lib/types';
 	import type { Node, Edge, Connection, NodeTypes, EdgeTypes } from '@xyflow/svelte';
 
@@ -588,6 +590,24 @@
 			);
 		}
 	}
+
+	// Ticket #537: exponiert die Toolbar-Aktionen dieses Editors an die globale
+	// Command Palette (":"-Shortcut, Root-Layout). Kein eigenes Suchfeld hier —
+	// die Canvas-Fläche hat keine Textsuche, "/" bleibt daher auf dieser Seite
+	// ohnehin ein No-op (kein focusSearchField gesetzt).
+	onMount(() => {
+		paletteActions.set([
+			{ id: 'canvas-add-text', label: '+ Text', run: addTextElement },
+			{ id: 'canvas-add-frame', label: '+ Frame', run: addFrameElement },
+			{ id: 'canvas-add-ref', label: '+ Referenz', run: () => (showRefPicker = true) },
+			{ id: 'canvas-add-image', label: '+ Bild', run: triggerImageUpload },
+			{ id: 'canvas-add-sketch', label: '+ Skizze', run: addSketchElement }
+		]);
+	});
+
+	onDestroy(() => {
+		paletteActions.set([]);
+	});
 </script>
 
 <div class="canvas-editor">

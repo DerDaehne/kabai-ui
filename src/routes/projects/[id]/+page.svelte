@@ -15,6 +15,7 @@
 	import NewTicketSheet from '$components/tickets/NewTicketSheet.svelte';
 	import { pushAiEvent, sseConnected } from '$lib/stores/aiActivity';
 	import { openTicketRequest } from '$lib/stores/ui';
+	import { paletteActions } from '$lib/stores/commandPalette';
 	import type { Project, BoardStatus, Ticket } from '$lib/types';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
@@ -56,6 +57,30 @@
 
 	// Kanban-Board zeigt keine Human-Intervention-Spalten (die laufen über die Inbox)
 	$: kanbanStatuses = statuses.filter(s => !s.special_type);
+
+	// Ticket #537: Command-Palette-Aktionen dieser Seite. Das Board hat kein
+	// eigenes Suchfeld (Design-Entscheidung: "/" ist hier bewusst ein No-op —
+	// siehe Root-Layout, das kein focusSearchField für diese Seite gesetzt
+	// bekommt), daher wird hier nur paletteActions registriert. "Neues Ticket"
+	// aus der Palette hat keinen Spalten-Kontext (kein Klick auf eine
+	// bestimmte Spalte) — Default ist die am weitesten links stehende Spalte
+	// (kanbanStatuses ist nach position sortiert, siehe fetchBoardData).
+	$: {
+		const actions = [];
+		if (kanbanStatuses.length > 0) {
+			actions.push({
+				id: 'new-ticket',
+				label: 'Neues Ticket',
+				run: () => openNewTicketSheet(kanbanStatuses[0].id)
+			});
+		}
+		actions.push({ id: 'manage-statuses', label: 'Spalten verwalten', run: () => (showStatuses = true) });
+		paletteActions.set(actions);
+	}
+
+	onDestroy(() => {
+		paletteActions.set([]);
+	});
 	$: inboxTickets = tickets.filter(t => {
 		const s = statuses.find(s => s.id === t.status_id);
 		return s?.special_type === 'human_intervention';

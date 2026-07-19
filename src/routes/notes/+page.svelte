@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
@@ -11,6 +11,7 @@
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import EmptyState from '$components/ui/EmptyState.svelte';
 	import { formatDate } from '$lib/utils/format';
+	import { focusSearchField } from '$lib/stores/commandPalette';
 
 	const PROJECT_FILTER_STORAGE_KEY = 'kabai:notesProjectFilter';
 
@@ -27,6 +28,7 @@
 	let tagFilter = '';
 	let projectFilter = 'all';
 	let showArchived = false;
+	let searchInputEl: HTMLInputElement | null = null;
 
 	let searchDebounce: ReturnType<typeof setTimeout> | undefined;
 
@@ -121,9 +123,22 @@
 	$: hubs = query.trim() || kindFilter ? [] : notes.filter((n) => n.kind === 'hub');
 	$: listNotes = query.trim() || kindFilter ? notes : notes.filter((n) => n.kind !== 'hub');
 
+	// Ticket #537: registriert das Suchfeld dieser Seite beim globalen
+	// "/"-Shortcut (Root-Layout) und meldet es beim Verlassen wieder ab.
+	async function focusSearch() {
+		await tick();
+		searchInputEl?.focus();
+		searchInputEl?.select();
+	}
+
 	onMount(() => {
 		fetchNotes();
 		fetchProjects();
+		focusSearchField.set(focusSearch);
+	});
+
+	onDestroy(() => {
+		focusSearchField.set(null);
 	});
 </script>
 
@@ -148,6 +163,7 @@
 		<div class="relative flex-1 min-w-[220px]">
 			<Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--text-muted);" />
 			<input
+				bind:this={searchInputEl}
 				type="text"
 				bind:value={query}
 				oninput={onQueryInput}

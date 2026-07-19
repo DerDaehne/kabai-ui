@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
@@ -13,6 +13,7 @@
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import type { ProjectOverview } from '$lib/types';
+	import { focusSearchField, paletteActions } from '$lib/stores/commandPalette';
 
 	let projects: ProjectOverview[] = [];
 	let isLoading = true;
@@ -24,6 +25,7 @@
 	// Ticket #497: Suchstring + Aktiv/Archiviert-Sicht über der Liste.
 	let searchQuery = '';
 	let view: 'active' | 'archived' = 'active';
+	let searchBar: ProjectSearchBar | null = null;
 
 	// Das Backend kennt `projects.archived` noch nicht (folgt in #498/#501).
 	// Bis dahin filtert die Archiv-Sicht auf ein Feld, das nie gesetzt ist —
@@ -125,7 +127,24 @@
 		}
 	}
 
-	onMount(fetchProjects);
+	// Ticket #537: registriert Suchfeld + "Neues Projekt"-Aktion dieser Seite
+	// beim globalen "/"-/":"-Shortcut (Root-Layout); Abmeldung beim Verlassen.
+	// Die ProjectSearchBar rendert ihr Suchfeld nur, wenn Projekte vorhanden
+	// sind — ist sie (noch) nicht im DOM, ist "/" dann ein No-op.
+	function focusSearch() {
+		searchBar?.focus();
+	}
+
+	onMount(() => {
+		fetchProjects();
+		focusSearchField.set(focusSearch);
+		paletteActions.set([{ id: 'new-project', label: 'Neues Projekt', run: openNewProjectSheet }]);
+	});
+
+	onDestroy(() => {
+		focusSearchField.set(null);
+		paletteActions.set([]);
+	});
 </script>
 
 <div class="w-full space-y-8">
@@ -142,7 +161,7 @@
 		</div>
 		<div class="flex-1 min-w-0 flex justify-center">
 			{#if !isLoading && projects.length > 0}
-				<ProjectSearchBar bind:query={searchQuery} bind:view />
+				<ProjectSearchBar bind:this={searchBar} bind:query={searchQuery} bind:view />
 			{/if}
 		</div>
 		<button onclick={openNewProjectSheet} class="btn btn-primary flex items-center gap-2 shrink-0">

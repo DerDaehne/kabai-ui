@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { Plus, Layers } from 'lucide-svelte';
@@ -11,6 +11,7 @@
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import type { Canvas, Project } from '$lib/types';
+	import { focusSearchField, paletteActions } from '$lib/stores/commandPalette';
 
 	// Ticket #526: Canvas-Verwaltungsseite — Liste, Anlegen, Umbenennen,
 	// Löschen, Projektverknüpfung. Nach dem Muster von src/routes/+page.svelte
@@ -24,6 +25,7 @@
 
 	let searchQuery = '';
 	let projectFilter = 'all';
+	let searchInputEl: HTMLInputElement | null = null;
 
 	$: filteredCanvases = (() => {
 		const q = searchQuery.trim().toLowerCase();
@@ -185,9 +187,27 @@
 		fetchCanvases();
 	}
 
+	// Ticket #537: registriert Suchfeld + "Neues Canvas"-Aktion dieser Seite
+	// beim globalen "/"-/":"-Shortcut (Root-Layout); Abmeldung beim Verlassen.
+	// Das Suchfeld existiert nur, wenn es Canvases gibt (siehe Markup weiter
+	// unten) — falls es (noch) nicht im DOM ist, ist "/" dann ein No-op, genau
+	// wie auf Seiten ohne Suchfeld.
+	async function focusSearch() {
+		await tick();
+		searchInputEl?.focus();
+		searchInputEl?.select();
+	}
+
 	onMount(() => {
 		fetchProjects();
 		fetchCanvases();
+		focusSearchField.set(focusSearch);
+		paletteActions.set([{ id: 'new-canvas', label: 'Neues Canvas', run: openNewCanvasSheet }]);
+	});
+
+	onDestroy(() => {
+		focusSearchField.set(null);
+		paletteActions.set([]);
 	});
 </script>
 
@@ -202,6 +222,7 @@
 		<div class="flex-1 min-w-0 flex items-center justify-center gap-3">
 			{#if !isLoading && (canvases.length > 0 || searchQuery || projectFilter !== 'all')}
 				<input
+					bind:this={searchInputEl}
 					type="text"
 					bind:value={searchQuery}
 					placeholder="Suchen…"

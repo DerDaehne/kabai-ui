@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { portal } from '$lib/utils/portal';
+	import { overlayStackDepth } from '$lib/stores/ui';
 
 	// Ticket #506: Basis-Komponente für alle "Neu anlegen"-Flows. Statt eines
 	// zentrierten Dialogs schiebt sich von unten ein Blatt Papier ins Bild —
@@ -83,19 +84,34 @@
 		(focusable[0] ?? sheetEl)?.focus();
 	}
 
+	// Ticket #537: overlayStackDepth zählt offene Overlays global, damit der
+	// globale "/"-/":"-Shortcut-Handler (Root-Layout) nicht über einem bereits
+	// offenen Sheet ein zweites Overlay aufpoppen lässt. wasOpen verhindert
+	// Doppel-Inkremente, da der reaktive Block bei jedem State-Update läuft,
+	// nicht nur beim tatsächlichen open-Wechsel.
+	let wasOpen = false;
+
 	$: if (typeof document !== 'undefined') {
 		if (open) {
 			previouslyFocused = document.activeElement as HTMLElement | null;
 			document.body.style.overflow = 'hidden';
 			focusFirst();
+			if (!wasOpen) overlayStackDepth.update((n) => n + 1);
+			wasOpen = true;
 		} else {
 			document.body.style.overflow = '';
 			if (previouslyFocused) {
 				previouslyFocused.focus();
 				previouslyFocused = null;
 			}
+			if (wasOpen) overlayStackDepth.update((n) => Math.max(0, n - 1));
+			wasOpen = false;
 		}
 	}
+
+	onDestroy(() => {
+		if (wasOpen) overlayStackDepth.update((n) => Math.max(0, n - 1));
+	});
 </script>
 
 <svelte:window on:keydown={handleKey} />

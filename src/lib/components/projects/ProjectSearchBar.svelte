@@ -6,12 +6,23 @@
 
 	export let query = '';
 	export let view: 'active' | 'archived' = 'active';
+
+	// Ticket #537: Ref + exportierte focus()-Methode, damit die Root-Seite
+	// dieses Suchfeld beim globalen "/"-Shortcut fokussieren kann (das Feld
+	// sitzt in dieser Kind-Komponente, nicht direkt auf der Seite).
+	let inputEl: HTMLInputElement | null = null;
+
+	export function focus() {
+		inputEl?.focus();
+		inputEl?.select();
+	}
 </script>
 
 <div class="search-wrap">
 	<div class="search-pill" class:has-query={query.length > 0}>
 		<Search class="w-4 h-4 shrink-0" style="color: var(--color-text-secondary);" />
 		<input
+			bind:this={inputEl}
 			type="text"
 			bind:value={query}
 			placeholder="Suchen…"

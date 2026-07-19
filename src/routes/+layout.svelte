@@ -5,12 +5,50 @@
 	import Toast from '$components/ui/Toast.svelte';
 	import SideNav from '$components/ui/SideNav.svelte';
 	import ActivityRail from '$components/ui/ActivityRail.svelte';
+	import CommandPalette from '$components/ui/CommandPalette.svelte';
 	import { Activity } from 'lucide-svelte';
 	import { browser } from '$app/environment';
-	import { railOpen } from '$lib/stores/ui';
+	import { railOpen, overlayStackDepth } from '$lib/stores/ui';
 	import { aiEvents, unseenActivityCount, markActivitySeen } from '$lib/stores/aiActivity';
+	import { focusSearchField, commandPaletteOpen } from '$lib/stores/commandPalette';
 
 	export let data: LayoutData;
+
+	// Ticket #537: globaler Tastatur-Shortcut — "/" fokussiert das Suchfeld der
+	// aktuellen Seite (No-op, falls die Seite keins registriert hat, z.B. das
+	// Board), ":" öffnet die Command Palette mit den Aktionen der aktuellen
+	// Seite. Zwei Wächter, bevor überhaupt reagiert wird:
+	//  1) Eingabe-Wächter: nicht auslösen, wenn der Fokus bereits in einem
+	//     Input/Textarea/contenteditable liegt — sonst könnte man "/" oder ":"
+	//     nie normal in ein Textfeld tippen.
+	//  2) Overlay-Wächter: nicht auslösen, solange irgendein Overlay offen ist
+	//     (BottomSheet/SidePanel/BannerConfirm/Command Palette selbst) — sonst
+	//     könnte "/"/" :" ein zweites Overlay über einem offenen aufpoppen.
+	function isTypingTarget(el: Element | null): boolean {
+		if (!el) return false;
+		if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return true;
+		return (el as HTMLElement).isContentEditable === true;
+	}
+
+	function handleGlobalKeydown(e: KeyboardEvent) {
+		if (e.key !== '/' && e.key !== ':') return;
+		if (e.metaKey || e.ctrlKey || e.altKey) return;
+		if (isTypingTarget(document.activeElement)) return;
+		if ($overlayStackDepth > 0) return;
+
+		if (e.key === '/') {
+			if ($focusSearchField) {
+				e.preventDefault();
+				$focusSearchField();
+			}
+			return;
+		}
+
+		if (e.key === ':') {
+			e.preventDefault();
+			commandPaletteOpen.set(true);
+		}
+	}
 
 	// Toast-Nachrichten aus dem Server
 	let toasts: any[] = [];
@@ -38,6 +76,8 @@
 <svelte:head>
 	<title>Kabai UI - {data.title || 'Kanban Client'}</title>
 </svelte:head>
+
+<svelte:window on:keydown={handleGlobalKeydown} />
 
 <div class="flex h-screen" style="background: var(--color-bg);">
 	<SideNav session={data.session} />
@@ -91,6 +131,8 @@
 		</div>
 	{/if}
 </div>
+
+<CommandPalette />
 
 <style>
 	.live-dot {
