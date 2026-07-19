@@ -8,15 +8,16 @@
 	import { writable } from 'svelte/store';
 	import { SvelteFlow, Background, Controls, MarkerType } from '@xyflow/svelte';
 	import '@xyflow/svelte/dist/style.css';
-	import { Type, Frame as FrameIcon, Link as LinkIcon } from 'lucide-svelte';
+	import { Type, Frame as FrameIcon, Link as LinkIcon, Image as ImageIcon } from 'lucide-svelte';
 	import TextNode from './nodes/TextNode.svelte';
 	import FrameNode from './nodes/FrameNode.svelte';
 	import RefNode from './nodes/RefNode.svelte';
+	import ImageNode from './nodes/ImageNode.svelte';
 	import LabeledEdge from './nodes/LabeledEdge.svelte';
 	import RefPickerDialog from './RefPickerDialog.svelte';
 	import SidePanel from '$components/ui/SidePanel.svelte';
 	import TicketModal from '$components/tickets/TicketModal.svelte';
-	import type { CanvasElement, CanvasEdge } from '$lib/types';
+	import type { CanvasElement, CanvasEdge, AttachmentUploadResult } from '$lib/types';
 	import type { Node, Edge, Connection, NodeTypes, EdgeTypes } from '@xyflow/svelte';
 
 	export let canvasId: number;
@@ -31,6 +32,7 @@
 	const DEFAULT_TEXT_SIZE = { width: 200, height: 100 };
 	const DEFAULT_FRAME_SIZE = { width: 400, height: 300 };
 	const DEFAULT_REF_SIZE = { width: 220, height: 90 };
+	const DEFAULT_IMAGE_SIZE = { width: 240, height: 180 };
 	// Kaskadierender Versatz bei mehrfachem "+ Text"/"+ Frame"-Klick
 	// hintereinander, damit neue Elemente nicht exakt übereinanderliegen
 	// (Design-Entscheidung 4). Reset ist bewusst nicht implementiert — die
@@ -46,6 +48,7 @@
 	function defaultSizeFor(type: CanvasElement['type']): { width: number; height: number } {
 		if (type === 'frame') return DEFAULT_FRAME_SIZE;
 		if (type === 'ref') return DEFAULT_REF_SIZE;
+		if (type === 'image') return DEFAULT_IMAGE_SIZE;
 		return DEFAULT_TEXT_SIZE;
 	}
 
@@ -84,6 +87,18 @@
 				}
 			};
 		}
+		if (el.type === 'image') {
+			return {
+				...base,
+				type: 'image',
+				data: {
+					attachment_id: el.content.attachment_id,
+					description: el.description,
+					onDescriptionCommit: handleImageDescriptionCommit,
+					onResizeEnd: handleResizeEnd
+				}
+			};
+		}
 		return {
 			...base,
 			type: 'text',
@@ -115,7 +130,12 @@
 	// (draggable, deletable, sourcePosition, ...) — SvelteFlow reicht zur
 	// Laufzeit ohnehin den vollen Node/Edge durch, TS kennt hier nur die
 	// engere, praktisch benötigte Teilmenge.
-	const nodeTypes = { text: TextNode, frame: FrameNode, ref: RefNode } as unknown as NodeTypes;
+	const nodeTypes = {
+		text: TextNode,
+		frame: FrameNode,
+		ref: RefNode,
+		image: ImageNode
+	} as unknown as NodeTypes;
 	const edgeTypes = { labeled: LabeledEdge } as unknown as EdgeTypes;
 
 	// --- Persistenz-Helfer -----------------------------------------------
@@ -154,6 +174,17 @@
 		el.content = { ...el.content, title };
 		nodes.update((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, title } } : n)));
 		await patchElement(elementId, { content: { title } });
+	}
+
+	async function handleImageDescriptionCommit(id: string, description: string) {
+		const elementId = parseInt(id);
+		const el = elements.find((e) => e.id === elementId);
+		if (!el) return;
+		el.description = description;
+		nodes.update((ns) =>
+			ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, description } } : n))
+		);
+		await patchElement(elementId, { description });
 	}
 
 	async function handleEdgeLabelCommit(id: string, label: string) {
@@ -335,6 +366,63 @@
 		}
 	}
 
+	// --- Bild-Elemente (Ticket #529) ---------------------------------------
+	// Zweistufig: erst Datei-Upload nach /api/attachments (liefert die
+	// attachment_id), dann erst das eigentliche Canvas-Element mit
+	// content.attachment_id anlegen — genau wie im Ticket vorgegeben.
+	let imageFileInputEl: HTMLInputElement;
+
+	function triggerImageUpload() {
+		imageFileInputEl?.click();
+	}
+
+	async function handleImageFileSelected(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+
+		try {
+			const formData = new FormData();
+			formData.append('file', file);
+			const uploadRes = await fetch('/api/attachments', { method: 'POST', body: formData });
+			const uploadResult = await uploadRes.json();
+			if (!uploadResult.ok) {
+				error = uploadResult.error || 'Fehler beim Hochladen des Bildes';
+				return;
+			}
+			const uploaded: AttachmentUploadResult = uploadResult.data;
+
+			const offset = nextCascadeOffset();
+			const res = await fetch(`/api/canvases/${canvasId}/elements`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					type: 'image',
+					content: { attachment_id: uploaded.id },
+					position_x: offset.x,
+					position_y: offset.y,
+					width: DEFAULT_IMAGE_SIZE.width,
+					height: DEFAULT_IMAGE_SIZE.height
+				})
+			});
+			const result = await res.json();
+			if (!result.ok) {
+				error = result.error || 'Fehler beim Anlegen';
+				return;
+			}
+			const newEl: CanvasElement = result.data;
+			elements = [...elements, newEl];
+			nodes.update((ns) => [...ns, elementToNode(newEl)]);
+		} catch {
+			error = 'Netzwerkfehler';
+		} finally {
+			// Input zurücksetzen, damit dieselbe Datei nach Beheben eines
+			// Fehlers (z.B. falscher Typ) erneut ausgewählt werden kann — ohne
+			// Reset feuert "change" beim erneuten Auswählen derselben Datei nicht.
+			input.value = '';
+		}
+	}
+
 	// --- Kanten anlegen (Design-Entscheidung 6) ----------------------------
 	// WICHTIG: SvelteFlow fügt bei einer Connect-Geste INTERN bereits selbst
 	// eine Edge in den Store ein (Handle.svelte ruft store-internes addEdge()
@@ -443,6 +531,18 @@
 		<button type="button" class="btn btn-ghost flex items-center gap-2" onclick={() => (showRefPicker = true)}>
 			<LinkIcon class="w-4 h-4" /> + Referenz
 		</button>
+		<button type="button" class="btn btn-ghost flex items-center gap-2" onclick={triggerImageUpload}>
+			<ImageIcon class="w-4 h-4" /> + Bild
+		</button>
+		<input
+			bind:this={imageFileInputEl}
+			type="file"
+			accept="image/png,image/jpeg,image/webp,image/gif"
+			onchange={handleImageFileSelected}
+			class="canvas-editor__hidden-file-input"
+			aria-hidden="true"
+			tabindex="-1"
+		/>
 	</div>
 
 	<div class="canvas-editor__flow">
@@ -502,6 +602,20 @@
 	.canvas-editor__flow {
 		flex: 1;
 		min-height: 0;
+	}
+
+	/* Verstecktes <input type="file">, per Klick auf den "+ Bild"-Button
+	   ausgelöst (bind:this + .click()) — Standard-Pattern für
+	   custom-gestylte Datei-Uploads. */
+	.canvas-editor__hidden-file-input {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		border: 0;
 	}
 
 	/* SvelteFlow-Theming über --xy-*-Variablen (v0.1.x), 1:1 nach Vorbild

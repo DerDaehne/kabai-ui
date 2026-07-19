@@ -221,10 +221,10 @@ export interface UpdateCanvasForm {
 	name?: string;
 }
 
-// Canvas-Elemente (Ticket #527 Editor, Ticket #528 Referenz-Karten). 'image'/
-// 'sketch' existieren im DB-CHECK (V12) bereits für Folgetickets (#529/#530),
-// werden hier aber weder angelegt noch gerendert.
-export type CanvasElementType = 'text' | 'frame' | 'ref';
+// Canvas-Elemente (Ticket #527 Editor, Ticket #528 Referenz-Karten, Ticket
+// #529 Bild-Elemente). 'sketch' existiert im DB-CHECK (V12) bereits für ein
+// Folgeticket (#530), wird hier aber weder angelegt noch gerendert.
+export type CanvasElementType = 'text' | 'frame' | 'ref' | 'image';
 
 export interface CanvasElement {
 	id: number;
@@ -235,7 +235,13 @@ export interface CanvasElement {
 	width: number | null;
 	height: number | null;
 	z_order: number;
-	content: { text?: string; title?: string; target_type?: 'ticket' | 'note'; target_id?: number };
+	content: {
+		text?: string;
+		title?: string;
+		target_type?: 'ticket' | 'note';
+		target_id?: number;
+		attachment_id?: number;
+	};
 	description: string | null;
 	parent_frame_id: number | null;
 	created_at: string;
@@ -254,7 +260,13 @@ export interface CanvasEdge {
 // Form Types
 export interface CreateCanvasElementForm {
 	type: CanvasElementType;
-	content: { text?: string; title?: string; target_type?: 'ticket' | 'note'; target_id?: number };
+	content: {
+		text?: string;
+		title?: string;
+		target_type?: 'ticket' | 'note';
+		target_id?: number;
+		attachment_id?: number;
+	};
 	position_x: number;
 	position_y: number;
 	width?: number | null;
@@ -269,7 +281,13 @@ export interface UpdateCanvasElementForm {
 	width?: number | null;
 	height?: number | null;
 	z_order?: number;
-	content?: { text?: string; title?: string; target_type?: 'ticket' | 'note'; target_id?: number };
+	content?: {
+		text?: string;
+		title?: string;
+		target_type?: 'ticket' | 'note';
+		target_id?: number;
+		attachment_id?: number;
+	};
 	description?: string | null;
 	// explizit optional+nullable: fehlt der Key -> unverändert, null -> Frame lösen.
 	parent_frame_id?: number | null;
@@ -322,6 +340,17 @@ export interface CreateCanvasEdgeForm {
 
 export interface UpdateCanvasEdgeForm {
 	label?: string | null;
+}
+
+// Attachments (V13__Attachments.sql, Ticket #529 Canvas-Bilder) — Antwort von
+// POST /api/attachments. Die Bytes selbst werden nie ans Frontend
+// zurückgegeben, nur über GET /api/attachments/[id] direkt als <img src>
+// ausgeliefert (siehe ImageNode.svelte).
+export interface AttachmentUploadResult {
+	id: number;
+	filename: string;
+	mime_type: string;
+	size_bytes: number;
 }
 
 // API Response Types
