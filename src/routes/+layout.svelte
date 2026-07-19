@@ -26,7 +26,9 @@
 	// Ticket #537: globaler Tastatur-Shortcut — "/" fokussiert das Suchfeld der
 	// aktuellen Seite (No-op, falls die Seite keins registriert hat, z.B. das
 	// Board), ":" öffnet die Command Palette mit den Aktionen der aktuellen
-	// Seite. Zwei Wächter, bevor überhaupt reagiert wird:
+	// Seite. Ticket #541: "?" öffnet die Hilfe-Seite (vi-Konvention; löst auch
+	// das Discoverability-Problem der Shortcuts selbst, weil /help sie erklärt).
+	// Zwei Wächter, bevor überhaupt reagiert wird:
 	//  1) Eingabe-Wächter: nicht auslösen, wenn der Fokus bereits in einem
 	//     Input/Textarea/contenteditable liegt — sonst könnte man "/" oder ":"
 	//     nie normal in ein Textfeld tippen.
@@ -40,7 +42,7 @@
 	}
 
 	function handleGlobalKeydown(e: KeyboardEvent) {
-		if (e.key !== '/' && e.key !== ':') return;
+		if (e.key !== '/' && e.key !== ':' && e.key !== '?') return;
 		if (e.metaKey || e.ctrlKey || e.altKey) return;
 		if (isTypingTarget(document.activeElement)) return;
 		if ($overlayStackDepth > 0) return;
@@ -56,6 +58,12 @@
 		if (e.key === ':') {
 			e.preventDefault();
 			commandPaletteOpen.set(true);
+			return;
+		}
+
+		if (e.key === '?') {
+			e.preventDefault();
+			goto('/help');
 		}
 	}
 
