@@ -163,6 +163,11 @@
 				<span class="{labelClass}">Login</span>
 			</button>
 		{/if}
+
+		<!-- Versionsanzeige für Support-Rückfragen (Ticket #544) -->
+		<div class="{infoClass} items-center px-2 text-caption font-mono" style="color: var(--color-text-secondary); opacity: 0.7;">
+			<span class="truncate" title="Kabai UI Version">Kabai UI {__APP_VERSION__}</span>
+		</div>
 	</div>
 </nav>
 

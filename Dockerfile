@@ -1,6 +1,12 @@
 # ── Stage 1: Build ────────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
 
+# Version für die UI-Anzeige (Ticket #544): der Release-Workflow reicht den
+# Tag als Build-Arg herein (.git ist nicht im Build-Kontext, git describe
+# geht hier nicht); ohne Arg fällt vite auf "dev" zurück.
+ARG APP_VERSION
+ENV APP_VERSION=$APP_VERSION
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
