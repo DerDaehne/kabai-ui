@@ -69,7 +69,10 @@
 		</div>
 		<div>
 			<h1 class="text-2xl font-semibold tracking-tight" style="color: var(--color-text);">Hilfe</h1>
-			<p class="text-sm" style="color: var(--color-text-secondary);">Kurzer Überblick über die zentralen Bereiche von Kabai UI</p>
+			<p class="text-sm" style="color: var(--color-text-secondary);">
+				Kurzer Überblick über die zentralen Bereiche von Kabai UI
+				<span class="font-mono" title="Kabai UI Version">· {__APP_VERSION__}</span>
+			</p>
 		</div>
 	</div>
 

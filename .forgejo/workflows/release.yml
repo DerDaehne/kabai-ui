@@ -42,6 +42,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
+            --build-arg APP_VERSION=${{ github.ref_name }} \
             --tag "$IMAGE:latest" \
             --tag "$IMAGE:${{ github.ref_name }}" \
             .
