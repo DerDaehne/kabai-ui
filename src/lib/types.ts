@@ -222,9 +222,8 @@ export interface UpdateCanvasForm {
 }
 
 // Canvas-Elemente (Ticket #527 Editor, Ticket #528 Referenz-Karten, Ticket
-// #529 Bild-Elemente). 'sketch' existiert im DB-CHECK (V12) bereits für ein
-// Folgeticket (#530), wird hier aber weder angelegt noch gerendert.
-export type CanvasElementType = 'text' | 'frame' | 'ref' | 'image';
+// #529 Bild-Elemente, Ticket #530 Skizzen-Elemente).
+export type CanvasElementType = 'text' | 'frame' | 'ref' | 'image' | 'sketch';
 
 export interface CanvasElement {
 	id: number;
@@ -241,6 +240,9 @@ export interface CanvasElement {
 		target_type?: 'ticket' | 'note';
 		target_id?: number;
 		attachment_id?: number;
+		// Ticket #530: Freihand-Striche, jeweils lokal zum Node (0,0 = Node-
+		// Ecke oben links zum Zeitpunkt des Zeichnens), NICHT Canvas-Weltkoordinaten.
+		strokes?: [number, number, number][][];
 	};
 	description: string | null;
 	parent_frame_id: number | null;
@@ -266,6 +268,7 @@ export interface CreateCanvasElementForm {
 		target_type?: 'ticket' | 'note';
 		target_id?: number;
 		attachment_id?: number;
+		strokes?: [number, number, number][][];
 	};
 	position_x: number;
 	position_y: number;
@@ -287,6 +290,7 @@ export interface UpdateCanvasElementForm {
 		target_type?: 'ticket' | 'note';
 		target_id?: number;
 		attachment_id?: number;
+		strokes?: [number, number, number][][];
 	};
 	description?: string | null;
 	// explizit optional+nullable: fehlt der Key -> unverändert, null -> Frame lösen.

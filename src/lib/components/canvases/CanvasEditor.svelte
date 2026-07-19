@@ -8,11 +8,12 @@
 	import { writable } from 'svelte/store';
 	import { SvelteFlow, Background, Controls, MarkerType } from '@xyflow/svelte';
 	import '@xyflow/svelte/dist/style.css';
-	import { Type, Frame as FrameIcon, Link as LinkIcon, Image as ImageIcon } from 'lucide-svelte';
+	import { Type, Frame as FrameIcon, Link as LinkIcon, Image as ImageIcon, PenTool } from 'lucide-svelte';
 	import TextNode from './nodes/TextNode.svelte';
 	import FrameNode from './nodes/FrameNode.svelte';
 	import RefNode from './nodes/RefNode.svelte';
 	import ImageNode from './nodes/ImageNode.svelte';
+	import SketchNode from './nodes/SketchNode.svelte';
 	import LabeledEdge from './nodes/LabeledEdge.svelte';
 	import RefPickerDialog from './RefPickerDialog.svelte';
 	import SidePanel from '$components/ui/SidePanel.svelte';
@@ -33,6 +34,7 @@
 	const DEFAULT_FRAME_SIZE = { width: 400, height: 300 };
 	const DEFAULT_REF_SIZE = { width: 220, height: 90 };
 	const DEFAULT_IMAGE_SIZE = { width: 240, height: 180 };
+	const DEFAULT_SKETCH_SIZE = { width: 300, height: 220 };
 	// Kaskadierender Versatz bei mehrfachem "+ Text"/"+ Frame"-Klick
 	// hintereinander, damit neue Elemente nicht exakt übereinanderliegen
 	// (Design-Entscheidung 4). Reset ist bewusst nicht implementiert — die
@@ -49,6 +51,7 @@
 		if (type === 'frame') return DEFAULT_FRAME_SIZE;
 		if (type === 'ref') return DEFAULT_REF_SIZE;
 		if (type === 'image') return DEFAULT_IMAGE_SIZE;
+		if (type === 'sketch') return DEFAULT_SKETCH_SIZE;
 		return DEFAULT_TEXT_SIZE;
 	}
 
@@ -99,6 +102,19 @@
 				}
 			};
 		}
+		if (el.type === 'sketch') {
+			return {
+				...base,
+				type: 'sketch',
+				data: {
+					strokes: el.content.strokes ?? [],
+					description: el.description,
+					onStrokesCommit: handleSketchStrokesCommit,
+					onDescriptionCommit: handleSketchDescriptionCommit,
+					onResizeEnd: handleResizeEnd
+				}
+			};
+		}
 		return {
 			...base,
 			type: 'text',
@@ -134,7 +150,8 @@
 		text: TextNode,
 		frame: FrameNode,
 		ref: RefNode,
-		image: ImageNode
+		image: ImageNode,
+		sketch: SketchNode
 	} as unknown as NodeTypes;
 	const edgeTypes = { labeled: LabeledEdge } as unknown as EdgeTypes;
 
@@ -177,6 +194,28 @@
 	}
 
 	async function handleImageDescriptionCommit(id: string, description: string) {
+		const elementId = parseInt(id);
+		const el = elements.find((e) => e.id === elementId);
+		if (!el) return;
+		el.description = description;
+		nodes.update((ns) =>
+			ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, description } } : n))
+		);
+		await patchElement(elementId, { description });
+	}
+
+	async function handleSketchStrokesCommit(id: string, strokes: [number, number, number][][]) {
+		const elementId = parseInt(id);
+		const el = elements.find((e) => e.id === elementId);
+		if (!el) return;
+		el.content = { ...el.content, strokes };
+		nodes.update((ns) =>
+			ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, strokes } } : n))
+		);
+		await patchElement(elementId, { content: { strokes } });
+	}
+
+	async function handleSketchDescriptionCommit(id: string, description: string) {
 		const elementId = parseInt(id);
 		const el = elements.find((e) => e.id === elementId);
 		if (!el) return;
@@ -366,6 +405,37 @@
 		}
 	}
 
+	// --- Skizzen-Elemente (Ticket #530) ------------------------------------
+	// Einstufig wie Text/Frame — kein Upload-Schritt nötig, Inhalt startet
+	// leer ({ strokes: [] }), das eigentliche Zeichnen passiert im Node selbst.
+	async function addSketchElement() {
+		const offset = nextCascadeOffset();
+		try {
+			const res = await fetch(`/api/canvases/${canvasId}/elements`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					type: 'sketch',
+					content: { strokes: [] },
+					position_x: offset.x,
+					position_y: offset.y,
+					width: DEFAULT_SKETCH_SIZE.width,
+					height: DEFAULT_SKETCH_SIZE.height
+				})
+			});
+			const result = await res.json();
+			if (!result.ok) {
+				error = result.error || 'Fehler beim Anlegen';
+				return;
+			}
+			const newEl: CanvasElement = result.data;
+			elements = [...elements, newEl];
+			nodes.update((ns) => [...ns, elementToNode(newEl)]);
+		} catch {
+			error = 'Netzwerkfehler';
+		}
+	}
+
 	// --- Bild-Elemente (Ticket #529) ---------------------------------------
 	// Zweistufig: erst Datei-Upload nach /api/attachments (liefert die
 	// attachment_id), dann erst das eigentliche Canvas-Element mit
@@ -533,6 +603,9 @@
 		</button>
 		<button type="button" class="btn btn-ghost flex items-center gap-2" onclick={triggerImageUpload}>
 			<ImageIcon class="w-4 h-4" /> + Bild
+		</button>
+		<button type="button" class="btn btn-ghost flex items-center gap-2" onclick={addSketchElement}>
+			<PenTool class="w-4 h-4" /> + Skizze
 		</button>
 		<input
 			bind:this={imageFileInputEl}

@@ -20,7 +20,8 @@ const updateElementSchema = z.object({
 			title: z.string().optional(),
 			target_type: z.enum(['ticket', 'note']).optional(),
 			target_id: z.number().int().optional(),
-			attachment_id: z.number().int().optional()
+			attachment_id: z.number().int().optional(),
+			strokes: z.array(z.array(z.tuple([z.number(), z.number(), z.number()]))).optional()
 		})
 		.optional(),
 	description: z.string().nullable().optional(),

@@ -66,6 +66,7 @@
     "dompurify": "^3.4.11",
     "lucide-svelte": "^0.468.0",
     "marked": "^18.0.5",
+    "perfect-freehand": "^1.2.3",
     "postgres": "^3.4.0",
     "svelte-dnd-action": "^0.9.0",
     "uuid": "^11.0.0",

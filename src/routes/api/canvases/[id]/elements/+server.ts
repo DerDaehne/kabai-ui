@@ -3,20 +3,19 @@ import { getDb } from '$lib/db';
 import { z } from 'zod';
 import type { CanvasElement } from '$lib/types';
 
-// Ticket #527/#528/#529: Elemente eines Canvas — 'text'/'frame'/'ref'/'image'
-// sind anlegbar ('sketch' kommt in einem Folgeticket #530, das DB-CHECK in
-// V12__Canvas_Schema.sql erlaubt es zwar schon, die Zod-Validierung hier
-// bewusst noch nicht). content bleibt bewusst ein loses "alle Felder optional,
-// unabhängig vom type"-Objekt (bestehende Konvention), keine typspezifische
-// Discriminated-Union-Validierung.
+// Ticket #527/#528/#529/#530: Elemente eines Canvas —
+// 'text'/'frame'/'ref'/'image'/'sketch' sind anlegbar. content bleibt bewusst
+// ein loses "alle Felder optional, unabhängig vom type"-Objekt (bestehende
+// Konvention), keine typspezifische Discriminated-Union-Validierung.
 const createElementSchema = z.object({
-	type: z.enum(['text', 'frame', 'ref', 'image']),
+	type: z.enum(['text', 'frame', 'ref', 'image', 'sketch']),
 	content: z.object({
 		text: z.string().optional(),
 		title: z.string().optional(),
 		target_type: z.enum(['ticket', 'note']).optional(),
 		target_id: z.number().int().optional(),
-		attachment_id: z.number().int().optional()
+		attachment_id: z.number().int().optional(),
+		strokes: z.array(z.array(z.tuple([z.number(), z.number(), z.number()]))).optional()
 	}),
 	position_x: z.number(),
 	position_y: z.number(),
