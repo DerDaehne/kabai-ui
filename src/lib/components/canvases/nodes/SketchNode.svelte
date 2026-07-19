@@ -59,6 +59,28 @@
 	let svgEl: SVGSVGElement;
 	let currentStroke: Stroke | null = null;
 
+	// BUGFIX (von David gemeldet): das SVG-Koordinatensystem darf sich NICHT
+	// an der vollen Node-Breite/-Höhe (width/height-Props) orientieren — der
+	// tatsächlich zeichenbare Bereich (.sketch-node__body) ist kleiner, weil
+	// Header- und Beschreibungsleiste vertikal Platz wegnehmen (z.B. 220px
+	// Node-Höhe -> nur ~148px Body-Höhe). viewBox="0 0 {width} {height}"
+	// stimmte deshalb nicht mit der tatsächlichen Seitenverhältnis des Body-
+	// Elements überein; der Browser hat mit dem SVG-Default preserveAspectRatio
+	// ("xMidYMid meet") den Inhalt seitenverhältnis-treu skaliert UND zentriert
+	// (Letterboxing) statt ihn 1:1 zu strecken — dadurch trafen Klicks nahe der
+	// Mitte in etwa, wichen aber zu den Rändern hin immer weiter vom
+	// tatsächlichen Zeichenpunkt ab. Fix: die ECHTE Größe von .sketch-node__body
+	// per bind:clientWidth/clientHeight messen (zoom-unabhängig, da
+	// clientWidth/Height NICHT von xyflows CSS-transform:scale() beeinflusst
+	// werden, anders als getBoundingClientRect()) und für viewBox/width/height
+	// UND für die localPoint()-Umrechnung verwenden — plus
+	// preserveAspectRatio="none" als zusätzliche Absicherung, falls das
+	// Seitenverhältnis durch Rundung minimal abweicht.
+	let bodyClientWidth = 0;
+	let bodyClientHeight = 0;
+	$: svgWidth = bodyClientWidth || width || 300;
+	$: svgHeight = bodyClientHeight || height || 220;
+
 	function toggleDraw() {
 		drawMode = !drawMode;
 		if (drawMode) eraseMode = false;
@@ -71,10 +93,8 @@
 
 	function localPoint(e: PointerEvent): [number, number] {
 		const rect = svgEl.getBoundingClientRect();
-		const w = width ?? rect.width;
-		const h = height ?? rect.height;
-		const localX = ((e.clientX - rect.left) * w) / rect.width;
-		const localY = ((e.clientY - rect.top) * h) / rect.height;
+		const localX = ((e.clientX - rect.left) * svgWidth) / rect.width;
+		const localY = ((e.clientY - rect.top) * svgHeight) / rect.height;
 		return [localX, localY];
 	}
 
@@ -259,16 +279,17 @@
 		{/if}
 	</div>
 
-	<div class="sketch-node__body">
+	<div class="sketch-node__body" bind:clientWidth={bodyClientWidth} bind:clientHeight={bodyClientHeight}>
 		<svg
 			bind:this={svgEl}
 			class:nodrag={drawMode || eraseMode}
 			class:nopan={drawMode || eraseMode}
 			class="sketch-node__svg"
 			style={drawMode || eraseMode ? undefined : 'pointer-events: none;'}
-			width={width ?? 300}
-			height={height ?? 220}
-			viewBox="0 0 {width ?? 300} {height ?? 220}"
+			width={svgWidth}
+			height={svgHeight}
+			viewBox="0 0 {svgWidth} {svgHeight}"
+			preserveAspectRatio="none"
 			onpointerdown={(e) => {
 				handlePointerDown(e);
 				handleEraseClick(e);
