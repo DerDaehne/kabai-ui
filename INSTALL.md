@@ -1,6 +1,6 @@
 # Kabai UI — Installation Guide
 
-Browser-based kanban client for [kabai](https://codeberg.org/danszek/kb.ai), operated with Docker Compose.
+Browser-based kanban client for [kabai](https://github.com/DerDaehne/kabai), operated with Docker Compose.
 
 To make the setup complete for AI agents, also install the kabai MCP server — Kabai UI is the human-facing frontend, kabai is how agents work the same database.
 

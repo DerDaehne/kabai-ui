@@ -1,12 +1,16 @@
 # Kabai UI
 
-Browser-based kanban client for [kabai](https://codeberg.org/danszek/kb.ai). Connects directly to a PostgreSQL database — no separate backend, no API gateway.
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+
+Browser-based kanban client for [kabai](https://github.com/DerDaehne/kabai). Connects directly to a PostgreSQL database — no separate backend, no API gateway.
+
+![Kabai UI board view, drag-and-drop between columns](static/help/board-drag.gif)
 
 ## How it fits together
 
 Kabai is a two-part system sharing one PostgreSQL database:
 
-- **[kabai](https://codeberg.org/danszek/kb.ai)** — the MCP server through which AI agents work the boards and the knowledge base (tickets, workflow transitions, zettelkasten notes). This is what makes the setup complete: without it, agents have no way to interact with the database.
+- **[kabai](https://github.com/DerDaehne/kabai)** — the MCP server through which AI agents work the boards and the knowledge base (tickets, workflow transitions, zettelkasten notes). This is what makes the setup complete: without it, agents have no way to interact with the database.
 - **Kabai UI** (this repo) — the web frontend for humans: watch the boards live, review and answer agent questions, browse the knowledge base. It also owns database setup: migrations are applied automatically (see [Database schema](#database-schema)).
 
 ## Features
@@ -127,7 +131,7 @@ migration would add. To override the detection manually:
 ### Syncing with the backend repo
 
 The source of truth for migrations is the kabai backend repo
-([`migrations/`](https://codeberg.org/danszek/kb.ai)). The copies here are
+([`migrations/`](https://github.com/DerDaehne/kabai)). The copies here are
 **never edited**, only synced. Process for every backend release that adds
 migrations:
 
@@ -150,18 +154,16 @@ Container images are built and published automatically on every tag push to
 
 ## License
 
-Copyright © 2026 David Daehne.
-
 kabai-ui is free software under the **GNU Affero General Public License
 v3.0** — see [LICENSE](LICENSE), the same license as the
-[kabai server](https://codeberg.org/danszek/kb.ai). You may use, modify,
+[kabai server](https://github.com/DerDaehne/kabai). You may use, modify,
 and deploy it freely, including commercially and inside your company. If
 you distribute modified versions, embed the code in your own product, or
 let users interact with a modified kabai-ui over a network, the AGPL
 requires you to release that work under the AGPL as well.
 
 - **Using kabai-ui commercially?** I'd appreciate it if you let me know by
-  [opening an issue](https://codeberg.org/danszek/kbai-ui/issues) — a
+  [opening an issue](https://github.com/DerDaehne/kabai-ui/issues) — a
   friendly request, not a license condition.
 - **Closed-source embedding:** commercial licenses are available on
-  request — please [open an issue](https://codeberg.org/danszek/kbai-ui/issues).
+  request — please [open an issue](https://github.com/DerDaehne/kabai-ui/issues).
