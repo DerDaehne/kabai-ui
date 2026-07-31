@@ -4,13 +4,13 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal, Gauge } from 'lucide-svelte';
+	import { MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal, Gauge, Image as ImageIcon, Upload } from 'lucide-svelte';
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
 	import { pushAiEvent } from '$lib/stores/aiActivity';
-	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType } from '$lib/types';
+	import type { TicketDetailed, BoardStatus, TicketTask, Ticket, RelationType, TicketAttachment, AttachmentUploadResult } from '$lib/types';
 	import { formatDate, initials } from '$lib/utils/format';
 
 	export let ticketId: number;
@@ -70,6 +70,13 @@
 	let isAddingTask = false;
 	let deletingTaskId: number | null = null;
 
+	// Attachments (Codeberg kbai-ui#4, #469)
+	let attachmentFileInputEl: HTMLInputElement;
+	let isUploadingAttachment = false;
+	let deletingAttachmentId: number | null = null;
+	let lightboxAttachment: TicketAttachment | null = null;
+	let isDragOverDescription = false;
+
 	// Label aus Sicht des aktuell offenen Tickets: "outgoing" = dieses Ticket ist from_ticket
 	const relationLabels: Record<RelationType, string> = {
 		parent_of: 'ist Parent von',
@@ -97,7 +104,7 @@
 			const res = await fetch(`/api/tickets/${ticketId}`);
 			const result = await res.json();
 			if (result.ok) {
-				const loaded: TicketDetailed = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [] };
+				const loaded: TicketDetailed = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [], attachments: result.data.attachments ?? [] };
 				ticket = loaded;
 				if (loaded.status?.special_type === 'human_intervention') await fetchStatuses();
 				connectStandaloneLiveUpdates(loaded.project_id);
@@ -126,7 +133,7 @@
 			const res = await fetch(`/api/tickets/${ticketId}`);
 			const result = await res.json();
 			if (result.ok) {
-				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [] };
+				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [], attachments: result.data.attachments ?? [] };
 				orbitSignal += 1;
 			}
 		} catch { /* still showing the previous state is fine */ }
@@ -233,6 +240,11 @@
 	}
 
 	function handleMenuWindowKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && lightboxAttachment) {
+			e.stopPropagation();
+			lightboxAttachment = null;
+			return;
+		}
 		if (e.key === 'Escape' && showActionsMenu) {
 			// Escape schließt nur das Menü, nicht das Panel dahinter
 			e.stopPropagation();
@@ -370,6 +382,76 @@
 			}
 		} catch {}
 		finally { deletingTaskId = null; }
+	}
+
+	// Zweistufig wie beim Canvas-Bild-Upload (#529): erst Datei nach
+	// /api/attachments hochladen, dann per attachment_id an dieses Ticket hängen.
+	function triggerAttachmentUpload() {
+		attachmentFileInputEl?.click();
+	}
+
+	async function uploadAttachmentFile(file: File) {
+		if (!ticket) return;
+		isUploadingAttachment = true; error = '';
+		try {
+			const formData = new FormData();
+			formData.append('file', file);
+			const uploadRes = await fetch('/api/attachments', { method: 'POST', body: formData });
+			const uploadResult = await uploadRes.json();
+			if (!uploadResult.ok) { error = uploadResult.error || 'Fehler beim Hochladen des Bildes'; return; }
+			const uploaded: AttachmentUploadResult = uploadResult.data;
+
+			const linkRes = await fetch(`/api/tickets/${ticketId}/attachments`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ attachment_id: uploaded.id })
+			});
+			const linkResult = await linkRes.json();
+			if (linkResult.ok && ticket) {
+				ticket.attachments = [...ticket.attachments, linkResult.data];
+			} else {
+				error = linkResult.error || 'Fehler beim Verknüpfen des Anhangs';
+			}
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isUploadingAttachment = false; }
+	}
+
+	async function handleAttachmentFileSelected(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (file) await uploadAttachmentFile(file);
+		// Reset, damit dieselbe Datei nach einem Fehler erneut gewählt werden kann.
+		input.value = '';
+	}
+
+	// Drag-and-drop aufs Beschreibungsfeld (Ticket #469 explizit im Scope) —
+	// nur während des Bearbeitens relevant, da nur dann ein Textarea existiert.
+	function handleDescriptionDragOver(e: DragEvent) {
+		if (!e.dataTransfer?.types.includes('Files')) return;
+		e.preventDefault();
+		isDragOverDescription = true;
+	}
+	function handleDescriptionDragLeave() {
+		isDragOverDescription = false;
+	}
+	async function handleDescriptionDrop(e: DragEvent) {
+		e.preventDefault();
+		isDragOverDescription = false;
+		const file = e.dataTransfer?.files?.[0];
+		if (file) await uploadAttachmentFile(file);
+	}
+
+	async function deleteAttachment(attachmentId: number) {
+		deletingAttachmentId = attachmentId;
+		try {
+			const res = await fetch(`/api/tickets/${ticketId}/attachments/${attachmentId}`, { method: 'DELETE' });
+			const result = await res.json();
+			if (result.ok && ticket) {
+				ticket.attachments = ticket.attachments.filter(a => a.id !== attachmentId);
+				if (lightboxAttachment?.id === attachmentId) lightboxAttachment = null;
+			}
+		} catch {}
+		finally { deletingAttachmentId = null; }
 	}
 
 	$: humanAnsweredStatus = statuses.find(s => s.special_type === 'human_answered') ?? null;
@@ -535,8 +617,10 @@
 						</div>
 					</div>
 					<div>
-						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Beschreibung</label>
-						<textarea bind:value={editDescription} class="input resize-y" rows="6" placeholder="Details…"></textarea>
+						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Beschreibung <span class="opacity-50">(Bild hierher ziehen zum Anhängen)</span></label>
+						<textarea bind:value={editDescription} class="input resize-y" rows="6" placeholder="Details…"
+							style={isDragOverDescription ? 'outline: 2px dashed var(--primary); outline-offset: -2px;' : ''}
+							ondragover={handleDescriptionDragOver} ondragleave={handleDescriptionDragLeave} ondrop={handleDescriptionDrop}></textarea>
 					</div>
 					{#if error}
 						<div class="p-2 rounded text-xs" style="background: rgba(239,68,68,0.1); color: var(--danger);">{error}</div>
@@ -589,6 +673,45 @@
 			{#if ticket.description}
 				<div class="markdown-body text-sm leading-relaxed" style="color: var(--text);">{@html renderMarkdown(ticket.description)}</div>
 			{/if}
+
+			<!-- Attachments (Codeberg kbai-ui#4, #469) -->
+			<section>
+				<div class="pb-2 flex items-center justify-between">
+					<h3 class="section-heading flex items-center gap-2">
+						Anhänge
+						{#if ticket.attachments.length > 0}<span class="text-xs font-mono normal-case tracking-normal" style="color: var(--text-muted);">{ticket.attachments.length}</span>{/if}
+					</h3>
+					<button onclick={triggerAttachmentUpload} disabled={isUploadingAttachment}
+						class="btn-subtle flex items-center gap-1 text-xs px-2 py-1">
+						{#if isUploadingAttachment}<Spinner size={3} color="currentColor" thickness="border-2" />{:else}<Upload class="w-3 h-3" />{/if}
+						Bild hochladen
+					</button>
+					<input bind:this={attachmentFileInputEl} type="file" accept="image/png,image/jpeg,image/webp,image/gif"
+						onchange={handleAttachmentFileSelected} class="hidden" />
+				</div>
+				<div class="hairline"></div>
+				{#if ticket.attachments.length === 0}
+					<div class="py-3 text-xs" style="color: var(--text-muted);">Keine Anhänge</div>
+				{:else}
+					<div class="py-3 grid grid-cols-4 sm:grid-cols-6 gap-2">
+						{#each ticket.attachments as att (att.id)}
+							<div class="group relative aspect-square rounded-lg overflow-hidden" style="background: var(--color-surface-hover);">
+								<button type="button" onclick={() => lightboxAttachment = att} class="block w-full h-full" aria-label="Bild {att.filename} vergrößern">
+									<img src="/api/attachments/{att.id}" alt={att.filename} class="w-full h-full object-cover" />
+								</button>
+								<button type="button" onclick={() => deleteAttachment(att.id)} disabled={deletingAttachmentId === att.id}
+									class="absolute top-1 right-1 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+									style="background: rgba(0,0,0,0.6); color: white;" title="Anhang löschen" aria-label="Anhang löschen">
+									<X class="w-3 h-3" />
+								</button>
+							</div>
+						{/each}
+					</div>
+					<p class="pb-1 text-xs flex items-center gap-1.5" style="color: var(--text-muted);">
+						<ImageIcon class="w-3 h-3 shrink-0" /> KI-Agenten können diese Bilder über ihre Tools lesen.
+					</p>
+				{/if}
+			</section>
 
 			<!-- Tasks -->
 			<section>
@@ -788,6 +911,19 @@
 	onConfirm={confirmDeleteTicket}
 	onCancel={cancelDeleteTicket}
 />
+
+{#if lightboxAttachment}
+	<div class="fixed inset-0 z-[110] flex items-center justify-center p-6" style="background: rgba(0,0,0,0.85);"
+		transition:fly={{ duration: 150 }}>
+		<button type="button" onclick={() => lightboxAttachment = null}
+			class="absolute top-4 right-4 p-2 rounded-full" style="background: rgba(255,255,255,0.1); color: white;"
+			aria-label="Schließen">
+			<X class="w-5 h-5" />
+		</button>
+		<img src="/api/attachments/{lightboxAttachment.id}" alt={lightboxAttachment.filename}
+			class="max-w-full max-h-full object-contain rounded-lg" />
+	</div>
+{/if}
 
 <style>
 	/* CSS-:hover statt JS-Handlern für den Menüpunkt im "Weitere Aktionen"-Dropdown (#507) */

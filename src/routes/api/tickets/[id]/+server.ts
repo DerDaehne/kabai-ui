@@ -97,6 +97,15 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			ORDER BY ntl.relation, n.title
 		`;
 
+		// Bild-Anhänge (ticket_attachments, V13) — Metadaten only, siehe #469
+		const attachments = await sql`
+			SELECT a.id, a.filename, a.mime_type, a.size_bytes, a.description, a.uploaded_by, a.created_at
+			FROM ticket_attachments ta
+			JOIN attachments a ON a.id = ta.attachment_id
+			WHERE ta.ticket_id = ${ticketId}
+			ORDER BY ta.created_at ASC
+		`;
+
 		return json({
 			ok: true,
 			data: {
@@ -133,7 +142,8 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 					kind: row.kind,
 					relation: row.relation,
 					archived: row.archived
-				}))
+				})),
+				attachments
 			}
 		});
 	} catch (error) {

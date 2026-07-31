@@ -115,6 +115,7 @@ export interface TicketDetailed extends Ticket {
 	status: BoardStatus;
 	relations: TicketRelation[];
 	linked_notes: TicketLinkedNote[];
+	attachments: TicketAttachment[];
 }
 
 export interface TicketTask {
@@ -371,6 +372,18 @@ export interface AttachmentUploadResult {
 	filename: string;
 	mime_type: string;
 	size_bytes: number;
+}
+
+// Ticket-Bild-Anhang (Codeberg kbai-ui#4, kabai-Ticket #469) — Antwort von
+// GET/POST /api/tickets/[id]/attachments
+export interface TicketAttachment {
+	id: number;
+	filename: string;
+	mime_type: string;
+	size_bytes: number;
+	description: string | null;
+	uploaded_by: string | null;
+	created_at: string;
 }
 
 // API Response Types
