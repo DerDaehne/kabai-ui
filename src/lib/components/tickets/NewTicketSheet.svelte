@@ -6,9 +6,11 @@
 	import { onMount } from 'svelte';
 	import { z } from 'zod';
 	import { Plus, User, Flag } from 'lucide-svelte';
-	import type { BoardStatus, Ticket, TicketType } from '$lib/types';
+	import type { BoardStatus, Ticket, TicketType, AttachmentUploadResult } from '$lib/types';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
+	import AttachmentGallery from '$components/tickets/AttachmentGallery.svelte';
+	import { extractPastedImage } from '$lib/utils/attachments';
 
 	export let projectId: string;
 	export let initialStatusId: number | null = null;
@@ -25,6 +27,40 @@
 	let isLoading = false;
 	let statuses: BoardStatus[] = [];
 	let epics: Ticket[] = [];
+
+	// Bild-Anhänge (#692): das Ticket existiert beim Ausfüllen noch nicht, also
+	// werden Bilder sofort nach /api/attachments hochgeladen ("staged") und erst
+	// nach erfolgreichem Anlegen mit der neuen Ticket-ID verknüpft. Löschen vor
+	// dem Anlegen entfernt nur aus diesem lokalen State — der Blob bleibt ein
+	// unverknüpftes Waisenkind (akzeptiert laut ADR-004, kein neues Problem).
+	let stagedAttachments: { id: number; filename: string }[] = [];
+	let isUploadingAttachment = false;
+
+	async function uploadStagedAttachment(file: File) {
+		isUploadingAttachment = true; error = '';
+		try {
+			const formData = new FormData();
+			formData.append('file', file);
+			const res = await fetch('/api/attachments', { method: 'POST', body: formData });
+			const result = await res.json();
+			if (!result.ok) { error = result.error || 'Fehler beim Hochladen des Bildes'; return; }
+			const uploaded: AttachmentUploadResult = result.data;
+			stagedAttachments = [...stagedAttachments, { id: uploaded.id, filename: uploaded.filename }];
+		} catch { error = 'Netzwerkfehler'; }
+		finally { isUploadingAttachment = false; }
+	}
+
+	function removeStagedAttachment(id: number) {
+		stagedAttachments = stagedAttachments.filter((a) => a.id !== id);
+	}
+
+	async function handleWindowPaste(e: ClipboardEvent) {
+		const file = extractPastedImage(e);
+		if (file) {
+			e.preventDefault();
+			await uploadStagedAttachment(file);
+		}
+	}
 
 	const createTicketSchema = z.object({
 		title: z.string().min(1, 'Titel ist erforderlich'),
@@ -98,6 +134,15 @@
 				}).catch(() => {});
 			}
 
+			// Gestagte Anhänge (#692) jetzt mit der neuen Ticket-ID verknüpfen
+			for (const att of stagedAttachments) {
+				await fetch(`/api/tickets/${result.data.id}/attachments`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ attachment_id: att.id })
+				}).catch(() => {});
+			}
+
 			onCreated(result.data);
 		} catch {
 			error = 'Netzwerkfehler';
@@ -108,6 +153,8 @@
 
 	onMount(() => { fetchStatuses(); fetchEpics(); });
 </script>
+
+<svelte:window on:paste={handleWindowPaste} />
 
 <form onsubmit={handleSubmit} class="space-y-5">
 	<!-- Title -->
@@ -191,6 +238,14 @@
 			</select>
 		</div>
 	</div>
+
+	<!-- Bild-Anhänge (#692): Dateiauswahl, oder Strg+V zum Einfügen aus der Zwischenablage -->
+	<AttachmentGallery
+		attachments={stagedAttachments}
+		isUploading={isUploadingAttachment}
+		onUpload={uploadStagedAttachment}
+		onDelete={removeStagedAttachment}
+	/>
 
 	{#if error}
 		<ErrorBanner message={error} compact />
