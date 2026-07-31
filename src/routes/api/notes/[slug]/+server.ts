@@ -88,3 +88,35 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		return json({ ok: false, error: 'Fehler beim Abrufen der Note' }, { status: 500 });
 	}
 };
+
+// PATCH /api/notes/[slug] - Archivieren/Reaktivieren (kein Hard-Delete, siehe
+// kabai golden rule "Archive, don't delete" — Historie bleibt erhalten)
+export const PATCH: RequestHandler = async ({ params, request, locals }) => {
+	try {
+		if (!locals.session) {
+			return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+		}
+
+		const body = await request.json();
+		if (typeof body.archived !== 'boolean') {
+			return json({ ok: false, error: '"archived" muss ein boolean sein' }, { status: 400 });
+		}
+
+		const sql = getDb(locals.session.username, locals.session.password);
+
+		const [note] = await sql`
+			UPDATE notes SET archived = ${body.archived}
+			WHERE slug = ${params.slug!}
+			RETURNING id, slug, archived
+		`;
+
+		if (!note) {
+			return json({ ok: false, error: 'Note nicht gefunden' }, { status: 404 });
+		}
+
+		return json({ ok: true, data: note });
+	} catch (error) {
+		console.error(`PATCH /api/notes/${params.slug} error:`, error);
+		return json({ ok: false, error: 'Fehler beim Aktualisieren der Note' }, { status: 500 });
+	}
+};

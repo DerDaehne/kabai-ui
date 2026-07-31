@@ -55,6 +55,26 @@
 		}
 	}
 
+	let isTogglingArchive = false;
+
+	async function toggleArchive() {
+		if (!note || isTogglingArchive) return;
+		isTogglingArchive = true;
+		try {
+			const res = await fetch(`/api/notes/${encodeURIComponent(note.slug)}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ archived: !note.archived })
+			});
+			const result = await res.json();
+			if (result.ok) {
+				note = { ...note, archived: result.data.archived };
+			}
+		} finally {
+			isTogglingArchive = false;
+		}
+	}
+
 	function verifiedDaysAgo(n: NoteDetail): number {
 		return Math.floor((Date.now() - new Date(n.last_verified_at!).getTime()) / 86400000);
 	}
@@ -114,6 +134,17 @@
 
 	{:else if note}
 		{@const ks = kindStyles[note.kind] ?? kindStyles.note}
+
+		<div class="flex justify-end">
+			<button
+				onclick={toggleArchive}
+				disabled={isTogglingArchive}
+				class="btn-subtle flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
+			>
+				<Archive class="w-3.5 h-3.5" />
+				{note.archived ? 'Reaktivieren' : 'Archivieren'}
+			</button>
+		</div>
 
 		<!-- Warnbanner: archiviert / abgelöst -->
 		{#if note.archived}
@@ -182,7 +213,11 @@
 				</span>
 			</div>
 		{:else}
-			<div class="flex items-center gap-2 p-3 rounded-xl text-sm card" style="color: var(--color-text-secondary);">
+			<div
+				class="flex items-center gap-2 p-3 rounded-xl text-sm card"
+				style="color: var(--color-text-secondary);"
+				title="Verifikation bestätigt, dass ein Agent den Inhalt im Rahmen eines Tickets gelesen und für weiterhin gültig erklärt hat. Das passiert automatisch im Hintergrund — es gibt aktuell keinen manuellen 'Jetzt verifizieren'-Weg in der Oberfläche."
+			>
 				<ShieldQuestion class="w-4 h-4 shrink-0" />
 				<span>Diese Note wurde <strong>nie geprüft</strong> — Inhalt ohne Verifikation.</span>
 			</div>
