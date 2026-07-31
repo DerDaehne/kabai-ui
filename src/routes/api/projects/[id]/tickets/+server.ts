@@ -31,6 +31,8 @@ function mapTicket(row: any): Ticket {
 		type: row.type ?? 'ticket',
 		docs_required: row.docs_required ?? false,
 		linked_notes_count: row.linked_notes_count !== undefined ? Number(row.linked_notes_count) : undefined,
+		epic_children_total: row.epic_children_total !== undefined ? Number(row.epic_children_total) : undefined,
+		epic_children_done: row.epic_children_done !== undefined ? Number(row.epic_children_done) : undefined,
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};
@@ -62,9 +64,18 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 		const statusIdNum = queryParams.status_id ? parseInt(queryParams.status_id) : NaN;
 		const statusFilter = !isNaN(statusIdNum) ? sql`AND status_id = ${statusIdNum}` : sql``;
 		// linked_notes_count für Board-Icons (Doku vorhanden / docs_required unerfüllt)
+		// epic_children_*: nur für type='epic' > 0 relevant, aber für alle Zeilen
+		// mitberechnet — Board-Datensätze pro Projekt sind klein, eine
+		// zusätzliche Bedingung auf t.type spart hier keine nennenswerte Zeit.
 		const tickets = await sql`
 			SELECT t.*,
-				(SELECT COUNT(*)::int FROM note_ticket_links ntl WHERE ntl.ticket_id = t.id) AS linked_notes_count
+				(SELECT COUNT(*)::int FROM note_ticket_links ntl WHERE ntl.ticket_id = t.id) AS linked_notes_count,
+				(SELECT COUNT(*)::int FROM ticket_relations tr WHERE tr.from_ticket_id = t.id AND tr.relation_type = 'parent_of') AS epic_children_total,
+				(SELECT COUNT(*)::int FROM ticket_relations tr
+					JOIN tickets c ON c.id = tr.to_ticket_id
+					JOIN board_statuses bs ON bs.id = c.status_id
+					WHERE tr.from_ticket_id = t.id AND tr.relation_type = 'parent_of' AND bs.name = 'done'
+				) AS epic_children_done
 			FROM tickets t
 			WHERE project_id = ${projectId}
 			${statusFilter}

@@ -58,6 +58,17 @@
 	<p class="text-sm font-medium leading-snug mb-1.5" style="color: var(--text);">
 		{#if ticket.type === 'epic'}<span class="inline-flex items-center gap-1 mr-1.5 text-xs font-semibold align-middle" style="color: var(--color-warning);"><Flag class="w-3 h-3" /> Epic</span>{/if}{ticket.title}
 	</p>
+	{#if ticket.type === 'epic' && (ticket.epic_children_total ?? 0) > 0}
+		<div class="flex items-center gap-1.5 mb-1.5" title="{ticket.epic_children_done}/{ticket.epic_children_total} Kind-Tickets erledigt">
+			<div class="flex-1 h-1 rounded-full overflow-hidden" style="background: var(--edge);">
+				<div
+					class="h-full rounded-full"
+					style="width: {Math.round((100 * (ticket.epic_children_done ?? 0)) / ticket.epic_children_total!)}%; background: var(--color-warning);"
+				></div>
+			</div>
+			<span class="text-xs shrink-0 font-mono" style="color: var(--text-muted);">{ticket.epic_children_done}/{ticket.epic_children_total}</span>
+		</div>
+	{/if}
 	<div class="mt-auto flex items-center justify-between gap-2">
 		<div class="flex items-center gap-1.5 min-w-0">
 			<span class="text-xs font-mono shrink-0" style="color: var(--text-muted);">#{ticket.id}</span>

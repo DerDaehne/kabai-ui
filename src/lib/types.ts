@@ -82,6 +82,9 @@ export interface Ticket {
 	docs_required?: boolean;
 	// Nur in Listen-Antworten gesetzt (für Board-Icons)
 	linked_notes_count?: number;
+	// Nur bei type 'epic' gesetzt (via ticket_relations parent_of): Fortschritt der Kind-Tickets
+	epic_children_total?: number;
+	epic_children_done?: number;
 	created_at: string;
 	updated_at: string;
 }
