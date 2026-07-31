@@ -5,6 +5,9 @@ export interface Project {
 	slug: string;
 	name: string;
 	description: string | null;
+	// Projekt-Archivierung (Codeberg kbai-ui#7, Kanban AI #502) — nur der
+	// Mensch archiviert/reaktiviert per UI, nie ein MCP-Tool.
+	archived: boolean;
 	created_at: string;
 }
 

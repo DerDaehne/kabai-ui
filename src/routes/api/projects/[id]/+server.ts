@@ -6,7 +6,10 @@ import type { Project } from '$lib/types';
 // Validierungsschema für Update
 const updateProjectSchema = z.object({
 	name: z.string().min(1, 'Name ist erforderlich').optional(),
-	description: z.string().nullable().optional()
+	description: z.string().nullable().optional(),
+	// Archivieren/Reaktivieren (Codeberg kbai-ui#7) — bewusst nur hier über die
+	// UI-eigene API, kein MCP-Tool tut das (Kanban AI #503).
+	archived: z.boolean().optional()
 });
 
 // Helper: Project aus DB-Row mappen
@@ -16,6 +19,7 @@ function mapProject(row: any): Project {
 		slug: row.slug,
 		name: row.name,
 		description: row.description,
+		archived: row.archived,
 		created_at: row.created_at
 	};
 }
@@ -86,6 +90,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		const updates: Record<string, unknown> = {};
 		if (validation.data.name !== undefined) updates.name = validation.data.name;
 		if (validation.data.description !== undefined) updates.description = validation.data.description;
+		if (validation.data.archived !== undefined) updates.archived = validation.data.archived;
 
 		if (Object.keys(updates).length === 0) {
 			return json({ ok: true, data: mapProject(existing) });

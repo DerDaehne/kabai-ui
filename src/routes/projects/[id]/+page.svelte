@@ -4,7 +4,7 @@
 	import { page } from '$app/stores';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
-	import { Settings, Layers, Network, Inbox } from 'lucide-svelte';
+	import { Settings, Layers, Network, Inbox, Archive } from 'lucide-svelte';
 	import KanbanBoard from '$components/board/KanbanBoard.svelte';
 	import SidePanel from '$components/ui/SidePanel.svelte';
 	import BottomSheet from '$components/ui/BottomSheet.svelte';
@@ -263,6 +263,14 @@
 
 	{#if error}
 		<ErrorBanner message={error} />
+	{/if}
+
+	{#if project?.archived}
+		<div class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm"
+			style="background: color-mix(in srgb, var(--color-warning) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent); color: var(--color-warning);">
+			<Archive class="w-4 h-4 shrink-0" />
+			Dieses Projekt ist archiviert und schreibgeschützt. Reaktiviere es in der Projekte-Übersicht, um Änderungen vorzunehmen.
+		</div>
 	{/if}
 
 	{#if isLoading}

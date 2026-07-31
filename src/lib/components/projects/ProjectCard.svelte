@@ -180,7 +180,7 @@
 				onclick={(e) => { e.stopPropagation(); onArchive(project.id); }}
 			>
 				<Archive class="w-4 h-4" />
-				Archivieren
+				{project.archived ? 'Reaktivieren' : 'Archivieren'}
 			</button>
 		</div>
 	{/if}

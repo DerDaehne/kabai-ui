@@ -100,8 +100,13 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 				created_at: comment.created_at
 			}
 		}, { status: 201 });
-	} catch (error) {
+	} catch (error: any) {
 		console.error('POST /api/tickets/[id]/comments error:', error);
+
+		if (error.message?.includes('read-only')) {
+			return json({ ok: false, error: error.message }, { status: 409 });
+		}
+
 		return json(
 			{ ok: false, error: 'Fehler beim Erstellen des Kommentars' },
 			{ status: 500 }

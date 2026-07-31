@@ -98,6 +98,9 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		if (error.code === '23505') {
 			return json({ ok: false, error: 'Diese Relation existiert bereits' }, { status: 409 });
 		}
+		if (error.message?.includes('read-only')) {
+			return json({ ok: false, error: error.message }, { status: 409 });
+		}
 		return json({ ok: false, error: 'Fehler beim Erstellen der Relation' }, { status: 500 });
 	}
 };

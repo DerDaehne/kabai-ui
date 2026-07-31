@@ -15,6 +15,9 @@
 	let name = '';
 	let slug = '';
 	let description = '';
+	// Ticket #690: für Einsteiger/Schnelltests per Default angehakt — spart den
+	// manuellen Aufbau von Spalten/Übergängen für den häufigsten Fall.
+	let createDefaultWorkflow = true;
 	let error = '';
 	let isLoading = false;
 	let slugManual = false;
@@ -38,7 +41,7 @@
 			const res = await fetch('/api/projects', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name, slug, description })
+				body: JSON.stringify({ name, slug, description, create_default_workflow: createDefaultWorkflow })
 			});
 			const result = await res.json();
 			if (!result.ok) { error = result.error || 'Fehler beim Erstellen'; return; }
@@ -63,6 +66,16 @@
 		</label>
 		<textarea bind:value={description} class="input resize-none" rows="3" placeholder="Kurze Beschreibung…"></textarea>
 	</div>
+
+	<label class="flex items-start gap-2.5 cursor-pointer">
+		<input type="checkbox" bind:checked={createDefaultWorkflow} class="mt-0.5 w-4 h-4 rounded" style="accent-color: var(--color-primary);" />
+		<span class="text-sm" style="color: var(--color-text);">
+			Standard-Spalten und -Workflow erstellen
+			<span class="block text-xs mt-0.5" style="color: var(--color-text-secondary);">
+				Legt Backlog/Todo/In Arbeit/Fertig mit sinnvollen Übergängen (inkl. Reopen) an.
+			</span>
+		</span>
+	</label>
 
 	{#if error}
 		<ErrorBanner message={error} compact />

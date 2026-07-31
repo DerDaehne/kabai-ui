@@ -246,7 +246,12 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		});
 	} catch (error: any) {
 		console.error('PATCH /api/tickets/[id] error:', error);
-		
+
+		// Projekt archiviert (Codeberg kbai-ui#7) — DB-Trigger lehnt ab, Meldung 1:1 durchreichen
+		if (error.message?.includes('read-only')) {
+			return json({ ok: false, error: error.message }, { status: 409 });
+		}
+
 		// Trigger-Fehler
 		if (error.message?.includes('enforce_kanban_workflow_integrity')) {
 			return json(
@@ -286,8 +291,13 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		await sql`DELETE FROM tickets WHERE id = ${ticketId}`;
 		
 		return json({ ok: true });
-	} catch (error) {
+	} catch (error: any) {
 		console.error('DELETE /api/tickets/[id] error:', error);
+
+		if (error.message?.includes('read-only')) {
+			return json({ ok: false, error: error.message }, { status: 409 });
+		}
+
 		return json(
 			{ ok: false, error: 'Fehler beim Löschen des Tickets' },
 			{ status: 500 }

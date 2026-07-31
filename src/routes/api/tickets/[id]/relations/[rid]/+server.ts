@@ -27,8 +27,11 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		await sql`DELETE FROM ticket_relations WHERE id = ${relationId}`;
 
 		return json({ ok: true });
-	} catch (error) {
+	} catch (error: any) {
 		console.error('DELETE /api/tickets/[id]/relations/[rid] error:', error);
+		if (error.message?.includes('read-only')) {
+			return json({ ok: false, error: error.message }, { status: 409 });
+		}
 		return json({ ok: false, error: 'Fehler beim Löschen der Relation' }, { status: 500 });
 	}
 };

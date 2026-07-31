@@ -14,8 +14,9 @@ export const GET: RequestHandler = async ({ locals }) => {
 		const sql = getDb(locals.session.username, locals.session.password);
 
 		const [projects, statusCounts, metrics] = await Promise.all([
-			// Basis-Projektdaten
-			sql`SELECT id, slug, name, description, created_at FROM projects ORDER BY name ASC`,
+			// Basis-Projektdaten (inkl. archived, Codeberg kbai-ui#7 — beide
+			// Sichten kommen aus einer Liste, Aktiv/Archiv-Split passiert clientseitig)
+			sql`SELECT id, slug, name, description, archived, created_at FROM projects ORDER BY name ASC`,
 
 			// Ticket-Counts je Board-Status (für das Tortendiagramm), ohne
 			// Sonderstatus human_intervention/human_answered
@@ -75,6 +76,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 				slug: p.slug,
 				name: p.name,
 				description: p.description,
+				archived: p.archived,
 				created_at: p.created_at,
 				statuses: statusesByProject.get(p.id) ?? [],
 				last_activity: m?.last_activity ?? p.created_at,

@@ -27,12 +27,9 @@
 	let view: 'active' | 'archived' = 'active';
 	let searchBar: ProjectSearchBar | null = null;
 
-	// Das Backend kennt `projects.archived` noch nicht (folgt in #498/#501).
-	// Bis dahin filtert die Archiv-Sicht auf ein Feld, das nie gesetzt ist —
-	// sie zeigt also bewusst immer den EmptyState.
 	$: viewFiltered = view === 'archived'
-		? projects.filter((p) => (p as any).archived === true)
-		: projects;
+		? projects.filter((p) => p.archived)
+		: projects.filter((p) => !p.archived);
 
 	$: filteredProjects = (() => {
 		const q = searchQuery.trim().toLowerCase();
@@ -92,8 +89,52 @@
 		}
 	}
 
-	// No-op-Callback — der Archivieren-Flow folgt in #498.
-	function handleArchive(_id: number) {}
+	// Ticket #498: Archivieren/Reaktivieren über dasselbe Band-Popup-Muster wie
+	// Löschen (#496), nur mit tone="warning" (gelb statt rot) und ohne Löschung
+	// — es wird nur projects.archived umgeschaltet.
+	let archiveTargetId: number | null = null;
+	let archiveTargetName = '';
+	let archiveTargetIsArchived = false;
+	let isArchiving = false;
+
+	function handleArchive(id: number) {
+		const project = projects.find((p) => p.id === id);
+		archiveTargetId = id;
+		archiveTargetName = project?.name ?? '';
+		archiveTargetIsArchived = project?.archived ?? false;
+	}
+
+	function cancelArchive() {
+		archiveTargetId = null;
+		archiveTargetName = '';
+	}
+
+	async function confirmArchive() {
+		if (archiveTargetId === null || isArchiving) return;
+		const id = archiveTargetId;
+		const nextArchived = !archiveTargetIsArchived;
+		isArchiving = true;
+		try {
+			const res = await fetch(`/api/projects/${id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ archived: nextArchived })
+			});
+			const result = await res.json();
+			if (result.ok) {
+				projects = projects.map((p) => (p.id === id ? { ...p, archived: nextArchived } : p));
+				openMenuProjectId = null;
+			} else {
+				error = result.error || 'Fehler beim Archivieren';
+			}
+		} catch {
+			error = 'Netzwerkfehler';
+		} finally {
+			isArchiving = false;
+			archiveTargetId = null;
+			archiveTargetName = '';
+		}
+	}
 
 	// Ticket #506: "Neues Projekt" öffnet jetzt das von unten hereingeschobene
 	// BottomSheet statt zur Route /projects/new zu navigieren. Die Route bleibt
@@ -223,6 +264,16 @@
 	tone="danger"
 	onConfirm={confirmDelete}
 	onCancel={cancelDelete}
+/>
+
+<BannerConfirm
+	open={archiveTargetId !== null}
+	text={archiveTargetIsArchived
+		? `Projekt „${archiveTargetName}" wieder aktivieren?`
+		: `Projekt „${archiveTargetName}" archivieren?`}
+	tone="warning"
+	onConfirm={confirmArchive}
+	onCancel={cancelArchive}
 />
 
 <BottomSheet open={showNewProjectSheet} title="Neues Projekt" onClose={closeNewProjectSheet}>

@@ -55,8 +55,13 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 				created_at: task.created_at
 			}
 		});
-	} catch (error) {
+	} catch (error: any) {
 		console.error('PATCH /api/tasks/[tid] error:', error);
+
+		if (error.message?.includes('read-only')) {
+			return json({ ok: false, error: error.message }, { status: 409 });
+		}
+
 		return json(
 			{ ok: false, error: 'Fehler beim Aktualisieren der Task' },
 			{ status: 500 }
@@ -88,8 +93,13 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		await sql`DELETE FROM ticket_tasks WHERE id = ${taskId}`;
 		
 		return json({ ok: true });
-	} catch (error) {
+	} catch (error: any) {
 		console.error('DELETE /api/tasks/[tid] error:', error);
+
+		if (error.message?.includes('read-only')) {
+			return json({ ok: false, error: error.message }, { status: 409 });
+		}
+
 		return json(
 			{ ok: false, error: 'Fehler beim Löschen der Task' },
 			{ status: 500 }
