@@ -42,7 +42,9 @@ export const GET: RequestHandler = async ({ locals }) => {
 						WHERE bs.name = 'done' AND t.updated_at >= NOW() - INTERVAL '7 days'
 					)::int AS throughput_7d,
 					MIN(t.created_at) FILTER (WHERE bs.name IS DISTINCT FROM 'done') AS oldest_open_created_at,
-					(SELECT COUNT(*)::int FROM note_projects np WHERE np.project_id = p.id) AS notes_count
+					(SELECT COUNT(*)::int FROM note_projects np WHERE np.project_id = p.id) AS notes_count,
+					COALESCE(SUM(t.effort_estimate), 0) AS effort_estimate_sum,
+					COALESCE(SUM(t.effort_actual), 0) AS effort_actual_sum
 				FROM projects p
 				LEFT JOIN tickets t ON t.project_id = p.id
 				LEFT JOIN board_statuses bs ON bs.id = t.status_id
@@ -79,7 +81,9 @@ export const GET: RequestHandler = async ({ locals }) => {
 				waiting_on_human: m?.waiting_on_human ?? 0,
 				throughput_7d: m?.throughput_7d ?? 0,
 				oldest_open_created_at: m?.oldest_open_created_at ?? null,
-				notes_count: m?.notes_count ?? 0
+				notes_count: m?.notes_count ?? 0,
+				effort_estimate_sum: m?.effort_estimate_sum !== undefined ? Number(m.effort_estimate_sum) : 0,
+				effort_actual_sum: m?.effort_actual_sum !== undefined ? Number(m.effort_actual_sum) : 0
 			};
 		});
 

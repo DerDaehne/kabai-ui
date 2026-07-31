@@ -132,7 +132,7 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO alice;
 
 ## 7. Updating the database schema
 
-The schema comes from `migrations/` (V1–V10, V12–V13, unmodified copies from
+The schema comes from `migrations/` (V1–V10, V12–V14, unmodified copies from
 the kabai backend repo — V11 is a deliberate gap, reserved by an upcoming
 backend migration). The migrations are baked into the Docker image and applied by
 the app itself on every startup: every migration runs exactly once; applied
@@ -189,7 +189,7 @@ npm run migrate
 
 ```
 kabai-ui/
-├── migrations/                      # schema migrations V1–V10, V12–V13 (copies from the backend repo)
+├── migrations/                      # schema migrations V1–V10, V12–V14 (copies from the backend repo)
 │   └── V*__*.sql
 ├── scripts/
 │   └── migrate.mjs                  # migration runner (runs on app startup; schema_migrations tracking)

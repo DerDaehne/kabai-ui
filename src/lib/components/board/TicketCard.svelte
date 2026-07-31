@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Bot, Flag, BookOpen, AlertTriangle, Sparkles } from 'lucide-svelte';
+	import { Bot, Flag, BookOpen, AlertTriangle, Sparkles, Gauge } from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import type { BoardStatus, Ticket } from '$lib/types';
@@ -67,6 +67,12 @@
 				></div>
 			</div>
 			<span class="text-xs shrink-0 font-mono" style="color: var(--text-muted);">{ticket.epic_children_done}/{ticket.epic_children_total}</span>
+		</div>
+	{/if}
+	{#if ticket.type === 'epic' && ((ticket.epic_effort_estimate_sum ?? 0) > 0 || (ticket.epic_effort_actual_sum ?? 0) > 0)}
+		<div class="flex items-center gap-1 mb-1.5 text-xs font-mono" style="color: var(--text-muted);" title="Aufwand der Kind-Tickets: tatsächlich/Schätzung">
+			<Gauge class="w-3 h-3 shrink-0" />
+			{ticket.epic_effort_actual_sum}/{ticket.epic_effort_estimate_sum}{ticket.effort_unit ? ` ${ticket.effort_unit}` : ''}
 		</div>
 	{/if}
 	<div class="mt-auto flex items-center justify-between gap-2">

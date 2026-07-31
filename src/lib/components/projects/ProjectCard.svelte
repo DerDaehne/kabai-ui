@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
-	import { ChevronUp, X, Trash2, Archive, AlertCircle, Zap, Hourglass, BookOpen } from 'lucide-svelte';
+	import { ChevronUp, X, Trash2, Archive, AlertCircle, Zap, Hourglass, BookOpen, Gauge } from 'lucide-svelte';
 	import StatusPie from '$components/projects/StatusPie.svelte';
 	import type { ProjectOverview } from '$lib/types';
 	import { relativeTime, ageInDays } from '$lib/utils/format';
@@ -125,6 +125,16 @@
 				<Zap class="w-3 h-3" style="color: var(--color-text-secondary);" />{project.throughput_7d}
 			</span>
 		</div>
+
+		{#if project.effort_estimate_sum > 0 || project.effort_actual_sum > 0}
+			<div class="hidden lg:flex flex-col items-end shrink-0 w-24">
+				<span class="text-caption" style="color: var(--color-text-secondary);">Aufwand</span>
+				<span class="font-mono text-sm flex items-center gap-1" style="color: var(--color-text);"
+					title="tatsächlich/Schätzung">
+					<Gauge class="w-3 h-3" style="color: var(--color-text-secondary);" />{project.effort_actual_sum}/{project.effort_estimate_sum}
+				</span>
+			</div>
+		{/if}
 
 		<div class="hidden md:flex flex-col items-end shrink-0 w-24">
 			<span class="text-caption" style="color: var(--color-text-secondary);">Ältestes offen</span>

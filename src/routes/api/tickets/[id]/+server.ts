@@ -10,7 +10,10 @@ const updateTicketSchema = z.object({
 	assignee: z.string().nullable().optional(),
 	model: z.string().nullable().optional(),
 	status_id: z.number().int().min(1, 'Status-ID ist erforderlich').optional(),
-	type: z.enum(['ticket', 'epic']).optional()
+	type: z.enum(['ticket', 'epic']).optional(),
+	effort_estimate: z.number().nullable().optional(),
+	effort_actual: z.number().nullable().optional(),
+	effort_unit: z.string().nullable().optional()
 });
 
 // Helper: Ticket aus DB-Row mappen
@@ -25,6 +28,9 @@ function mapTicket(row: any): Ticket {
 		model: row.model ?? null,
 		type: row.type ?? 'ticket',
 		docs_required: row.docs_required ?? false,
+		effort_estimate: row.effort_estimate !== null && row.effort_estimate !== undefined ? Number(row.effort_estimate) : null,
+		effort_actual: row.effort_actual !== null && row.effort_actual !== undefined ? Number(row.effort_actual) : null,
+		effort_unit: row.effort_unit ?? null,
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};
@@ -212,6 +218,9 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 		if (validation.data.model !== undefined) updates.model = validation.data.model;
 		if (validation.data.status_id !== undefined) updates.status_id = validation.data.status_id;
 		if (validation.data.type !== undefined) updates.type = validation.data.type;
+		if (validation.data.effort_estimate !== undefined) updates.effort_estimate = validation.data.effort_estimate;
+		if (validation.data.effort_actual !== undefined) updates.effort_actual = validation.data.effort_actual;
+		if (validation.data.effort_unit !== undefined) updates.effort_unit = validation.data.effort_unit;
 
 		if (Object.keys(updates).length === 0) {
 			return json({ ok: true, data: mapTicket(existing) });

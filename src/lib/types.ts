@@ -48,6 +48,9 @@ export interface ProjectOverview extends Project {
 	throughput_7d: number;
 	oldest_open_created_at: string | null;
 	notes_count: number;
+	// Summe über effort_estimate/effort_actual aller Tickets des Projekts (Codeberg kbai-ui#16)
+	effort_estimate_sum: number;
+	effort_actual_sum: number;
 }
 
 export interface BoardStatus {
@@ -85,6 +88,13 @@ export interface Ticket {
 	// Nur bei type 'epic' gesetzt (via ticket_relations parent_of): Fortschritt der Kind-Tickets
 	epic_children_total?: number;
 	epic_children_done?: number;
+	// Generisches Aufwandsfeld (Codeberg kbai-ui#16) — Einheit frei wählbar (Tage, Punkte, Tokens, ...)
+	effort_estimate: number | null;
+	effort_actual: number | null;
+	effort_unit: string | null;
+	// Nur bei type 'epic' gesetzt: Summe des Aufwands aller Kind-Tickets
+	epic_effort_estimate_sum?: number;
+	epic_effort_actual_sum?: number;
 	created_at: string;
 	updated_at: string;
 }

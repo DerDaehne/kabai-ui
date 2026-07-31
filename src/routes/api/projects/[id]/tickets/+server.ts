@@ -33,6 +33,11 @@ function mapTicket(row: any): Ticket {
 		linked_notes_count: row.linked_notes_count !== undefined ? Number(row.linked_notes_count) : undefined,
 		epic_children_total: row.epic_children_total !== undefined ? Number(row.epic_children_total) : undefined,
 		epic_children_done: row.epic_children_done !== undefined ? Number(row.epic_children_done) : undefined,
+		effort_estimate: row.effort_estimate !== null && row.effort_estimate !== undefined ? Number(row.effort_estimate) : null,
+		effort_actual: row.effort_actual !== null && row.effort_actual !== undefined ? Number(row.effort_actual) : null,
+		effort_unit: row.effort_unit ?? null,
+		epic_effort_estimate_sum: row.epic_effort_estimate_sum !== undefined ? Number(row.epic_effort_estimate_sum) : undefined,
+		epic_effort_actual_sum: row.epic_effort_actual_sum !== undefined ? Number(row.epic_effort_actual_sum) : undefined,
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	};
@@ -75,7 +80,15 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 					JOIN tickets c ON c.id = tr.to_ticket_id
 					JOIN board_statuses bs ON bs.id = c.status_id
 					WHERE tr.from_ticket_id = t.id AND tr.relation_type = 'parent_of' AND bs.name = 'done'
-				) AS epic_children_done
+				) AS epic_children_done,
+				(SELECT COALESCE(SUM(c.effort_estimate), 0) FROM ticket_relations tr
+					JOIN tickets c ON c.id = tr.to_ticket_id
+					WHERE tr.from_ticket_id = t.id AND tr.relation_type = 'parent_of'
+				) AS epic_effort_estimate_sum,
+				(SELECT COALESCE(SUM(c.effort_actual), 0) FROM ticket_relations tr
+					JOIN tickets c ON c.id = tr.to_ticket_id
+					WHERE tr.from_ticket_id = t.id AND tr.relation_type = 'parent_of'
+				) AS epic_effort_actual_sum
 			FROM tickets t
 			WHERE project_id = ${projectId}
 			${statusFilter}

@@ -4,7 +4,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal } from 'lucide-svelte';
+	import { MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal, Gauge } from 'lucide-svelte';
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
@@ -41,6 +41,15 @@
 	let editDescription = '';
 	let editAssignee = '';
 	let editModel = '';
+	// number-Inputs binden auf number|null, nicht string — bind:value auf
+	// type="number" mit einem String-Wert verursacht Reaktivitäts-Instabilität
+	// (Svelte 5 sieht die DOM-Repräsentation und den String-Wert als ständig
+	// "verschieden" an und rendert das Element endlos neu, siehe editValues in
+	// StatusesModal.svelte/position in NewStatusSheet.svelte für das etablierte
+	// Pattern: number-Inputs binden immer auf number-typisierte Variablen).
+	let editEffortEstimate: number | null = null;
+	let editEffortActual: number | null = null;
+	let editEffortUnit = '';
 	let editStatusId: number | null = null;
 	let editType: 'ticket' | 'epic' = 'ticket';
 
@@ -162,6 +171,9 @@
 		editDescription = ticket.description || '';
 		editAssignee = ticket.assignee || '';
 		editModel = ticket.model || '';
+		editEffortEstimate = ticket.effort_estimate;
+		editEffortActual = ticket.effort_actual;
+		editEffortUnit = ticket.effort_unit || '';
 		editStatusId = ticket.status_id;
 		editType = ticket.type;
 		if (statuses.length === 0) fetchStatuses();
@@ -183,7 +195,10 @@
 					assignee: editAssignee.trim() || null,
 					model: editModel.trim() || null,
 					status_id: editStatusId ?? ticket.status_id,
-					type: editType
+					type: editType,
+					effort_estimate: editEffortEstimate,
+					effort_actual: editEffortActual,
+					effort_unit: editEffortUnit.trim() || null
 				})
 			});
 			const result = await res.json();
@@ -503,6 +518,22 @@
 							</select>
 						</div>
 					</div>
+					<div class="grid grid-cols-3 gap-3">
+						<div>
+							<label for="effort-estimate" class="block text-xs font-medium mb-1.5 flex items-center gap-1.5" style="color: var(--text-muted);">
+								<Gauge class="w-3 h-3" /> Aufwand (Schätzung)
+							</label>
+							<input id="effort-estimate" type="number" step="any" bind:value={editEffortEstimate} class="input" placeholder="Optional" />
+						</div>
+						<div>
+							<label for="effort-actual" class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Aufwand (tatsächlich)</label>
+							<input id="effort-actual" type="number" step="any" bind:value={editEffortActual} class="input" placeholder="Optional" />
+						</div>
+						<div>
+							<label for="effort-unit" class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Einheit</label>
+							<input id="effort-unit" type="text" bind:value={editEffortUnit} class="input" placeholder="z.B. Tage, Punkte, Tokens" />
+						</div>
+					</div>
 					<div>
 						<label class="block text-xs font-medium mb-1.5" style="color: var(--text-muted);">Beschreibung</label>
 						<textarea bind:value={editDescription} class="input resize-y" rows="6" placeholder="Details…"></textarea>
@@ -533,6 +564,12 @@
 					<div class="flex items-center gap-1.5">
 						<Cpu class="w-3.5 h-3.5 shrink-0" style="color: var(--accent);" />
 						<span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background: var(--color-surface-hover); color: var(--color-text-secondary);">{ticket.model}</span>
+					</div>
+				{/if}
+				{#if ticket.effort_estimate !== null || ticket.effort_actual !== null}
+					<div class="flex items-center gap-1.5 font-mono text-xs" style="color: var(--text-muted);" title="Aufwand: Schätzung/tatsächlich">
+						<Gauge class="w-3.5 h-3.5 shrink-0" />
+						{ticket.effort_actual ?? '?'}/{ticket.effort_estimate ?? '?'}{ticket.effort_unit ? ` ${ticket.effort_unit}` : ''}
 					</div>
 				{/if}
 				<div class="flex items-center gap-1.5 font-mono text-xs" style="color: var(--text-muted);">
