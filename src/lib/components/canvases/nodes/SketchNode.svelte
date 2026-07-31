@@ -284,6 +284,8 @@
 			bind:this={svgEl}
 			class:nodrag={drawMode || eraseMode}
 			class:nopan={drawMode || eraseMode}
+			class:sketch-node__svg--draw={drawMode}
+			class:sketch-node__svg--erase={eraseMode}
 			class="sketch-node__svg"
 			style={drawMode || eraseMode ? undefined : 'pointer-events: none;'}
 			width={svgWidth}
@@ -372,6 +374,14 @@
 		width: 100%;
 		height: 100%;
 		touch-action: none;
+	}
+
+	.sketch-node__svg--draw {
+		cursor: crosshair;
+	}
+
+	.sketch-node__svg--erase {
+		cursor: cell;
 	}
 
 	.sketch-node__stroke {
