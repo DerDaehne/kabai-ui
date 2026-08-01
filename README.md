@@ -75,6 +75,7 @@ npm run dev
 | `KABAI_SESSION_SECRET` | yes | — | Random key for session signing |
 | `KABAI_SESSION_TTL_MINUTES` | no | `480` | Session lifetime in minutes |
 | `PORT` | no | `3000` | HTTP port of the app |
+| `ORIGIN` | only behind a reverse proxy with TLS termination | — | Public URL (e.g. `https://kabai.example.com`); without it, upload requests (attachments) get rejected with 403 (SvelteKit CSRF origin check) |
 
 ## Architecture
 

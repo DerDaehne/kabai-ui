@@ -223,6 +223,15 @@ databases are baselined automatically (see section 7); if the automatic
 detection ever misjudges your schema, override it once with
 `--baseline VN`, then start again.
 
+**Image upload fails with "403" (attachments, ticket images)**
+
+Only happens behind a reverse proxy that terminates TLS (nginx, Caddy,
+Traefik, …). SvelteKit's CSRF protection compares the browser's `Origin`
+header against the app's own origin for file-upload requests; without
+help, the app doesn't know it's being served as `https://your-domain`
+and rejects the upload. Fix: set `ORIGIN=https://your-domain` in `.env`
+(see `.env.example`) and restart (`docker compose up -d`).
+
 **Port 3000 is already in use**
 
 Change `KABAI_PORT` in `.env` to a free port (e.g. `3001`), then `docker compose up -d`.
