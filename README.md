@@ -47,7 +47,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-This pulls the published image from `codeberg.org/danszek/kabai-ui` — no local build needed.
+This pulls the published image from `ghcr.io/derdaehne/kabai-ui` — no local build needed.
 
 The app runs at **http://localhost:3000**.  
 Log in with the PostgreSQL credentials set in `.env` (`KABAI_DB_USER` / `KABAI_DB_PASSWORD`).
@@ -149,7 +149,7 @@ user checkout. Details: knowledge-base note `concept-kabai-ui-migrations-sync`.
 ## Releases
 
 Container images are built and published automatically on every tag push to
-`codeberg.org/danszek/kabai-ui`; `docker-compose.yml` runs this image
+`ghcr.io/derdaehne/kabai-ui`; `docker-compose.yml` runs this image
 (`:latest`). Details and release criteria: [RELEASING.md](./RELEASING.md).
 
 ## License

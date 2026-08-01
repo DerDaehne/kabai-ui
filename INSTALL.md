@@ -65,7 +65,7 @@ docker compose up -d
 Docker Compose starts:
 
 1. **`postgres`** — PostgreSQL 16; creates the database on first start.
-2. **`kabai-ui`** — pulls the published image (`codeberg.org/danszek/kabai-ui:latest`) and starts the app once PostgreSQL is ready. On startup the app first applies all pending schema migrations (baked into the image, tracked in the `schema_migrations` table — re-runs are no-ops), then starts the server.
+2. **`kabai-ui`** — pulls the published image (`ghcr.io/derdaehne/kabai-ui:latest`) and starts the app once PostgreSQL is ready. On startup the app first applies all pending schema migrations (baked into the image, tracked in the `schema_migrations` table — re-runs are no-ops), then starts the server.
 
 Watch the logs:
 

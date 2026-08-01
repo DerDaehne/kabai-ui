@@ -2,8 +2,8 @@
 
 A release is created exclusively by pushing a git tag in the format
 `vMAJOR.MINOR.PATCH` (e.g. `v1.2.0`) to `main`. This triggers
-`.forgejo/workflows/release.yml`, which builds an OCI image (via kaniko,
-daemon-less) and publishes it to `codeberg.org/danszek/kabai-ui:<version>`
+`.github/workflows/release.yml`, which builds a Docker image on a
+GitHub-hosted runner and publishes it to `ghcr.io/derdaehne/kabai-ui:<version>`
 and `:latest`.
 
 ```bash
@@ -45,7 +45,15 @@ Based on SemVer:
 
 ## Prerequisite (one-time, by a human)
 
-The repo secret `CODEBERG_TOKEN` must be set: a Codeberg personal access
-token with the `write:package` scope. Without this secret the pipeline's
-login step fails — no agent can set this up itself, as it requires access to
-the Codeberg repo settings.
+No secret needs to be set up — the workflow authenticates to GHCR with the
+automatically provided `GITHUB_TOKEN` (`permissions: packages: write` in the
+workflow is enough). The one manual step: after the *first* successful
+release, the `kabai-ui` package on GHCR is created **private** by default —
+switch it to public once in the package's own settings
+(https://github.com/users/DerDaehne/packages/container/kabai-ui/settings), or
+`docker pull` will fail for anyone without registry credentials. No agent
+can do this itself; it's an account-level setting, not a repo one.
+
+Runner: currently a GitHub-hosted `ubuntu-latest` runner (has Docker
+preinstalled, no daemon setup needed). A self-hosted runner is planned for
+later but out of scope for now.

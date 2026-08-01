@@ -26,7 +26,7 @@ services:
   # for databases that predate the runner:
   #   docker compose run --rm kabai-ui node scripts/migrate.mjs --baseline V6
   kabai-ui:
-    image: codeberg.org/danszek/kabai-ui:latest
+    image: ghcr.io/derdaehne/kabai-ui:latest
     # To build from the local checkout instead (development), replace the
     # image line with:
     #   build:
