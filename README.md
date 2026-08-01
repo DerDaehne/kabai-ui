@@ -162,6 +162,11 @@ you distribute modified versions, embed the code in your own product, or
 let users interact with a modified kabai-ui over a network, the AGPL
 requires you to release that work under the AGPL as well.
 
+`LICENSE` also carries an additional term (GPLv3 §7(b), explicitly
+permitted by the AGPL): forks and modified versions must keep a visible
+attribution back to this original project, both in the source and
+somewhere reasonably visible in the running app itself.
+
 - **Using kabai-ui commercially?** I'd appreciate it if you let me know by
   [opening an issue](https://github.com/DerDaehne/kabai-ui/issues) — a
   friendly request, not a license condition.

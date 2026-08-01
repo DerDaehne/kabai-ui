@@ -659,3 +659,27 @@ specific requirements.
 if any, to sign a "copyright disclaimer" for the program, if necessary.
 For more information on this, and how to apply and follow the GNU AGPL, see
 <https://www.gnu.org/licenses/>.
+
+                    ADDITIONAL TERMS (AGPLv3 Section 13 / GPLv3 Section 7(b))
+
+In addition to the terms of the GNU Affero General Public License v3.0
+above, the following additional term applies pursuant to Section 7(b) of
+the GNU General Public License v3.0 (incorporated by reference via
+AGPLv3 Section 13):
+
+If you convey a modified version of this Program, or convey a work
+based on this Program, or make it available to users over a network
+(Section 13), you must retain, and must not remove, obscure, or alter,
+notices identifying the original project ("kabai-ui") and its original
+author (DerDaehne, https://github.com/DerDaehne/kabai-ui) in:
+
+  a) the source code files that carry such a notice; and
+
+  b) any user-facing interface of the conveyed or network-accessible
+  work (e.g. an "About" page, footer, or settings screen) that is
+  reasonably capable of displaying such notices, in a location and
+  manner at least as prominent as comparable notices you display for
+  yourself or your organization.
+
+This requirement applies regardless of how extensively the Program has
+been modified.
