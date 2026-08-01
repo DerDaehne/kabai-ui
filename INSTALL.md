@@ -225,12 +225,15 @@ detection ever misjudges your schema, override it once with
 
 **Image upload fails with "403" (attachments, ticket images)**
 
-Only happens behind a reverse proxy that terminates TLS (nginx, Caddy,
-Traefik, …). SvelteKit's CSRF protection compares the browser's `Origin`
-header against the app's own origin for file-upload requests; without
-help, the app doesn't know it's being served as `https://your-domain`
-and rejects the upload. Fix: set `ORIGIN=https://your-domain` in `.env`
-(see `.env.example`) and restart (`docker compose up -d`).
+SvelteKit's CSRF protection compares the browser's `Origin` header
+against the app's own computed origin for file-upload requests.
+Without `ORIGIN` set, `adapter-node` *guesses* its own origin as
+`https://<Host header>` — even if the app is plain HTTP with no
+reverse proxy at all (e.g. accessed over a VPN-internal hostname via
+`http://`). That guess then doesn't match the browser's real
+`http://` origin, and the upload is rejected. Fix: set `ORIGIN` in
+`.env` to exactly the URL you type into the browser — scheme, host,
+and port (see `.env.example`) — then restart (`docker compose up -d`).
 
 **Port 3000 is already in use**
 

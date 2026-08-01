@@ -50,8 +50,9 @@ services:
       KABAI_DB_PASSWORD: ${KABAI_DB_PASSWORD:?KABAI_DB_PASSWORD is required}
       KABAI_SESSION_SECRET: ${KABAI_SESSION_SECRET:?KABAI_SESSION_SECRET is required}
       KABAI_SESSION_TTL_MINUTES: ${KABAI_SESSION_TTL_MINUTES:-480}
-      # Only needed behind a reverse proxy with TLS termination — see
-      # ORIGIN in .env.example / INSTALL.md section 10 (upload 403s).
+      # Without this, adapter-node guesses "https://<Host>" for its own
+      # origin — wrong for plain-http setups, causing upload 403s. See
+      # ORIGIN in .env.example / INSTALL.md section 10.
       ORIGIN: ${ORIGIN:-}
     ports:
       - "${KABAI_PORT:-3000}:3000"
