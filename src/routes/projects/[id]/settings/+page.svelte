@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { fly } from 'svelte/transition';
@@ -10,6 +10,7 @@
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import BannerConfirm from '$components/ui/BannerConfirm.svelte';
+	import { paletteActions } from '$lib/stores/commandPalette';
 
 	$: id = $page.params.id;
 
@@ -81,6 +82,17 @@
 	}
 
 	onMount(fetchProject);
+
+	// Ticket #543: "Projekt löschen" öffnet nur den bestehenden Bestätigungs-Dialog,
+	// kein One-Keystroke-Delete.
+	onMount(() => {
+		paletteActions.set([
+			{ id: 'delete-project', label: 'Projekt löschen', run: handleDelete }
+		]);
+	});
+	onDestroy(() => {
+		paletteActions.set([]);
+	});
 </script>
 
 <div class="w-full max-w-2xl">

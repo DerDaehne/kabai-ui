@@ -75,6 +75,9 @@
 			});
 		}
 		actions.push({ id: 'manage-statuses', label: 'Spalten verwalten', run: () => (showStatuses = true) });
+		actions.push({ id: 'open-inbox', label: 'Inbox öffnen', run: () => (showInbox = true) });
+		actions.push({ id: 'show-workflow', label: 'Workflow anzeigen', run: () => (showWorkflow = true) });
+		actions.push({ id: 'project-settings', label: 'Projekt-Einstellungen', run: () => goto(`/projects/${id}/settings`) });
 		paletteActions.set(actions);
 	}
 

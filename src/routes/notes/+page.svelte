@@ -11,7 +11,7 @@
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
 	import EmptyState from '$components/ui/EmptyState.svelte';
 	import { formatDate } from '$lib/utils/format';
-	import { focusSearchField } from '$lib/stores/commandPalette';
+	import { focusSearchField, paletteActions } from '$lib/stores/commandPalette';
 
 	const PROJECT_FILTER_STORAGE_KEY = 'kabai:notesProjectFilter';
 
@@ -131,14 +131,23 @@
 		searchInputEl?.select();
 	}
 
+	function toggleArchived() {
+		showArchived = !showArchived;
+		fetchNotes();
+	}
+
 	onMount(() => {
 		fetchNotes();
 		fetchProjects();
 		focusSearchField.set(focusSearch);
+		paletteActions.set([
+			{ id: 'toggle-archived', label: 'Archivierte Notes ein-/ausblenden', run: toggleArchived }
+		]);
 	});
 
 	onDestroy(() => {
 		focusSearchField.set(null);
+		paletteActions.set([]);
 	});
 </script>
 

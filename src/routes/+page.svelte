@@ -176,10 +176,17 @@
 		searchBar?.focus();
 	}
 
+	function toggleView() {
+		view = view === 'active' ? 'archived' : 'active';
+	}
+
 	onMount(() => {
 		fetchProjects();
 		focusSearchField.set(focusSearch);
-		paletteActions.set([{ id: 'new-project', label: 'Neues Projekt', run: openNewProjectSheet }]);
+		paletteActions.set([
+			{ id: 'new-project', label: 'Neues Projekt', run: openNewProjectSheet },
+			{ id: 'toggle-view', label: 'Aktiv/Archiviert umschalten', run: toggleView }
+		]);
 	});
 
 	onDestroy(() => {
