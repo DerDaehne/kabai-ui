@@ -106,6 +106,18 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			ORDER BY ta.created_at ASC
 		`;
 
+		// Canvases, die per Ref-Element (V12) auf dieses Ticket verweisen (#539,
+		// Rückrichtung von #528) — nutzt idx_canvas_elements_ref_target
+		const referencedByCanvases = await sql`
+			SELECT DISTINCT c.id AS canvas_id, c.name AS canvas_name
+			FROM canvas_elements ce
+			JOIN canvases c ON c.id = ce.canvas_id
+			WHERE ce.type = 'ref'
+				AND ce.content->>'target_type' = 'ticket'
+				AND ce.content->>'target_id' = ${String(ticketId)}
+			ORDER BY c.name
+		`;
+
 		return json({
 			ok: true,
 			data: {
@@ -143,7 +155,11 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 					relation: row.relation,
 					archived: row.archived
 				})),
-				attachments
+				attachments,
+				referenced_by_canvases: referencedByCanvases.map((row: any) => ({
+					canvas_id: row.canvas_id,
+					canvas_name: row.canvas_name
+				}))
 			}
 		});
 	} catch (error) {

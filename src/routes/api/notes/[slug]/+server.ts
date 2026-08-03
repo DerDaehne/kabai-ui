@@ -52,6 +52,18 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			ORDER BY ntl.relation, ntl.ticket_id
 		`;
 
+		// Canvases, die per Ref-Element (V12) auf diese Note verweisen (#539,
+		// Rückrichtung von #528) — nutzt idx_canvas_elements_ref_target
+		const referencedByCanvases = await sql`
+			SELECT DISTINCT c.id AS canvas_id, c.name AS canvas_name
+			FROM canvas_elements ce
+			JOIN canvases c ON c.id = ce.canvas_id
+			WHERE ce.type = 'ref'
+				AND ce.content->>'target_type' = 'note'
+				AND ce.content->>'target_id' = ${String(note.id)}
+			ORDER BY c.name
+		`;
+
 		const data: NoteDetail = {
 			id: note.id,
 			slug: note.slug,
@@ -79,6 +91,10 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 				relation: tl.relation,
 				ticket_title: tl.ticket_title,
 				project_id: tl.project_id
+			})),
+			referenced_by_canvases: referencedByCanvases.map((row: any) => ({
+				canvas_id: row.canvas_id,
+				canvas_name: row.canvas_name
 			}))
 		};
 

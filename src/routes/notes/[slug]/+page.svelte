@@ -6,7 +6,7 @@
 	import { quintOut } from 'svelte/easing';
 	import {
 		BookOpen, ArrowLeft, Archive, Compass, Link2, ListTree, AlertTriangle,
-		Zap, ShieldCheck, ShieldAlert, ShieldQuestion, Ticket as TicketIcon, Tag as TagIcon
+		Zap, ShieldCheck, ShieldAlert, ShieldQuestion, Ticket as TicketIcon, Tag as TagIcon, Layers
 	} from 'lucide-svelte';
 	import type { NoteDetail, NoteLinkRef } from '$lib/types';
 	import { renderMarkdown } from '$lib/markdown';
@@ -308,6 +308,24 @@
 					>
 						<span class="text-xs font-semibold px-2 py-0.5 rounded-md shrink-0" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-primary); border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);">{relationLabels[tl.relation] ?? tl.relation}</span>
 						<span class="text-sm truncate" style="color: var(--color-text);">#{tl.ticket_id} {tl.ticket_title}</span>
+					</button>
+				{/each}
+			</div>
+		{/if}
+
+		<!-- Referenziert auf Canvas (#539, Rückrichtung von #528) -->
+		{#if note.referenced_by_canvases.length > 0}
+			<div class="rounded-xl p-5 space-y-2 card" in:fly={{ y: 12, duration: 300, delay: 180, easing: quintOut }}>
+				<div class="flex items-center gap-2 mb-2">
+					<Layers class="w-4 h-4" style="color: var(--color-primary);" />
+					<h2 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--color-text-secondary);">Referenziert auf Canvas</h2>
+				</div>
+				{#each note.referenced_by_canvases as cr (cr.canvas_id)}
+					<button
+						onclick={() => goto(`/canvases/${cr.canvas_id}`)}
+						class="flex items-center gap-2 px-3 py-2 rounded-lg text-left w-full card"
+					>
+						<span class="text-sm truncate" style="color: var(--color-text);">{cr.canvas_name}</span>
 					</button>
 				{/each}
 			</div>

@@ -4,7 +4,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
-	import { MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal, Gauge } from 'lucide-svelte';
+	import { MessageSquare, User, Clock, Trash2, Pencil, X, Check, Bot, Cpu, Send, Flag, Plus, BookOpen, Compass, AlertTriangle, Archive, MoreHorizontal, Gauge, Layers } from 'lucide-svelte';
 	import OrbitHighlight from '$components/ui/OrbitHighlight.svelte';
 	import Spinner from '$components/ui/Spinner.svelte';
 	import ErrorBanner from '$components/ui/ErrorBanner.svelte';
@@ -104,7 +104,7 @@
 			const res = await fetch(`/api/tickets/${ticketId}`);
 			const result = await res.json();
 			if (result.ok) {
-				const loaded: TicketDetailed = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [], attachments: result.data.attachments ?? [] };
+				const loaded: TicketDetailed = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [], attachments: result.data.attachments ?? [], referenced_by_canvases: result.data.referenced_by_canvases ?? [] };
 				ticket = loaded;
 				if (loaded.status?.special_type === 'human_intervention') await fetchStatuses();
 				connectStandaloneLiveUpdates(loaded.project_id);
@@ -133,7 +133,7 @@
 			const res = await fetch(`/api/tickets/${ticketId}`);
 			const result = await res.json();
 			if (result.ok) {
-				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [], attachments: result.data.attachments ?? [] };
+				ticket = { ...result.data.ticket, status: result.data.status, tasks: result.data.tasks, comments: result.data.comments, relations: result.data.relations, linked_notes: result.data.linked_notes ?? [], attachments: result.data.attachments ?? [], referenced_by_canvases: result.data.referenced_by_canvases ?? [] };
 				orbitSignal += 1;
 			}
 		} catch { /* still showing the previous state is fine */ }
@@ -818,6 +818,28 @@
 					{:else if !ticket.docs_required}
 						<div class="py-3 text-xs" style="color: var(--text-muted);">Keine Notes verlinkt</div>
 					{/if}
+				</section>
+			{/if}
+
+			<!-- Referenziert auf Canvas (#539, Rückrichtung von #528) -->
+			{#if ticket.referenced_by_canvases.length > 0}
+				<section>
+					<div class="pb-2">
+						<h3 class="section-heading flex items-center gap-2">
+							Referenziert auf Canvas
+							<span class="text-xs font-mono normal-case tracking-normal" style="color: var(--text-muted);">{ticket.referenced_by_canvases.length}</span>
+						</h3>
+					</div>
+					<div class="hairline"></div>
+					<div class="py-2 space-y-1">
+						{#each ticket.referenced_by_canvases as cr (cr.canvas_id)}
+							<a href="/canvases/{cr.canvas_id}"
+								class="flex items-center gap-2 py-1.5 px-2 rounded-lg text-xs transition-all hover:bg-[var(--color-surface-hover)]">
+								<Layers class="w-3.5 h-3.5 shrink-0" style="color: var(--primary);" />
+								<span class="truncate" style="color: var(--text);">{cr.canvas_name}</span>
+							</a>
+						{/each}
+					</div>
 				</section>
 			{/if}
 

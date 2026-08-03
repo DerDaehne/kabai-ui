@@ -112,6 +112,13 @@ export interface TicketLinkedNote {
 	archived: boolean;
 }
 
+// Canvas, der per Ref-Element (V12) auf dieses Ticket/diese Note verweist
+// (Ticket #539 — Rückrichtung von #528, DB-Index existiert bereits)
+export interface CanvasRef {
+	canvas_id: number;
+	canvas_name: string;
+}
+
 export interface TicketDetailed extends Ticket {
 	tasks: TicketTask[];
 	comments: TicketComment[];
@@ -119,6 +126,7 @@ export interface TicketDetailed extends Ticket {
 	relations: TicketRelation[];
 	linked_notes: TicketLinkedNote[];
 	attachments: TicketAttachment[];
+	referenced_by_canvases: CanvasRef[];
 }
 
 export interface TicketTask {
@@ -209,6 +217,7 @@ export interface NoteDetail extends NoteSummary {
 	body: string;
 	links: NoteLinkRef[];
 	ticket_links: NoteTicketLink[];
+	referenced_by_canvases: CanvasRef[];
 }
 
 export interface NotesListResponse {
