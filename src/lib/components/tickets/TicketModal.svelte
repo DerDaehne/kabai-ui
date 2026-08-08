@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { renderMarkdown } from '$lib/markdown';
 	import { fly, slide } from 'svelte/transition';
@@ -148,8 +148,14 @@
 	// Nur im standalone-Modus (Vollseiten-Deep-Link) aktiv — im SidePanel übernimmt
 	// der Host (projects/[id]/+page.svelte) die SSE-Verbindung zentral für alle Tickets.
 	let eventSource: EventSource | null = null;
+	let connectedProjectId: number | null = null;
 	function connectStandaloneLiveUpdates(projectId: number) {
-		if (!standalone || eventSource) return;
+		// Beim Ticket-Wechsel ohne Remount kann das neue Ticket in einem anderen
+		// Projekt liegen (projektübergreifende Relationen) — dann auf dessen
+		// Event-Stream umhängen statt am alten hängen zu bleiben.
+		if (!standalone || connectedProjectId === projectId) return;
+		eventSource?.close();
+		connectedProjectId = projectId;
 		eventSource = new EventSource(`/api/projects/${projectId}/events`);
 		eventSource.onmessage = (event) => {
 			try {
@@ -461,7 +467,36 @@
 	$: tasksTotal = ticket?.tasks.length ?? 0;
 	$: taskProgress = tasksTotal > 0 ? (tasksCompleted / tasksTotal) * 100 : 0;
 
-	onMount(fetchTicket);
+	// GitHub-Issue #1: ticketId kann sich ändern, ohne dass die Komponente neu
+	// montiert wird — auf /tickets/[id] bei einem Klick auf ein verlinktes Ticket
+	// (gleiche Route, nur anderer Param) und im SidePanel beim Wechsel auf eine
+	// andere Karte. onMount lief dann nicht erneut und die Ansicht blieb auf dem
+	// alten Ticket stehen, obwohl die URL schon die neue ID zeigte. Daher reaktiv
+	// auf ticketId laden und den Zustand des vorigen Tickets verwerfen.
+	let loadedTicketId: number | null = null;
+	$: if (ticketId !== loadedTicketId) {
+		loadedTicketId = ticketId;
+		resetForTicketChange();
+		fetchTicket();
+	}
+
+	function resetForTicketChange() {
+		ticket = null;
+		statuses = [];
+		error = '';
+		isEditing = false;
+		isSaving = false;
+		isReturning = false;
+		showAddRelation = false;
+		projectTickets = [];
+		relationTargetId = null;
+		relationType = 'relates_to';
+		newCommentText = '';
+		newTaskTitle = '';
+		showActionsMenu = false;
+		pendingDeleteTicket = false;
+		lastSeenSeq = -1;
+	}
 </script>
 
 <svelte:window on:keydown|capture={handleMenuWindowKeydown} on:click={handleMenuOutsideClick} on:paste={handleWindowPaste} />
