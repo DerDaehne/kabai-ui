@@ -75,7 +75,7 @@
   "svelte": "./src/routes/+layout.svelte",
   "types": "./src/index.d.ts",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.23.4"
   },
   "keywords": [
     "svelte",
