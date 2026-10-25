@@ -2,7 +2,7 @@
   description = "Kabai UI - Browser-basierter Kanban-Client für kabai";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/93a8dce336794508dfef9316f3a4575790faa591"; # pinned master rev: nodejs_22 >= 22.23.4 (CVE-2026-111497); nixos-24.05 is too old
     flake-utils.url = "github:numtide/flake-utils";
   };
 
